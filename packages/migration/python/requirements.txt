@@ -1,0 +1,34 @@
+# Database drivers
+psycopg2-binary==2.9.9
+neo4j==5.15.0
+
+# GraphQL client for Hasura
+gql==3.4.1
+aiohttp==3.9.1
+requests==2.31.0
+
+# Data processing
+pandas==2.1.4
+numpy==1.25.2
+
+# CSV handling
+csvkit==1.5.0
+
+# Configuration and environment
+python-dotenv==1.0.0
+pydantic==2.5.2
+pydantic-settings==2.1.0
+
+# CLI utilities
+click==8.1.7
+rich==13.7.0
+tqdm==4.66.1
+
+# Logging and monitoring
+structlog==23.2.0
+
+# JSON schema validation
+jsonschema==4.20.0
+
+# Date/time utilities
+python-dateutil==2.8.2

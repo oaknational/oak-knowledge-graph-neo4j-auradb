@@ -1,0 +1,152 @@
+{
+  "endpoint": "https://test-cricket-894.hasura.app/v1/graphql",
+  "analyzed_at": "2025-09-04T11:24:44.729622",
+  "base_tables": [
+    {
+      "name": "assets",
+      "fields": [
+        {
+          "name": "_cohort",
+          "type": "String",
+          "is_nullable": false,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "_deleted",
+          "type": "Boolean",
+          "is_nullable": false,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "_release_id",
+          "type": "Int",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "_state",
+          "type": "String",
+          "is_nullable": false,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "asset_id",
+          "type": "Int",
+          "is_nullable": false,
+          "is_foreign_key": true,
+          "references_table": "assets",
+          "references_field": "id"
+        },
+        {
+          "name": "asset_object",
+          "type": "jsonb",
+          "is_nullable": false,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "asset_type",
+          "type": "String",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "asset_uid",
+          "type": "bpchar",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "created_at",
+          "type": "timestamptz",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "deprecated_fields",
+          "type": "jsonb",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "description",
+          "type": "String",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "title",
+          "type": "String",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "tpc_media_ids",
+          "type": "jsonb",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "tpc_works_ids",
+          "type": "jsonb",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamptz",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        },
+        {
+          "name": "url",
+          "type": "String",
+          "is_nullable": true,
+          "is_foreign_key": false,
+          "references_table": null,
+          "references_field": null
+        }
+      ],
+      "estimated_rows": 83397,
+      "relationships": []
+    }
+  ],
+  "relationships": [],
+  "summary": {
+    "total_base_tables": 1,
+    "tables_with_data": 1,
+    "total_estimated_rows": 83397,
+    "total_relationships": 0,
+    "largest_tables": [
+      ["assets", 83397]
+    ],
+    "most_connected_tables": []
+  }
+}

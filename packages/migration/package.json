@@ -1,0 +1,27 @@
+{
+  "name": "@oak/migration",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Curriculum data migration from PostgreSQL to Neo4j using Python",
+  "scripts": {
+    "migration:analyze-postgres": "cd python && python3 -m migration.analyze_postgres_schema",
+    "migration:discover-base-tables": "cd python && python3 discover_base_schema.py",
+    "migration:extract": "cd python && python3 -m migration.extract_curriculum_data",
+    "migration:transform": "cd python && python3 -m migration.transform_data",
+    "migration:load": "cd python && python3 -m migration.load_to_neo4j",
+    "migration:validate": "cd python && python3 -m migration.validate_migration",
+    "migration:full": "npm run migration:extract && npm run migration:transform && npm run migration:load && npm run migration:validate",
+    "migration:rollback": "cd python && python3 -m migration.rollback_migration",
+    "python:install": "cd python && pip3 install -r requirements.txt",
+    "python:install-dev": "cd python && pip3 install -r requirements-dev.txt",
+    "python:test": "cd python && pytest",
+    "python:lint": "cd python && pylint migration/",
+    "python:format": "cd python && black migration/ tests/",
+    "python:typecheck": "cd python && mypy migration/"
+  },
+  "engines": {
+    "node": ">=20.9.0",
+    "pnpm": ">=8.0.0",
+    "python": ">=3.11.0"
+  }
+}
