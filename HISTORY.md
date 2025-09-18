@@ -162,9 +162,26 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - Cleaned config directory, removing outdated templates
 - Maintained professional file organization with only production components
 
+### ✅ Task 10: Main Pipeline Class (Phase 3)
+**Implementation Details:**
+- Created `pipeline/pipeline.py`: Pipeline class with complete orchestration of 6-stage data flow
+- **Component Orchestration**: Manages entire pipeline per CLAUDE.md requirements (ConfigManager → HasuraExtractor → DataValidator → SchemaMapper → CSVTransformer → Neo4jLoader/AuraDBLoader)
+- **Dependency Injection**: All pipeline components properly injected using Strategy + Factory patterns
+- **Progress Reporting**: PipelineProgress dataclass with callback system, 7 distinct stages, real-time feedback
+- **Error Recovery**: PipelineError class with fail-fast strategy, stage context, actionable error messages
+- **Execution Methods**: `run_full_pipeline()`, `run_partial_pipeline()`, individual stage methods, state tracking
+
+**Quality Gates:** ✅ Passes black/flake8, integration tested, error handling verified, progress reporting validated
+
+**Key Features:**
+- Complete end-to-end pipeline orchestration with flexible execution (full/partial)
+- Production-ready with both Neo4j admin commands and direct AuraDB imports
+- Comprehensive state management and data lineage tracking
+- Stage-specific error handling with debugging context
+
 ## Current State
-**Completed:** Task 9 - Neo4j Loader complete with production database validation
-**Pipeline Status:** Full end-to-end pipeline from extraction → transformation → Neo4j import ready for Task 10 integration
+**Completed:** Task 10 - Main Pipeline Class complete with full orchestration
+**Pipeline Status:** Complete end-to-end pipeline ready for CLI and Streamlit interfaces (Task 12-13)
 
 ### Environment Configuration
 - **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
@@ -194,4 +211,4 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 
 ## Critical Path Progress
 Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 13 → 15 → 18
-**Status: 9/18 complete (50%)**
+**Status: 10/18 complete (56%)**
