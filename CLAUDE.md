@@ -11,7 +11,7 @@ python main.py --help           # CLI interface
 
 ### Style (Enforced)
 - **Format:** `black .` (no exceptions)
-- **Lint:** `flake8` (must pass)
+- **Lint:** `flake8` (must pass) - configured for 88-char line length in `.flake8`
 - **Naming:** `snake_case` functions/vars, `PascalCase` classes
 - **Docstrings:** Minimal, only where code intent unclear
 
