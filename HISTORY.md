@@ -179,9 +179,32 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - Comprehensive state management and data lineage tracking
 - Stage-specific error handling with debugging context
 
+### ✅ Task 11: Logging and Utilities (Phase 3)
+**Implementation Details:**
+- Created `utils/logging.py`: PipelineLogger class with console and optional file logging
+- **Console Logging**: Consistent formatting with timestamps, component names, log levels
+- **File Logging**: Optional via `LOG_FILE` environment variable, enhanced formatting with function/line details
+- **Pipeline Functions**: `log_pipeline_stage()`, `log_data_operation()`, `log_error_with_context()`
+- **Environment Integration**: `LOG_LEVEL` and `LOG_FILE` environment variables
+- Created `utils/helpers.py`: 13 shared utility functions for pipeline operations
+- **File Operations**: `safe_filename()`, `ensure_directory_exists()`, `get_file_info()`
+- **Configuration**: `load_json_with_env_substitution()` for `${VAR_NAME}` environment variable replacement
+- **Neo4j Utilities**: `generate_unique_id()`, `validate_neo4j_identifier()`
+- **Data Processing**: `chunk_list()`, `create_data_summary()`, `sanitize_dict_for_logging()`
+- **Environment Management**: `validate_required_env_vars()`
+- **Formatting**: `format_file_size()`, `format_duration()`
+
+**Quality Gates:** ✅ Passes `black --check` and `flake8`, all imports successful, consistent with CLAUDE.md standards
+
+**Key Features:**
+- Error context logging with identifiers per CLAUDE.md requirements (view names, field names)
+- Environment variable validation and substitution throughout pipeline
+- Production-ready logging infrastructure for CLI and Streamlit interfaces
+- Memory-efficient data processing utilities for large datasets
+
 ## Current State
-**Completed:** Task 10 - Main Pipeline Class complete with full orchestration
-**Pipeline Status:** Complete end-to-end pipeline ready for CLI and Streamlit interfaces (Task 12-13)
+**Completed:** Task 11 - Logging and Utilities complete with comprehensive infrastructure
+**Pipeline Status:** Core pipeline complete, ready for CLI and Streamlit interfaces (Tasks 12-13)
 
 ### Environment Configuration
 - **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
@@ -207,8 +230,9 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - **Active Schema:** `oak_curriculum_schema_v0.1.0-alpha.json` with comprehensive node/relationship mappings
 - **Python Environment:** Python 3.10 required for Neo4j driver compatibility (documented in `environment.yaml`)
 - **Database Credentials:** Neo4j AuraDB connection tested and validated
-- **Utils Organization:** Database utilities moved to `utils/database_utils.py`
+- **Utils Organization:** Complete utilities package with logging, helpers, database_utils
+- **Optional Logging:** `LOG_LEVEL` and `LOG_FILE` environment variables for enhanced debugging
 
 ## Critical Path Progress
-Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 13 → 15 → 18
-**Status: 10/18 complete (56%)**
+Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 13 → 15 → 18
+**Status: 11/18 complete (61%)**

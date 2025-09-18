@@ -49,6 +49,10 @@ python-dotenv>=1.0.0  # Environment management
 - **Environment:** `HASURA_API_KEY`, `OAK_AUTH_TYPE`, `HASURA_ENDPOINT`
 - **No Standard Auth:** Do not use `x-hasura-admin-secret` or JWT Bearer tokens
 
+### Logging Configuration (Optional)
+- **Environment:** `LOG_LEVEL` (DEBUG, INFO, WARNING, ERROR, CRITICAL), `LOG_FILE` (file path for optional file logging)
+- **Default:** Console logging at INFO level, file logging disabled
+
 ### Testing Requirements
 - **Scope:** Unit tests for pipeline classes only
 - **Framework:** pytest

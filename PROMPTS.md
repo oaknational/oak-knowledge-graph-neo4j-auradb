@@ -89,7 +89,7 @@ During implementation, there are a number of prompts you can use at the start of
 
 Then refresh your memory by checking `HISTORY.md`. Review the `ARCHITECTURE.md` and `FUNCTIONAL.md` to understand what we are building.
 
-We are working through `TO-DO.md` and are on task 7.
+We are working through `TO-DO.md` and are on task 11.
 
 **Before implementing anything:**
 
@@ -105,13 +105,17 @@ As you implement, explain:
 
 Now, here is the next task to complete:
 
-### Task 7: Schema Mapper
-**Description:** Implement field mapping and transformation logic
+# Phase 3: Pipeline Orchestration
+
+### Task 11: Logging and Utilities
+**Description:** Implement logging and shared utilities
 **Deliverables:**
-- `pipeline/mappers.py` - SchemaMapper class
-- Field transformation rules (rename, type conversion)
-- Node ID generation for relationships
-- Data lineage tracking
+- `utils/logging.py` - Logging configuration
+- `utils/helpers.py` - Shared utility functions
+- Console and optional file logging
+
+**Dependencies:** Task 1
+**Definition of Done:** Consistent logging across components, utilities available
 
 ```
 
