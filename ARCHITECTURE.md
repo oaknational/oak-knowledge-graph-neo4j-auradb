@@ -4,7 +4,7 @@
 
 | Component | Technology | Rationale |
 |-----------|------------|-----------|
-| Language | Python 3.8+ | Existing codebase, excellent data processing libraries |
+| Language | Python 3.10+ | Neo4j driver routing compatibility, excellent data processing libraries |
 | Data Processing | pandas | Efficient CSV manipulation and data transformation |
 | API Client | requests | Simple HTTP client for Hasura GraphQL calls |
 | Data Validation | Pydantic | Type safety, automatic validation, JSON schema generation |
@@ -12,6 +12,8 @@
 | Package Manager | pip + requirements.txt | Simple, widely supported, minimal overhead |
 | Code Quality | Black + flake8 | Standard Python formatting and linting |
 | Testing | pytest | Industry standard, simple unit testing |
+| Database Driver | neo4j>=5.0.0 | Official Neo4j Python driver for AuraDB |
+| Environment | python-dotenv | Secure credential management |
 
 ## System Architecture
 
@@ -29,7 +31,8 @@ Pipeline (Orchestrator)
 ├── SchemaMapper (Field mapping logic)
 ├── DataValidator (Pydantic model validation)
 ├── CSVTransformer (Neo4j format conversion)
-└── Neo4jLoader (Import file generation)
+├── Neo4jLoader (Import file generation)
+└── AuraDBLoader (Direct database operations)
 ```
 
 ### Component Responsibilities
@@ -77,6 +80,13 @@ Pipeline (Orchestrator)
 - Provides import statistics and validation
 - Creates import directory structure
 
+#### AuraDBLoader
+- Direct database operations with Neo4j driver
+- UNWIND batch queries for high-performance import (1000 records/batch)
+- Configurable database clearing for development workflows
+- Real-time import statistics and error reporting
+- Production-ready for thousands of curriculum records
+
 ## Data Flow Architecture
 
 ```
@@ -91,6 +101,8 @@ Validated Data + Config → SchemaMapper → Mapped Data
 Mapped Data → CSVTransformer → Neo4j CSVs
                 ↓
 Neo4j CSVs → Neo4jLoader → Import Commands
+                ↓
+         OR → AuraDBLoader → Direct Database Import
 ```
 
 ## File Structure

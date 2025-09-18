@@ -17,9 +17,10 @@ python main.py --help           # CLI interface
 
 ### Architecture (Required)
 - **Patterns:** Strategy + Factory for extractors/transformers
-- **Classes:** Pipeline, ConfigManager, HasuraExtractor, SchemaMapper, CSVTransformer, Neo4jLoader, DataValidator
+- **Classes:** Pipeline, ConfigManager, HasuraExtractor, SchemaMapper, CSVTransformer, Neo4jLoader, AuraDBLoader, DataValidator
 - **Models:** Pydantic for all data validation and configuration
 - **Structure:** See ARCHITECTURE.md file structure
+- **Environment:** Python 3.10+ required for Neo4j driver routing compatibility
 
 ### Dependencies (Locked)
 ```txt
@@ -30,6 +31,8 @@ streamlit>=1.25.0  # Web interface
 black>=22.0.0      # Code formatting
 flake8>=5.0.0      # Linting
 pytest>=7.0.0      # Unit testing
+neo4j>=5.0.0       # Database driver
+python-dotenv>=1.0.0  # Environment management
 ```
 
 ## Development Rules
@@ -64,10 +67,11 @@ tests/        # Unit tests only
 ```
 
 ### Configuration
-- **Format:** JSON files in `/config`
+- **Format:** JSON files in `/config` with SemVer versioning
 - **Validation:** Pydantic models enforce schema
 - **Security:** Environment variables for credentials
-- **Example:** See `config/schema_template.json`
+- **Active Schema:** `oak_curriculum_schema_v0.1.0-alpha.json`
+- **Versioning:** Professional SemVer 2.0.0 with MVP pre-release strategy
 
 ## Commit Standards
 - **Format:** Conventional commits
@@ -84,7 +88,7 @@ tests/        # Unit tests only
 3. DataValidator applies Pydantic models → validates structure
 4. SchemaMapper applies config transformations → mapped data
 5. CSVTransformer generates Neo4j format → typed CSV files
-6. Neo4jLoader creates import commands → ready for neo4j-admin
+6. Neo4jLoader/AuraDBLoader imports to Neo4j → production database ready
 
 ### CSV Requirements (Neo4j Compliance)
 - **Node files:** Must include `:ID` column and `:LABEL`
@@ -121,7 +125,13 @@ class NodeMapping(BaseModel):
 3. `pytest tests/`
 4. Manual validation: sample CSV imports into Neo4j
 
+### Performance Standards
+- **Database Operations:** UNWIND batch queries (1000 records/batch)
+- **Scalability:** Production-ready for thousands of curriculum records
+- **Memory:** Batch processing to handle large datasets efficiently
+
 ## Reference Files
 - **Functional requirements:** FUNCTIONAL.md
 - **Architecture details:** ARCHITECTURE.md
-- **Sample configuration:** config/schema_template.json
+- **Active configuration:** `config/oak_curriculum_schema_v0.1.0-alpha.json`
+- **Version history:** `config/config_versions.md`

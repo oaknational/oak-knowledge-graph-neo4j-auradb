@@ -27,3 +27,4 @@ class PipelineConfig(BaseModel):
     node_mappings: List[NodeMapping]
     relationship_mappings: List[RelationshipMapping]
     test_limit: Optional[int] = None
+    clear_database_before_import: bool = False
