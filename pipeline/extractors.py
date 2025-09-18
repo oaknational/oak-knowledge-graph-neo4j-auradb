@@ -13,10 +13,13 @@ class ExtractionStrategy(ABC):
 
 
 class HasuraExtractor(ExtractionStrategy):
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str = None, auth_type: str = None):
         self.api_key = api_key or os.getenv("HASURA_API_KEY")
+        self.auth_type = auth_type or os.getenv("OAK_AUTH_TYPE")
         if not self.api_key:
             raise ValueError("Hasura API key required")
+        if not self.auth_type:
+            raise ValueError("Oak auth type required")
 
     def extract(self, config: PipelineConfig) -> List[Dict]:
         all_data = []
@@ -41,7 +44,8 @@ class HasuraExtractor(ExtractionStrategy):
 
         headers = {
             "Content-Type": "application/json",
-            "x-hasura-admin-secret": self.api_key,
+            "x-oak-auth-key": self.api_key,
+            "x-oak-auth-type": self.auth_type,
         }
 
         payload = {"query": query}

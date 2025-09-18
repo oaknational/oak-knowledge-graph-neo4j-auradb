@@ -41,6 +41,11 @@ pytest>=7.0.0      # Unit testing
 - **Validation:** Pydantic models catch data issues early
 - **Context:** Always include relevant identifiers (view names, field names) in error messages
 
+### Oak Authentication (Required)
+- **Headers:** `x-oak-auth-key` + `x-oak-auth-type: oak-admin`
+- **Environment:** `HASURA_API_KEY`, `OAK_AUTH_TYPE`, `HASURA_ENDPOINT`
+- **No Standard Auth:** Do not use `x-hasura-admin-secret` or JWT Bearer tokens
+
 ### Testing Requirements
 - **Scope:** Unit tests for pipeline classes only
 - **Framework:** pytest
@@ -75,7 +80,7 @@ tests/        # Unit tests only
 
 ### Data Flow (Mandatory)
 1. ConfigManager loads JSON → validates with Pydantic
-2. HasuraExtractor queries API → returns raw dict data
+2. HasuraExtractor queries Oak API → returns raw dict data
 3. DataValidator applies Pydantic models → validates structure
 4. SchemaMapper applies config transformations → mapped data
 5. CSVTransformer generates Neo4j format → typed CSV files

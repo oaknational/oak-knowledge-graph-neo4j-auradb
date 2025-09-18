@@ -47,9 +47,9 @@ Pipeline (Orchestrator)
 - Validates mapping completeness
 
 #### HasuraExtractor
-- Connects to Hasura GraphQL endpoint
+- Connects to Oak Hasura GraphQL endpoint
+- Uses Oak authentication (x-oak-auth-key + x-oak-auth-type)
 - Executes parameterized queries based on config
-- Handles authentication and retries
 - Returns structured data for validation
 
 #### SchemaMapper
