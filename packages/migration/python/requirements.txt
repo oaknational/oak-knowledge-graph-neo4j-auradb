@@ -4,7 +4,7 @@ neo4j==5.15.0
 
 # GraphQL client for Hasura
 gql==3.4.1
-aiohttp==3.9.1
+aiohttp==3.12.14
 requests==2.31.0
 
 # Data processing
