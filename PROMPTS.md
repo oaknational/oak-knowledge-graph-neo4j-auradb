@@ -89,7 +89,7 @@ During implementation, there are a number of prompts you can use at the start of
 
 Then refresh your memory by checking `HISTORY.md`. Review the `ARCHITECTURE.md` and `FUNCTIONAL.md` to understand what we are building.
 
-We are working through `TO-DO.md` and are on task [`TASK_NUMBER`].
+We are working through `TO-DO.md` and are on task 4.
 
 **Before implementing anything:**
 
@@ -103,7 +103,18 @@ As you implement, explain:
 - How it aligns with our `ARCHITECTURE.md`
 - Why it complies with our standards in `CLAUDE.md`
 
-Now, [THIS IS WHERE YOU CAN TYPE YOUR PROMPT...]
+Now, here is the next task to complete:
+
+#### Task 4: Base Strategy Classes
+**Description:** Create abstract base classes for Strategy pattern
+**Deliverables:**
+- `pipeline/extractors.py` - ExtractionStrategy abstract base class
+- `pipeline/transformers.py` - TransformationStrategy abstract base class
+- Factory pattern implementation for component creation
+
+**Dependencies:** Task 2, Task 3
+**Definition of Done:** Abstract classes defined, factory pattern working
+
 ```
 
 ### DEPENDENCY CHECK
