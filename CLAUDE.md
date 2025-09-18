@@ -121,6 +121,7 @@ class NodeMapping(BaseModel):
 - **Layout:** Config editor (top) → Preview (middle) → Execute (bottom)
 - **No tabs:** Everything on one page for simplicity
 - **File:** `streamlit_app.py` in root
+- **Environment Loading:** Must call `load_dotenv()` to read `.env` file
 - **Local only:** No deployment configuration needed
 
 ## Quality Gates (Must Pass)
