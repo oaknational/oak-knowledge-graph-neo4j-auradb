@@ -22,7 +22,7 @@ pydantic-settings==2.1.0
 # CLI utilities
 click==8.1.7
 rich==13.7.0
-tqdm==4.66.1
+tqdm==4.66.3
 
 # Logging and monitoring
 structlog==23.2.0
