@@ -89,7 +89,7 @@ During implementation, there are a number of prompts you can use at the start of
 
 Then refresh your memory by checking `HISTORY.md`. Review the `ARCHITECTURE.md` and `FUNCTIONAL.md` to understand what we are building.
 
-We are working through `TO-DO.md` and are on task 5.
+We are working through `TO-DO.md` and are on task 7.
 
 **Before implementing anything:**
 
@@ -105,16 +105,13 @@ As you implement, explain:
 
 Now, here is the next task to complete:
 
-### Task 5: Hasura Extractor
-**Description:** Implement Hasura GraphQL API client
+### Task 7: Schema Mapper
+**Description:** Implement field mapping and transformation logic
 **Deliverables:**
-- HasuraExtractor class in `pipeline/extractors.py`
-- GraphQL query generation from configuration
-- Authentication and error handling
-- Mock API responses in `tests/fixtures/`
-
-**Dependencies:** Task 4
-**Definition of Done:** Can query Hasura API, handles errors gracefully, unit tests pass
+- `pipeline/mappers.py` - SchemaMapper class
+- Field transformation rules (rename, type conversion)
+- Node ID generation for relationships
+- Data lineage tracking
 
 ```
 

@@ -101,11 +101,27 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - Validates data quality before transformation step
 - Fail-fast validation with clear error context (view names, record indices, field names)
 - Supports all data types in pipeline (Hasura responses, nodes, relationships)
-- Ready for integration with Schema Mapper (Task 7)
+
+### ✅ Task 7: Schema Mapper (Phase 2)
+**Implementation Details:**
+- Created `pipeline/mappers.py`: SchemaMapper class with field mapping and transformation logic
+- **Field Transformation Engine**: 6+ transformation types (uppercase, lowercase, strip, prefix, suffix, custom)
+- **Node ID Generation**: UUID-based unique IDs for relationships with consistency guarantees
+- **Data Lineage Tracking**: Complete audit trail via DataLineage class for all transformations and ID mappings
+- **Type Conversion**: Robust string, int, float, boolean conversions with error handling
+- **Comprehensive Testing**: 15 unit tests with 100% pass rate covering all functionality
+
+**Quality Gates:** ✅ All tests pass, black formatted, ready for CSVTransformer integration
+
+**Key Features:**
+- Applies JSON configuration mappings to transform Hasura MV data
+- Generates throwaway UUIDs for Neo4j import (removed after import as per CLAUDE.md)
+- Maintains field transformation audit trail for debugging and validation
+- Handles large datasets efficiently with pandas DataFrame operations
 
 ## Current State
-**Next Task:** Task 7 - Schema Mapper (Phase 2)
-**Pipeline Status:** Data extraction + validation pipeline complete, ready for transformation
+**Next Task:** Task 8 - CSV Transformer (Phase 2)
+**Pipeline Status:** Data extraction + validation + mapping pipeline complete, ready for CSV generation
 
 ### Environment Configuration
 - **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
@@ -129,4 +145,4 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 
 ## Critical Path Progress
 Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 13 → 15 → 18
-**Status: 6/18 complete (33.3%)**
+**Status: 7/18 complete (38.9%)**
