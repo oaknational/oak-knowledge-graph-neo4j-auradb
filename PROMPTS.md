@@ -89,7 +89,7 @@ During implementation, there are a number of prompts you can use at the start of
 
 Then refresh your memory by checking `HISTORY.md`. Review the `ARCHITECTURE.md` and `FUNCTIONAL.md` to understand what we are building.
 
-We are working through `TO-DO.md` and are on task 4.
+We are working through `TO-DO.md` and are on task 5.
 
 **Before implementing anything:**
 
@@ -105,15 +105,16 @@ As you implement, explain:
 
 Now, here is the next task to complete:
 
-#### Task 4: Base Strategy Classes
-**Description:** Create abstract base classes for Strategy pattern
+### Task 5: Hasura Extractor
+**Description:** Implement Hasura GraphQL API client
 **Deliverables:**
-- `pipeline/extractors.py` - ExtractionStrategy abstract base class
-- `pipeline/transformers.py` - TransformationStrategy abstract base class
-- Factory pattern implementation for component creation
+- HasuraExtractor class in `pipeline/extractors.py`
+- GraphQL query generation from configuration
+- Authentication and error handling
+- Mock API responses in `tests/fixtures/`
 
-**Dependencies:** Task 2, Task 3
-**Definition of Done:** Abstract classes defined, factory pattern working
+**Dependencies:** Task 4
+**Definition of Done:** Can query Hasura API, handles errors gracefully, unit tests pass
 
 ```
 

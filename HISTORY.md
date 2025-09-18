@@ -54,23 +54,35 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 
 **Quality Gates:** ✅ Passes `black` and `flake8`, loads/validates configs correctly
 
+### ✅ Task 4: Base Strategy Classes (Phase 2)
+**Implementation Details:**
+- Created `pipeline/extractors.py`: ExtractionStrategy abstract base class + ExtractorFactory
+- Created `pipeline/transformers.py`: TransformationStrategy and RelationshipTransformationStrategy abstract classes + TransformerFactory
+- Factory pattern implementation with strategy registration, creation, and discovery methods
+- Added RelationshipTransformationStrategy (enhancement) to handle relationship mappings separately from nodes
+
+**Quality Gates:** ✅ Passes `black --check` and `flake8`, all imports successful
+
 **Key Features:**
-- Pydantic validation integration with detailed error reporting
-- Secure credential handling via environment variables
-- Configuration file discovery and validation
-- Fail-fast strategy with clear error messages
+- Strategy pattern with proper ABC abstractmethod enforcement
+- Factory pattern supports dynamic strategy selection based on configuration
+- Clear error messages for unknown strategy names
+- Interface contracts match ARCHITECTURE.md specification
 
 ## Current State
-**Next Task:** Task 7 - Schema Mapper (following critical path)
+**Next Task:** Task 5 - Hasura Extractor (continuing Phase 2)
 
 ## Established Patterns
 - **File Organization**: Strict adherence to ARCHITECTURE.md structure
-- **Quality Standards**: Black formatting + flake8 linting enforced, line length fixes applied systematically
+- **Quality Standards**: Black formatting + flake8 linting enforced, systematic line length fixes
+- **Strategy Pattern**: Abstract base classes with factory registration for extensible components
 - **Pydantic Models**: Comprehensive validation for all data flows (config, API, Neo4j)
-- **Error Handling**: Fail-fast with detailed, actionable error messages using custom exception classes
+- **Error Handling**: Fail-fast with clear, actionable error messages
 - **Configuration**: Environment variable substitution with `${VAR_NAME}` syntax
-- **Documentation**: Concise, implementation-focused updates
+
+## Architecture Enhancements
+- **RelationshipTransformationStrategy**: Added separate strategy for relationship transformations to properly handle the distinction between node and relationship mappings in our config model
 
 ## Critical Path Progress
-Tasks 1 → 2 → 3 → 7 → 8 → 9 → 10 → 13 → 15 → 18
-**Status: 3/18 complete (16.7%)**
+Tasks 1 → 2 → 3 → 4 → 5 → 7 → 8 → 9 → 10 → 13 → 15 → 18
+**Status: 4/18 complete (22.2%)**
