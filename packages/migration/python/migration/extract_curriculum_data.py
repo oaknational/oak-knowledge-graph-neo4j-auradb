@@ -33,9 +33,11 @@ load_dotenv()
 
 console = Console()
 
+
 @dataclass
 class ExtractionConfig:
     """Configuration for data extraction process."""
+
     hasura_endpoint: str
     admin_secret: str
     output_directory: Path
@@ -46,9 +48,11 @@ class ExtractionConfig:
     enable_validation: bool = True
     enable_logging: bool = True
 
+
 @dataclass
 class ExtractionStats:
     """Statistics for data extraction process."""
+
     table_name: str
     total_rows: int
     extracted_rows: int
@@ -57,9 +61,11 @@ class ExtractionStats:
     csv_file_path: str
     sample_data: Optional[List[Dict]] = None
 
+
 @dataclass
 class DataQualityReport:
     """Data quality report for extracted tables."""
+
     total_tables: int
     successful_extractions: int
     failed_extractions: int
@@ -68,14 +74,15 @@ class DataQualityReport:
     extraction_time: float
     table_stats: List[ExtractionStats]
 
+
 class PostgreSQLExtractor:
     """
     PostgreSQL data extractor via Hasura GraphQL API.
-    
+
     Extracts curriculum data from PostgreSQL database through Hasura GraphQL
     endpoints and exports to CSV format with comprehensive validation and logging.
     """
-    
+
     def __init__(self, config: ExtractionConfig):
         """Initialize the PostgreSQL extractor."""
         self.config = config
@@ -83,47 +90,54 @@ class PostgreSQLExtractor:
         self.client = self._create_graphql_client()
         self.schema_mapping = self._load_schema_mapping()
         self.hasura_analysis = self._load_hasura_analysis()
-        
+
         # Ensure output directory exists
         self.config.output_directory.mkdir(parents=True, exist_ok=True)
-        
+
         # Create subdirectories for organization
         (self.config.output_directory / "raw_data").mkdir(exist_ok=True)
         (self.config.output_directory / "samples").mkdir(exist_ok=True)
         (self.config.output_directory / "logs").mkdir(exist_ok=True)
-        
+
     def _setup_logging(self) -> logging.Logger:
         """Set up basic logging for the extraction process."""
-        logger = logging.getLogger('extraction')
-        
+        logger = logging.getLogger("extraction")
+
         if not self.config.enable_logging:
             logger.setLevel(logging.WARNING)
             return logger
-            
+
         logger.setLevel(logging.INFO)
-        
+
         # Clear existing handlers
         logger.handlers.clear()
-        
+
         # Set up file logging
-        log_file = self.config.output_directory / "logs" / f"extraction_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-        
+        log_file = (
+            self.config.output_directory
+            / "logs"
+            / f"extraction_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        )
+
         # Create formatters
-        file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        
+        file_formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+
         # File handler
         file_handler = logging.FileHandler(log_file)
         file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
-        
+
         # Rich console handler for better terminal output
         console_handler = RichHandler(console=console, show_path=False)
         logger.addHandler(console_handler)
-        
+
         return logger
-        
+
     # ... (rest of the methods would continue here)
     # This is just the first part to stay within reasonable response size
+
 
 if __name__ == "__main__":
     main()

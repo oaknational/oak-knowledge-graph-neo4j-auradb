@@ -31,13 +31,9 @@ class TransformerFactory:
         cls._relationship_strategies[name] = strategy_class
 
     @classmethod
-    def create_node_transformer(
-        cls, strategy_name: str
-    ) -> TransformationStrategy:
+    def create_node_transformer(cls, strategy_name: str) -> TransformationStrategy:
         if strategy_name not in cls._node_strategies:
-            raise ValueError(
-                f"Unknown node transformation strategy: {strategy_name}"
-            )
+            raise ValueError(f"Unknown node transformation strategy: {strategy_name}")
         return cls._node_strategies[strategy_name]()
 
     @classmethod
@@ -46,8 +42,7 @@ class TransformerFactory:
     ) -> RelationshipTransformationStrategy:
         if strategy_name not in cls._relationship_strategies:
             raise ValueError(
-                f"Unknown relationship transformation strategy: "
-                f"{strategy_name}"
+                f"Unknown relationship transformation strategy: " f"{strategy_name}"
             )
         return cls._relationship_strategies[strategy_name]()
 

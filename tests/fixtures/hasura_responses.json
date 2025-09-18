@@ -1,0 +1,112 @@
+{
+  "curriculum_units_success": {
+    "data": {
+      "curriculum_units": [
+        {
+          "__typename": "curriculum_units",
+          "unit_id": "unit_001",
+          "unit_title": "Introduction to Mathematics",
+          "subject_name": "Mathematics",
+          "key_stage": 2,
+          "year_group": "Year 3",
+          "created_at": "2023-09-01T10:00:00Z"
+        },
+        {
+          "__typename": "curriculum_units",
+          "unit_id": "unit_002",
+          "unit_title": "Basic Science Concepts",
+          "subject_name": "Science",
+          "key_stage": 2,
+          "year_group": "Year 4",
+          "created_at": "2023-09-02T11:00:00Z"
+        }
+      ]
+    },
+    "errors": null
+  },
+
+  "curriculum_lessons_success": {
+    "data": {
+      "curriculum_lessons": [
+        {
+          "__typename": "curriculum_lessons",
+          "lesson_id": "lesson_001",
+          "lesson_title": "Addition Basics",
+          "lesson_slug": "addition-basics",
+          "lesson_description": "Learn the fundamentals of addition",
+          "order_in_unit": 1,
+          "duration_minutes": 45,
+          "created_at": "2023-09-01T10:30:00Z",
+          "unit_id": "unit_001"
+        },
+        {
+          "__typename": "curriculum_lessons",
+          "lesson_id": "lesson_002",
+          "lesson_title": "Subtraction Basics",
+          "lesson_slug": "subtraction-basics",
+          "lesson_description": "Learn the fundamentals of subtraction",
+          "order_in_unit": 2,
+          "duration_minutes": 45,
+          "created_at": "2023-09-01T11:00:00Z",
+          "unit_id": "unit_001"
+        }
+      ]
+    },
+    "errors": null
+  },
+
+  "lesson_relationships_success": {
+    "data": {
+      "lesson_relationships": [
+        {
+          "__typename": "lesson_relationships",
+          "unit_id": "unit_001",
+          "lesson_id": "lesson_001",
+          "order_in_unit": 1
+        },
+        {
+          "__typename": "lesson_relationships",
+          "previous_lesson_id": "lesson_001",
+          "next_lesson_id": "lesson_002"
+        }
+      ]
+    },
+    "errors": null
+  },
+
+  "graphql_error_response": {
+    "data": null,
+    "errors": [
+      {
+        "message": "field 'invalid_field' not found in type 'curriculum_units'",
+        "extensions": {
+          "path": "$.selectionSet.curriculum_units.selectionSet.invalid_field",
+          "code": "validation-failed"
+        }
+      }
+    ]
+  },
+
+  "authentication_error_response": {
+    "errors": [
+      {
+        "message": "Could not verify JWT: JWTExpired",
+        "extensions": {
+          "code": "invalid-jwt"
+        }
+      }
+    ]
+  },
+
+  "empty_data_response": {
+    "data": {
+      "curriculum_units": []
+    },
+    "errors": null
+  },
+
+  "network_error_simulation": {
+    "error_type": "requests.ConnectionError",
+    "error_message": "Failed to establish a new connection"
+  }
+}

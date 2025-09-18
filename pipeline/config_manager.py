@@ -27,9 +27,7 @@ class ConfigManager:
         config_path = self.config_dir / config_file
 
         if not config_path.exists():
-            raise ConfigurationError(
-                f"Configuration file {config_path} does not exist"
-            )
+            raise ConfigurationError(f"Configuration file {config_path} does not exist")
 
         try:
             with open(config_path, "r") as f:
@@ -69,26 +67,18 @@ class ConfigManager:
 
     def list_configs(self) -> list[str]:
         try:
-            return [
-                f.name
-                for f in self.config_dir.iterdir()
-                if f.suffix == ".json"
-            ]
+            return [f.name for f in self.config_dir.iterdir() if f.suffix == ".json"]
         except Exception as e:
             raise ConfigurationError(f"Failed to list configurations: {e}")
 
-    def validate_config_file(
-        self, config_file: str
-    ) -> tuple[bool, Optional[str]]:
+    def validate_config_file(self, config_file: str) -> tuple[bool, Optional[str]]:
         try:
             self.load_config(config_file)
             return True, None
         except ConfigurationError as e:
             return False, str(e)
 
-    def _substitute_env_vars(
-        self, config_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _substitute_env_vars(self, config_data: Dict[str, Any]) -> Dict[str, Any]:
         def substitute_value(value):
             if (
                 isinstance(value, str)

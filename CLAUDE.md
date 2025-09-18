@@ -39,12 +39,15 @@ pytest>=7.0.0      # Unit testing
 - **Pattern:** Simple try/catch, no retries
 - **Logging:** Console output, optional file logging
 - **Validation:** Pydantic models catch data issues early
+- **Context:** Always include relevant identifiers (view names, field names) in error messages
 
 ### Testing Requirements
 - **Scope:** Unit tests for pipeline classes only
 - **Framework:** pytest
 - **Coverage:** Core transformation logic
 - **Mocking:** Hasura API responses in fixtures
+- **Standards:** 100% test pass rate required, comprehensive edge case coverage
+- **Fixtures:** Use `tests/fixtures/` for mock data, realistic curriculum examples
 
 ### File Organization
 ```
@@ -98,6 +101,7 @@ class NodeMapping(BaseModel):
     properties: Dict[str, FieldMapping]
 
 # Data models in models/hasura.py and models/neo4j.py
+# IMPORTANT: Use model_validate() not deprecated parse_obj()
 ```
 
 ### Streamlit Interface (Single Page)

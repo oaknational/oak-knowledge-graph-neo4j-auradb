@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 @dataclass
 class MVConfig:
     """Configuration for a single Materialized View."""
+
     name: str
     description: Optional[str] = None
 
@@ -29,17 +30,17 @@ class Config:
 
     HASURA_URL: str
     HASURA_TOKEN: str
-    OUTPUT_DIR: Path = Path('data/exports')
+    OUTPUT_DIR: Path = Path("data/exports")
 
     # List your MVs here - just the names!
     MVS: List[MVConfig] = None
 
     @classmethod
-    def from_env(cls) -> 'Config':
+    def from_env(cls) -> "Config":
         """Create config from environment variables."""
         load_dotenv()
-        hasura_url = os.getenv('HASURA_URL')
-        hasura_token = os.getenv('HASURA_TOKEN')
+        hasura_url = os.getenv("HASURA_URL")
+        hasura_token = os.getenv("HASURA_TOKEN")
 
         if not hasura_url:
             raise EnvironmentError("HASURA_URL environment variable not set")
@@ -48,31 +49,19 @@ class Config:
 
         # Configure your MVs here - just add the names!
         mvs = [
-            MVConfig(
-                name="published_mv_lesson_content_published_9_0_0"
-            ),
+            MVConfig(name="published_mv_lesson_content_published_9_0_0"),
             MVConfig(
                 name="published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0"
             ),
             MVConfig(
                 name="published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0"
             ),
-            MVConfig(
-                name="published_mv_search_page_10_0_0"
-            ),
-            MVConfig(
-                name="published_mv_key_stages_2_0_0"
-            ),
-            MVConfig(
-                name="published_mv_curriculum_sequence_b_13_0_20"
-            ),
+            MVConfig(name="published_mv_search_page_10_0_0"),
+            MVConfig(name="published_mv_key_stages_2_0_0"),
+            MVConfig(name="published_mv_curriculum_sequence_b_13_0_20"),
         ]
 
-        return cls(
-            HASURA_URL=hasura_url,
-            HASURA_TOKEN=hasura_token,
-            MVS=mvs
-        )
+        return cls(HASURA_URL=hasura_url, HASURA_TOKEN=hasura_token, MVS=mvs)
 
 
 class HasuraClient:
@@ -81,17 +70,15 @@ class HasuraClient:
     def __init__(self, url: str, token: str):
         self.url = url
         self.headers = {
-            'Content-Type': 'application/json',
-            'hasura-collaborator-token': token.strip()
+            "Content-Type": "application/json",
+            "hasura-collaborator-token": token.strip(),
         }
 
     def execute_query(self, query: str) -> Dict:
         """Execute GraphQL query."""
         try:
             response = requests.post(
-                self.url,
-                json={'query': query},
-                headers=self.headers
+                self.url, json={"query": query}, headers=self.headers
             )
             response.raise_for_status()
             return response.json()
@@ -120,16 +107,16 @@ class HasuraClient:
 
         response = self.execute_query(query)
 
-        if 'errors' in response:
+        if "errors" in response:
             print(f"Error querying {mv_name}: {response['errors']}")
             return []
 
-        if 'data' not in response:
+        if "data" not in response:
             print(f"No data returned for {mv_name}")
             return []
 
         # Get the data
-        data = response['data']
+        data = response["data"]
         for key, value in data.items():
             if isinstance(value, list):
                 return value
@@ -153,16 +140,18 @@ class HasuraClient:
 
         response = self.execute_query(simple_introspection)
 
-        if 'errors' in response or 'data' not in response:
+        if "errors" in response or "data" not in response:
             print(f"Introspection failed: {response}")
             return []
 
-        available_fields = [f['name'] for f in response['data']['__schema']['queryType']['fields']]
+        available_fields = [
+            f["name"] for f in response["data"]["__schema"]["queryType"]["fields"]
+        ]
 
         if mv_name not in available_fields:
             print(f"MV '{mv_name}' not found. Available fields:")
             for field in sorted(available_fields):
-                if not field.startswith('__'):
+                if not field.startswith("__"):
                     print(f"  • {field}")
             return []
 
@@ -179,8 +168,12 @@ class HasuraClient:
 
         response = self.execute_query(detailed_introspection)
 
-        if 'data' in response and response['data']['__type'] and response['data']['__type']['fields']:
-            return [f['name'] for f in response['data']['__type']['fields']]
+        if (
+            "data" in response
+            and response["data"]["__type"]
+            and response["data"]["__type"]["fields"]
+        ):
+            return [f["name"] for f in response["data"]["__type"]["fields"]]
 
         # If that doesn't work, try a different approach
         # Get the return type of the query field
@@ -203,10 +196,10 @@ class HasuraClient:
 
         response = self.execute_query(type_introspection)
 
-        if 'data' in response:
-            for field in response['data']['__schema']['queryType']['fields']:
-                if field['name'] == mv_name:
-                    type_name = field['type'].get('ofType', {}).get('name')
+        if "data" in response:
+            for field in response["data"]["__schema"]["queryType"]["fields"]:
+                if field["name"] == mv_name:
+                    type_name = field["type"].get("ofType", {}).get("name")
                     if type_name:
                         # Now get fields for this type
                         type_fields_query = f"""
@@ -220,8 +213,11 @@ class HasuraClient:
                         """
 
                         type_response = self.execute_query(type_fields_query)
-                        if 'data' in type_response and type_response['data']['__type']:
-                            return [f['name'] for f in type_response['data']['__type']['fields']]
+                        if "data" in type_response and type_response["data"]["__type"]:
+                            return [
+                                f["name"]
+                                for f in type_response["data"]["__type"]["fields"]
+                            ]
 
         return []
 
@@ -235,7 +231,6 @@ class BatchHasuraMVExporter:
 
         # Create output directory
         self.config.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
 
     def export_all_mvs(self) -> None:
         """Export all configured MVs."""
