@@ -5,6 +5,8 @@
 3. Manipulate data to generate node and relationship CSVs for Neo4j bulk import
 4. Neo4j Bulk Import
 
+I have a schema for the data in the knowledge graph and I can map this to the elements in the various MVs. I need an easy way to enter and edit this mapping for future maintenance of the extract from Hasura (maybe the MVs change) and the knowledge graph schema (e.g. ne fields are added from the MVs)
+
 
 ### Here are notes about bulk imports to Neo4j:
 
