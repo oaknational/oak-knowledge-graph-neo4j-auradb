@@ -144,6 +144,12 @@ class FieldMapping(BaseModel):
     target_type: str
     transformation: Optional[str]
 
+class RelationshipMapping(BaseModel):
+    type: str
+    start_node_id_field: str
+    end_node_id_field: str
+    properties: Dict[str, FieldMapping]
+
 class PipelineConfig(BaseModel):
     hasura_endpoint: str
     materialized_views: List[str]
