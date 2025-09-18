@@ -8,6 +8,7 @@ Extract Oak Curriculum data from Hasura materialized views and transform it into
 ### 1. Data Extraction
 - Connect to Hasura GraphQL API using configurable endpoint
 - Query specified materialized views based on JSON configuration
+- Support optional row limiting for testing purposes (test_limit parameter)
 - Handle authentication and rate limiting
 - Export raw data to intermediate CSV format
 - **Success Criteria:** All configured MVs extracted without data loss
@@ -36,6 +37,7 @@ Extract Oak Curriculum data from Hasura materialized views and transform it into
 - Load/save schema mappings from JSON files
 - Validate configuration against Pydantic schemas
 - Support multiple mapping configurations for different data sets
+- Optional test_limit parameter for development/testing with small data samples
 - **Success Criteria:** Non-technical users can edit mappings via JSON files
 
 ## User Interface Requirements

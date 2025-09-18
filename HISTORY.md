@@ -82,9 +82,30 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - Clean authentication implementation (no legacy auth code)
 - End-to-end data extraction validated
 
+### ✅ Task 6: Data Validator (Phase 2)
+**Implementation Details:**
+- Created `pipeline/validators.py`: DataValidator class with ValidationResult container
+- **Batch Validation**: Configurable batch size (default 100) for performance with large datasets
+- **Comprehensive Validation Methods**:
+  - `validate_hasura_response()` - Validates Hasura GraphQL API responses against models
+  - `validate_materialized_view_data()` - Batch validates MV records with error context
+  - `validate_node_data()` - Validates against NodeMapping requirements (ID field, properties)
+  - `validate_relationship_data()` - Validates against RelationshipMapping requirements
+  - `validate_batch()` - Generic validation for any Pydantic model
+- **Detailed Error Reporting**: Actionable messages with field paths, record indices, validation types
+- **Performance Features**: Batch processing, configurable sizes, memory-efficient validation
+
+**Quality Gates:** ✅ Passes `black --check` and `flake8`, uses modern `model_validate()` method
+
+**Key Features:**
+- Validates data quality before transformation step
+- Fail-fast validation with clear error context (view names, record indices, field names)
+- Supports all data types in pipeline (Hasura responses, nodes, relationships)
+- Ready for integration with Schema Mapper (Task 7)
+
 ## Current State
-**Next Task:** Task 6 - Data Validator (Phase 2)
-**Pipeline Status:** HasuraExtractor production-ready with real data access
+**Next Task:** Task 7 - Schema Mapper (Phase 2)
+**Pipeline Status:** Data extraction + validation pipeline complete, ready for transformation
 
 ### Environment Configuration
 - **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
@@ -107,5 +128,5 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - **Real Data Integration**: Validated pipeline with production Oak materialized views
 
 ## Critical Path Progress
-Tasks 1 → 2 → 3 → 4 → 5 → 7 → 8 → 9 → 10 → 13 → 15 → 18
-**Status: 5/18 complete (27.8%)**
+Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 13 → 15 → 18
+**Status: 6/18 complete (33.3%)**

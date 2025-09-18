@@ -1,5 +1,6 @@
 {
   "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "test_limit": null,
   "materialized_views": [
     "curriculum_units",
     "curriculum_lessons",

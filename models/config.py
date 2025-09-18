@@ -26,3 +26,4 @@ class PipelineConfig(BaseModel):
     materialized_views: List[str]
     node_mappings: List[NodeMapping]
     relationship_mappings: List[RelationshipMapping]
+    test_limit: Optional[int] = None

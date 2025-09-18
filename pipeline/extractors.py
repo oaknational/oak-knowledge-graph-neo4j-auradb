@@ -27,7 +27,7 @@ class HasuraExtractor(ExtractionStrategy):
         for view_name in config.materialized_views:
             try:
                 view_data = self._query_materialized_view(
-                    config.hasura_endpoint, view_name
+                    config.hasura_endpoint, view_name, config.test_limit
                 )
                 all_data.extend(view_data)
             except Exception as e:
@@ -38,9 +38,9 @@ class HasuraExtractor(ExtractionStrategy):
         return all_data
 
     def _query_materialized_view(
-        self, endpoint: str, view_name: str
+        self, endpoint: str, view_name: str, limit: int = None
     ) -> List[Dict]:
-        query = self._build_graphql_query(view_name)
+        query = self._build_graphql_query(view_name, limit)
 
         headers = {
             "Content-Type": "application/json",
@@ -57,15 +57,12 @@ class HasuraExtractor(ExtractionStrategy):
             hasura_response = HasuraResponse.model_validate(response.json())
 
             if hasura_response.errors:
-                error_messages = [
-                    error.message for error in hasura_response.errors
-                ]
+                errors = hasura_response.errors
+                error_messages = [error.message for error in errors]
                 raise RuntimeError(f"GraphQL errors: {error_messages}")
 
-            if (
-                not hasura_response.data
-                or view_name not in hasura_response.data
-            ):
+            data = hasura_response.data
+            if not data or view_name not in data:
                 raise RuntimeError(f"No data returned for view: {view_name}")
 
             return hasura_response.data[view_name]
@@ -75,13 +72,16 @@ class HasuraExtractor(ExtractionStrategy):
         except Exception as e:
             raise RuntimeError(f"Unexpected error: {str(e)}")
 
-    def _build_graphql_query(self, view_name: str) -> str:
-        query_name = "Get" + "".join(
-            word.capitalize() for word in view_name.split("_")
-        )
+    def _build_graphql_query(self, view_name: str, limit: int = None) -> str:
+        words = view_name.split("_")
+        query_name = "Get" + "".join(word.capitalize() for word in words)
+
+        # Add limit parameter to query if specified
+        limit_clause = f"(limit: {limit})" if limit else ""
+
         return f"""
         query {query_name} {{
-          {view_name} {{
+          {view_name}{limit_clause} {{
             __typename
           }}
         }}

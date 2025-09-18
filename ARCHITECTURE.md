@@ -50,6 +50,7 @@ Pipeline (Orchestrator)
 - Connects to Oak Hasura GraphQL endpoint
 - Uses Oak authentication (x-oak-auth-key + x-oak-auth-type)
 - Executes parameterized queries based on config
+- Supports optional row limiting for testing (test_limit parameter)
 - Returns structured data for validation
 
 #### SchemaMapper
@@ -155,6 +156,7 @@ class PipelineConfig(BaseModel):
     materialized_views: List[str]
     node_mappings: List[NodeMapping]
     relationship_mappings: List[RelationshipMapping]
+    test_limit: Optional[int] = None
 ```
 
 ### Strategy Interfaces
