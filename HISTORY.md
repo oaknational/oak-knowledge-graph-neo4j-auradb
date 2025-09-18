@@ -182,29 +182,34 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 ### ✅ Task 11: Logging and Utilities (Phase 3)
 **Implementation Details:**
 - Created `utils/logging.py`: PipelineLogger class with console and optional file logging
-- **Console Logging**: Consistent formatting with timestamps, component names, log levels
-- **File Logging**: Optional via `LOG_FILE` environment variable, enhanced formatting with function/line details
-- **Pipeline Functions**: `log_pipeline_stage()`, `log_data_operation()`, `log_error_with_context()`
-- **Environment Integration**: `LOG_LEVEL` and `LOG_FILE` environment variables
 - Created `utils/helpers.py`: 13 shared utility functions for pipeline operations
-- **File Operations**: `safe_filename()`, `ensure_directory_exists()`, `get_file_info()`
-- **Configuration**: `load_json_with_env_substitution()` for `${VAR_NAME}` environment variable replacement
-- **Neo4j Utilities**: `generate_unique_id()`, `validate_neo4j_identifier()`
-- **Data Processing**: `chunk_list()`, `create_data_summary()`, `sanitize_dict_for_logging()`
-- **Environment Management**: `validate_required_env_vars()`
-- **Formatting**: `format_file_size()`, `format_duration()`
+- **Environment Integration**: `LOG_LEVEL` and `LOG_FILE` environment variables
+- **Key Functions**: `validate_required_env_vars()`, `format_duration()`, `load_json_with_env_substitution()`
 
-**Quality Gates:** ✅ Passes `black --check` and `flake8`, all imports successful, consistent with CLAUDE.md standards
+**Quality Gates:** ✅ Passes black/flake8, production-ready logging infrastructure
+
+### ✅ Task 12: CLI Interface (Phase 4)
+**Implementation Details:**
+- Created `main.py`: Complete CLI entry point with argparse
+- **Execution Modes**: `--full`, `--extract-only`, `--transform-only`, `--load-only`
+- **Partial Pipeline**: `--extract --validate --map --transform --load` for custom stage combinations
+- **Database Options**: `--use-auradb`, `--clear-database` flags
+- **Progress Reporting**: Verbose and non-verbose modes with emoji status indicators
+- **Error Handling**: Comprehensive environment validation, pipeline error context, fail-fast strategy
+- **Help System**: Complete documentation with examples and environment variables
+
+**Quality Gates:** ✅ Passes black/flake8, comprehensive CLI supporting all FUNCTIONAL.md requirements
 
 **Key Features:**
-- Error context logging with identifiers per CLAUDE.md requirements (view names, field names)
-- Environment variable validation and substitution throughout pipeline
-- Production-ready logging infrastructure for CLI and Streamlit interfaces
-- Memory-efficient data processing utilities for large datasets
+- Complete CLI interface per FUNCTIONAL.md specifications
+- Environment validation for Oak authentication (HASURA_ENDPOINT, HASURA_API_KEY, OAK_AUTH_TYPE)
+- Progress callbacks with execution time reporting
+- Flexible pipeline execution (full, partial, individual stages)
 
 ## Current State
-**Completed:** Task 11 - Logging and Utilities complete with comprehensive infrastructure
-**Pipeline Status:** Core pipeline complete, ready for CLI and Streamlit interfaces (Tasks 12-13)
+**Completed:** Task 12 - CLI Interface complete with comprehensive command-line functionality
+**Pipeline Status:** Core pipeline and CLI complete, ready for Streamlit interface (Task 13)
+**Next Task:** Task 13 - Streamlit Web Interface (single-page configuration management)
 
 ### Environment Configuration
 - **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
@@ -234,5 +239,5 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - **Optional Logging:** `LOG_LEVEL` and `LOG_FILE` environment variables for enhanced debugging
 
 ## Critical Path Progress
-Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 13 → 15 → 18
-**Status: 11/18 complete (61%)**
+Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 15 → 18
+**Status: 12/18 complete (67%)**

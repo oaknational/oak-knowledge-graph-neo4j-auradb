@@ -45,11 +45,15 @@ Extract Oak Curriculum data from Hasura materialized views and transform it into
 ### CLI Interface
 ```bash
 # Full pipeline execution
-python main.py --config config/curriculum.json --extract --transform --load
+python main.py --config config/curriculum.json --full
 
 # Individual steps
 python main.py --config config/curriculum.json --extract-only
 python main.py --config config/curriculum.json --transform-only
+python main.py --config config/curriculum.json --load-only
+
+# Partial pipeline (custom stages)
+python main.py --config config/curriculum.json --extract --validate --transform
 ```
 
 ### Streamlit Web Interface (Local Only)
