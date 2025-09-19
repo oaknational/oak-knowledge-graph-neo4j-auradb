@@ -108,5 +108,74 @@
   "network_error_simulation": {
     "error_type": "requests.ConnectionError",
     "error_message": "Failed to establish a new connection"
+  },
+
+  "validation_test_data": {
+    "data": {
+      "curriculum_units": [
+        {
+          "__typename": "curriculum_units",
+          "unit_id": "test_unit_1",
+          "unit_title": "Validation Test Unit",
+          "subject_name": "Test Subject",
+          "key_stage": 3,
+          "year_group": "Year 7",
+          "created_at": "2023-10-01T12:00:00Z"
+        }
+      ]
+    },
+    "errors": null
+  },
+
+  "invalid_data_for_validation": {
+    "data": {
+      "curriculum_units": [
+        {
+          "__typename": "curriculum_units",
+          "unit_id": null,
+          "unit_title": "",
+          "subject_name": "Test Subject",
+          "key_stage": "invalid_number",
+          "year_group": null,
+          "created_at": "invalid_date"
+        }
+      ]
+    },
+    "errors": null
+  },
+
+  "large_dataset_sample": {
+    "data": {
+      "curriculum_units": [
+        {
+          "__typename": "curriculum_units",
+          "unit_id": "unit_large_001",
+          "unit_title": "Large Dataset Unit 1",
+          "subject_name": "Mathematics",
+          "key_stage": 2,
+          "year_group": "Year 3",
+          "created_at": "2023-09-01T10:00:00Z"
+        },
+        {
+          "__typename": "curriculum_units",
+          "unit_id": "unit_large_002",
+          "unit_title": "Large Dataset Unit 2",
+          "subject_name": "Science",
+          "key_stage": 2,
+          "year_group": "Year 4",
+          "created_at": "2023-09-02T11:00:00Z"
+        },
+        {
+          "__typename": "curriculum_units",
+          "unit_id": "unit_large_003",
+          "unit_title": "Large Dataset Unit 3",
+          "subject_name": "English",
+          "key_stage": 3,
+          "year_group": "Year 7",
+          "created_at": "2023-09-03T09:00:00Z"
+        }
+      ]
+    },
+    "errors": null
   }
 }

@@ -45,31 +45,23 @@ class TestHasuraExtractor:
                 HasuraExtractor()
 
     def test_init_without_auth_type_raises_error(self):
-        with patch.dict(
-            os.environ, {"HASURA_API_KEY": "test-key"}, clear=True
-        ):
+        with patch.dict(os.environ, {"HASURA_API_KEY": "test-key"}, clear=True):
             with pytest.raises(ValueError, match="Oak auth type required"):
                 HasuraExtractor()
 
     @patch("pipeline.extractors.requests.post")
-    def test_successful_extraction(
-        self, mock_post, sample_config, mock_fixtures
-    ):
+    def test_successful_extraction(self, mock_post, sample_config, mock_fixtures):
         extractor = HasuraExtractor(api_key="test-key", auth_type="oak-admin")
 
         # Mock successful responses for both views
         mock_responses = [
             Mock(
                 status_code=200,
-                json=Mock(
-                    return_value=mock_fixtures["curriculum_units_success"]
-                ),
+                json=Mock(return_value=mock_fixtures["curriculum_units_success"]),
             ),
             Mock(
                 status_code=200,
-                json=Mock(
-                    return_value=mock_fixtures["curriculum_lessons_success"]
-                ),
+                json=Mock(return_value=mock_fixtures["curriculum_lessons_success"]),
             ),
         ]
         mock_post.side_effect = mock_responses
@@ -89,9 +81,7 @@ class TestHasuraExtractor:
             assert "query" in kwargs["json"]
 
     @patch("pipeline.extractors.requests.post")
-    def test_graphql_error_handling(
-        self, mock_post, sample_config, mock_fixtures
-    ):
+    def test_graphql_error_handling(self, mock_post, sample_config, mock_fixtures):
         extractor = HasuraExtractor(api_key="test-key", auth_type="oak-admin")
 
         mock_post.return_value = Mock(
@@ -106,15 +96,11 @@ class TestHasuraExtractor:
     def test_authentication_error_handling(
         self, mock_post, sample_config, mock_fixtures
     ):
-        extractor = HasuraExtractor(
-            api_key="invalid-key", auth_type="oak-admin"
-        )
+        extractor = HasuraExtractor(api_key="invalid-key", auth_type="oak-admin")
 
         mock_post.return_value = Mock(
             status_code=200,
-            json=Mock(
-                return_value=mock_fixtures["authentication_error_response"]
-            ),
+            json=Mock(return_value=mock_fixtures["authentication_error_response"]),
         )
 
         with pytest.raises(RuntimeError, match="GraphQL errors"):
@@ -143,9 +129,7 @@ class TestHasuraExtractor:
             extractor.extract(sample_config)
 
     @patch("pipeline.extractors.requests.post")
-    def test_empty_data_handling(
-        self, mock_post, sample_config, mock_fixtures
-    ):
+    def test_empty_data_handling(self, mock_post, sample_config, mock_fixtures):
         extractor = HasuraExtractor(api_key="test-key", auth_type="oak-admin")
 
         # Return empty data for both views

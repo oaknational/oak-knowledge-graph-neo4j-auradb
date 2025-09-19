@@ -1,0 +1,14 @@
+{
+  "hasura_endpoint": "https://test.hasura.app/v1/graphql",
+  "materialized_views": ["curriculum_units"],
+  "node_mappings": [
+    {
+      "label": "Unit",
+      "id_field": "unit_id",
+      "properties": {
+        "id": {"source_field": "unit_id", "target_type": "string"}
+      }
+    }
+  ],
+  "relationship_mappings": []
+}

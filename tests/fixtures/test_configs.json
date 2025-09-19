@@ -1,0 +1,125 @@
+{
+  "minimal_valid_config": {
+    "hasura_endpoint": "https://test.hasura.app/v1/graphql",
+    "materialized_views": ["curriculum_units"],
+    "node_mappings": [
+      {
+        "label": "Unit",
+        "id_field": "unit_id",
+        "properties": {
+          "id": {"source_field": "unit_id", "target_type": "string"}
+        }
+      }
+    ],
+    "relationship_mappings": []
+  },
+
+  "comprehensive_config": {
+    "hasura_endpoint": "https://comprehensive.hasura.app/v1/graphql",
+    "materialized_views": ["curriculum_units", "curriculum_lessons", "lesson_relationships"],
+    "test_limit": 1000,
+    "node_mappings": [
+      {
+        "label": "Unit",
+        "id_field": "unit_id",
+        "properties": {
+          "id": {"source_field": "unit_id", "target_type": "string"},
+          "title": {"source_field": "unit_title", "target_type": "string", "transformation": "strip"},
+          "stage": {"source_field": "key_stage", "target_type": "int"},
+          "subject": {"source_field": "subject_name", "target_type": "string", "transformation": "uppercase"}
+        }
+      },
+      {
+        "label": "Lesson",
+        "id_field": "lesson_id",
+        "properties": {
+          "id": {"source_field": "lesson_id", "target_type": "string"},
+          "title": {"source_field": "lesson_title", "target_type": "string"},
+          "description": {"source_field": "lesson_description", "target_type": "string"},
+          "duration": {"source_field": "duration_minutes", "target_type": "int"},
+          "active": {"source_field": "is_active", "target_type": "boolean"}
+        }
+      }
+    ],
+    "relationship_mappings": [
+      {
+        "type": "CONTAINS",
+        "start_node_id_field": "unit_id",
+        "end_node_id_field": "lesson_id",
+        "properties": {
+          "order": {"source_field": "order_in_unit", "target_type": "int"},
+          "weight": {"source_field": "lesson_weight", "target_type": "float"}
+        }
+      },
+      {
+        "type": "FOLLOWS",
+        "start_node_id_field": "previous_lesson_id",
+        "end_node_id_field": "next_lesson_id",
+        "properties": {}
+      }
+    ]
+  },
+
+  "config_with_env_vars": {
+    "hasura_endpoint": "${HASURA_ENDPOINT}",
+    "materialized_views": ["${PRIMARY_VIEW}", "${SECONDARY_VIEW}"],
+    "test_limit": "${TEST_LIMIT}",
+    "node_mappings": [
+      {
+        "label": "${NODE_LABEL}",
+        "id_field": "unit_id",
+        "properties": {
+          "id": {"source_field": "unit_id", "target_type": "string"},
+          "prefix_title": {"source_field": "unit_title", "target_type": "string", "transformation": "prefix:${TITLE_PREFIX}"}
+        }
+      }
+    ],
+    "relationship_mappings": []
+  },
+
+  "invalid_config_missing_endpoint": {
+    "materialized_views": ["curriculum_units"],
+    "node_mappings": [],
+    "relationship_mappings": []
+  },
+
+  "invalid_config_missing_views": {
+    "hasura_endpoint": "https://test.hasura.app/v1/graphql",
+    "node_mappings": [],
+    "relationship_mappings": []
+  },
+
+  "invalid_config_empty_node_mappings": {
+    "hasura_endpoint": "https://test.hasura.app/v1/graphql",
+    "materialized_views": ["curriculum_units"],
+    "node_mappings": [
+      {
+        "label": "Unit"
+      }
+    ],
+    "relationship_mappings": []
+  },
+
+  "complex_transformation_config": {
+    "hasura_endpoint": "https://transform.hasura.app/v1/graphql",
+    "materialized_views": ["curriculum_units"],
+    "node_mappings": [
+      {
+        "label": "ProcessedUnit",
+        "id_field": "unit_id",
+        "properties": {
+          "id": {"source_field": "unit_id", "target_type": "string"},
+          "upper_title": {"source_field": "unit_title", "target_type": "string", "transformation": "uppercase"},
+          "lower_subject": {"source_field": "subject_name", "target_type": "string", "transformation": "lowercase"},
+          "clean_description": {"source_field": "unit_description", "target_type": "string", "transformation": "strip"},
+          "prefixed_code": {"source_field": "unit_code", "target_type": "string", "transformation": "prefix:UNIT_"},
+          "suffixed_name": {"source_field": "unit_name", "target_type": "string", "transformation": "suffix:_PROCESSED"},
+          "numeric_stage": {"source_field": "key_stage", "target_type": "int"},
+          "float_rating": {"source_field": "unit_rating", "target_type": "float"},
+          "bool_active": {"source_field": "is_active", "target_type": "boolean"}
+        }
+      }
+    ],
+    "relationship_mappings": []
+  }
+}

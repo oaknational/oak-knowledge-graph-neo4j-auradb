@@ -89,7 +89,7 @@ During implementation, there are a number of prompts you can use at the start of
 
 Then refresh your memory by checking `HISTORY.md`. Review the `ARCHITECTURE.md` and `FUNCTIONAL.md` to understand what we are building.
 
-We are working through `TO-DO.md` and are on task 11.
+We are working through `TO-DO.md` and are on task 14.
 
 **Before implementing anything:**
 
@@ -105,17 +105,18 @@ As you implement, explain:
 
 Now, here is the next task to complete:
 
-# Phase 3: Pipeline Orchestration
-
-### Task 11: Logging and Utilities
-**Description:** Implement logging and shared utilities
+### Task 14: Unit Tests
+**Description:** Create comprehensive unit tests for core components
 **Deliverables:**
-- `utils/logging.py` - Logging configuration
-- `utils/helpers.py` - Shared utility functions
-- Console and optional file logging
+- `tests/test_config_manager.py` - Configuration tests
+- `tests/test_extractors.py` - Extraction logic tests
+- `tests/test_mappers.py` - Schema mapping tests
+- `tests/test_transformers.py` - CSV transformation tests
+- `tests/test_pipeline.py` - Pipeline orchestration tests
+- Test fixtures for mocking API responses
 
-**Dependencies:** Task 1
-**Definition of Done:** Consistent logging across components, utilities available
+**Dependencies:** Task 10, Task 11
+**Definition of Done:** All unit tests pass, core logic covered
 
 ```
 
