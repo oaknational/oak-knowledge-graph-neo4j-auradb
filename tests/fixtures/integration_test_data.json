@@ -1,0 +1,121 @@
+{
+  "mv_curriculum_units": {
+    "data": {
+      "mv_curriculum_units": [
+        {
+          "__typename": "mv_curriculum_units",
+          "unit_id": "int_test_unit_001",
+          "unit_title": "Integration Test Mathematics Unit",
+          "unit_description": "A test unit for mathematics integration testing",
+          "unit_order": 1,
+          "subject_id": "int_test_subject_001",
+          "subject_title": "Mathematics",
+          "subject_description": "Primary Mathematics for Key Stage 2",
+          "key_stage_id": "ks2",
+          "key_stage_title": "Key Stage 2",
+          "phase_title": "Primary",
+          "year_id": "year_3",
+          "year_title": "Year 3",
+          "year_number": 3,
+          "duration_weeks": 6,
+          "created_at": "2023-09-01T10:00:00Z"
+        },
+        {
+          "__typename": "mv_curriculum_units",
+          "unit_id": "int_test_unit_002",
+          "unit_title": "Integration Test Science Unit",
+          "unit_description": "A test unit for science integration testing",
+          "unit_order": 1,
+          "subject_id": "int_test_subject_002",
+          "subject_title": "Science",
+          "subject_description": "Primary Science for Key Stage 2",
+          "key_stage_id": "ks2",
+          "key_stage_title": "Key Stage 2",
+          "phase_title": "Primary",
+          "year_id": "year_4",
+          "year_title": "Year 4",
+          "year_number": 4,
+          "duration_weeks": 8,
+          "created_at": "2023-09-02T11:00:00Z"
+        }
+      ]
+    },
+    "errors": null
+  },
+
+  "mv_curriculum_lessons": {
+    "data": {
+      "mv_curriculum_lessons": [
+        {
+          "__typename": "mv_curriculum_lessons",
+          "lesson_id": "int_test_lesson_001",
+          "lesson_title": "Addition with Regrouping",
+          "lesson_description": "Learn how to add numbers with regrouping/carrying",
+          "lesson_order_in_unit": 1,
+          "duration_minutes": 45,
+          "lesson_type": "teaching",
+          "unit_id": "int_test_unit_001",
+          "created_at": "2023-09-01T10:30:00Z"
+        },
+        {
+          "__typename": "mv_curriculum_lessons",
+          "lesson_id": "int_test_lesson_002",
+          "lesson_title": "Subtraction with Regrouping",
+          "lesson_description": "Learn how to subtract numbers with regrouping/borrowing",
+          "lesson_order_in_unit": 2,
+          "duration_minutes": 45,
+          "lesson_type": "teaching",
+          "unit_id": "int_test_unit_001",
+          "created_at": "2023-09-01T11:00:00Z"
+        },
+        {
+          "__typename": "mv_curriculum_lessons",
+          "lesson_id": "int_test_lesson_003",
+          "lesson_title": "States of Matter",
+          "lesson_description": "Understanding solid, liquid, and gas states",
+          "lesson_order_in_unit": 1,
+          "duration_minutes": 60,
+          "lesson_type": "practical",
+          "unit_id": "int_test_unit_002",
+          "created_at": "2023-09-02T11:30:00Z"
+        }
+      ]
+    },
+    "errors": null
+  },
+
+  "mv_learning_objectives": {
+    "data": {
+      "mv_learning_objectives": [
+        {
+          "__typename": "mv_learning_objectives",
+          "objective_id": "int_test_obj_001",
+          "objective_text": "Students will be able to add two-digit numbers with regrouping",
+          "objective_category": "procedural",
+          "lesson_id": "int_test_lesson_001",
+          "objective_priority": 1,
+          "created_at": "2023-09-01T10:35:00Z"
+        },
+        {
+          "__typename": "mv_learning_objectives",
+          "objective_id": "int_test_obj_002",
+          "objective_text": "Students will understand place value in addition problems",
+          "objective_category": "conceptual",
+          "lesson_id": "int_test_lesson_001",
+          "objective_priority": 2,
+          "created_at": "2023-09-01T10:36:00Z"
+        },
+        {
+          "__typename": "mv_learning_objectives",
+          "objective_id": "int_test_obj_003",
+          "objective_text": "Students will identify the three states of matter",
+          "objective_category": "factual",
+          "lesson_id": "int_test_lesson_003",
+          "objective_priority": 1,
+          "created_at": "2023-09-02T11:35:00Z"
+        }
+      ]
+    },
+    "errors": null
+  }
+}

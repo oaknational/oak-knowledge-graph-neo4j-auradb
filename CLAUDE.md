@@ -54,12 +54,13 @@ python-dotenv>=1.0.0  # Environment management
 - **Default:** Console logging at INFO level, file logging disabled
 
 ### Testing Requirements
-- **Scope:** Unit tests for pipeline classes only
+- **Scope:** Unit tests for pipeline classes + integration tests for end-to-end validation
 - **Framework:** pytest
-- **Coverage:** Core transformation logic
-- **Mocking:** Hasura API responses in fixtures
+- **Coverage:** Core transformation logic + complete pipeline execution
+- **Mocking:** Hasura API responses in fixtures + environment variable mocking
 - **Standards:** 100% test pass rate required, comprehensive edge case coverage
 - **Fixtures:** Use `tests/fixtures/` for mock data, realistic curriculum examples
+- **Integration:** `scripts/run_integration_tests.sh` for automated validation
 
 ### File Organization
 ```
@@ -67,7 +68,9 @@ pipeline/     # Core classes
 models/       # Pydantic schemas
 utils/        # Shared helpers
 config/       # JSON mappings
-tests/        # Unit tests only
+tests/        # Unit tests + integration tests
+scripts/      # Test runners + validation tools
+docs/         # Testing documentation
 ```
 
 ### Configuration

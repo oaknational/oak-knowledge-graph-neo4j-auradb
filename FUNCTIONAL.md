@@ -105,11 +105,11 @@ python main.py --config config/curriculum.json --extract --validate --transform
 ## Acceptance Criteria
 
 ### Minimum Viable Product
-- [ ] Extract data from at least one Hasura MV
-- [ ] Transform to valid Neo4j CSV format
-- [ ] Generate working neo4j-admin import command
-- [ ] Basic Streamlit interface for schema editing
-- [ ] JSON configuration validation
+- [x] Extract data from at least one Hasura MV
+- [x] Transform to valid Neo4j CSV format
+- [x] Generate working neo4j-admin import command
+- [x] Basic Streamlit interface for schema editing
+- [x] JSON configuration validation
 
 ### Success Metrics
 - Pipeline completes without manual intervention

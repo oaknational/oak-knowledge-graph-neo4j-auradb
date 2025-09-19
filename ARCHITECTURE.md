@@ -246,12 +246,19 @@ class TransformationStrategy(ABC):
 - CSV generation and formatting
 - Error handling scenarios
 
+### Integration Testing Scope (Added)
+- End-to-end pipeline execution with mock data
+- CSV format validation for Neo4j compliance
+- Component integration and orchestration
+- Real database import validation tools
+
 ### Test Data Management
 - Sample Hasura responses in `/tests/fixtures`
-- Expected CSV outputs for regression testing
+- Integration test data with realistic curriculum examples
 - Mock API responses for reliable testing
+- Environment variable mocking for testing
 
-### Testing Exclusions (MVP)
-- Integration testing with live Hasura/Neo4j
-- Performance testing with large datasets
-- End-to-end UI testing
+### Testing Infrastructure
+- `scripts/run_integration_tests.sh` - Automated test runner
+- `scripts/validate_neo4j_import.py` - Real database validation
+- `docs/INTEGRATION_TESTING.md` - Testing documentation
