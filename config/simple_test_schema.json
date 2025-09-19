@@ -1,0 +1,59 @@
+{
+  "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "materialized_views": [
+    "mv_curriculum_units"
+  ],
+  "clear_database_before_import": false,
+  "test_limit": 5,
+  "node_mappings": [
+    {
+      "label": "Subject",
+      "id_field": "_generated_uuid",
+      "deduplication_key": "subject_id",
+      "properties": {
+        "uuid": {
+          "source_field": "_generated_uuid",
+          "target_type": "string"
+        },
+        "business_id": {
+          "source_field": "subject_id",
+          "target_type": "string"
+        },
+        "title": {
+          "source_field": "subject_title",
+          "target_type": "string"
+        }
+      }
+    },
+    {
+      "label": "Unit",
+      "id_field": "_generated_uuid",
+      "properties": {
+        "uuid": {
+          "source_field": "_generated_uuid",
+          "target_type": "string"
+        },
+        "business_id": {
+          "source_field": "unit_id",
+          "target_type": "string"
+        },
+        "title": {
+          "source_field": "unit_title",
+          "target_type": "string"
+        },
+        "subject_ref": {
+          "source_field": "subject_id",
+          "target_type": "string"
+        }
+      }
+    }
+  ],
+  "relationship_mappings": [
+    {
+      "type": "HAS_UNIT",
+      "start_node_id_field": "subject_id",
+      "end_node_id_field": "unit_id",
+      "properties": {}
+    }
+  ]
+}

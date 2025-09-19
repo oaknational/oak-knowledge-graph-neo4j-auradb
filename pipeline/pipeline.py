@@ -197,8 +197,9 @@ class Pipeline:
             )
 
             # Validate materialized view data
+            # For now, validate all data as a single collection
             validation_result = self.validator.validate_materialized_view_data(
-                self.extracted_data
+                self.extracted_data, "combined_views"
             )
 
             self._report_progress(
@@ -535,6 +536,10 @@ class Pipeline:
                 self._handle_stage_error(
                     stage_enum, e, f"Failed to execute stage: {stage}"
                 )
+
+        # Add extracted data to results for debugging
+        if hasattr(self, 'extracted_data') and self.extracted_data:
+            results['extracted_data'] = self.extracted_data
 
         return results
 

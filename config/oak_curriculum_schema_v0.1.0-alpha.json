@@ -1,13 +1,13 @@
 {
   "hasura_endpoint": "${HASURA_ENDPOINT}",
   "materialized_views": [
-    "mv_curriculum_units",
-    "mv_curriculum_lessons",
-    "mv_learning_objectives",
-    "mv_lesson_relationships"
+    "published_mv_lesson_content_published_9_0_0",
+    "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
+    "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0",
+    "published_mv_curriculum_sequence_b_13_0_20"
   ],
-  "clear_database_before_import": false,
-  "test_limit": null,
+  "clear_database_before_import": true,
+  "test_limit": 10,  
   "node_mappings": [
     {
       "label": "Subject",
@@ -17,11 +17,11 @@
           "source_field": "subject_id",
           "target_type": "string"
         },
-        "title": {
+        "subjectTitle": {
           "source_field": "subject_title",
           "target_type": "string"
         },
-        "description": {
+        "subjectDescription": {
           "source_field": "subject_description",
           "target_type": "string"
         }

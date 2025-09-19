@@ -312,16 +312,16 @@ def run_pipeline(full: bool = True, extract_only: bool = False):
         # Run pipeline based on selection
         if extract_only:
             results = pipeline.run_partial_pipeline(
-                config=pipeline_config, stages=["extract", "validate"]
+                config_file=temp_config_path, stages=["extract"]
             )
         else:
             if use_auradb:
                 results = pipeline.run_full_pipeline(
-                    config=pipeline_config, use_auradb=True
+                    config_file=temp_config_path, use_auradb=True
                 )
             else:
                 results = pipeline.run_full_pipeline(
-                    config=pipeline_config, use_auradb=False
+                    config_file=temp_config_path, use_auradb=False
                 )
 
         st.session_state.execution_results = results
@@ -363,15 +363,26 @@ if st.session_state.execution_results:
 
     results = st.session_state.execution_results
 
+    # Debug: Show what's actually in results
+    st.write("**Debug - Results structure:**")
+    st.json({"keys": list(results.keys()) if isinstance(results, dict) else "Not a dict", "type": str(type(results))})
+
     # Display summary metrics
     result_col1, result_col2, result_col3 = st.columns(3)
 
     with result_col1:
-        if hasattr(results, "extraction_results"):
+        # Check for extracted data in multiple possible locations
+        total_records = 0
+        if isinstance(results, dict):
+            if "extracted_data" in results:
+                total_records = len(results["extracted_data"])
+            elif "extract" in results:
+                total_records = len(results["extract"]) if results["extract"] else 0
+        elif hasattr(results, "extraction_results"):
             total_records = sum(
                 len(data) for data in results.extraction_results.values()
             )
-            st.metric("Records Extracted", total_records)
+        st.metric("Records Extracted", total_records)
 
     with result_col2:
         if hasattr(results, "csv_files"):
@@ -380,6 +391,37 @@ if st.session_state.execution_results:
     with result_col3:
         if hasattr(results, "execution_time"):
             st.metric("Execution Time", format_duration(results.execution_time))
+
+    # Display extracted data for debugging
+    if hasattr(results, "extracted_data") and results.extracted_data:
+        st.subheader("📊 Extracted Data Sample")
+
+        total_records = len(results.extracted_data)
+        st.write(f"**Total Records:** {total_records}")
+
+        if total_records > 0:
+            # Show field names
+            first_record = results.extracted_data[0]
+            st.write(f"**Fields found:** {len(first_record.keys())}")
+
+            # Show field names in a nice format
+            field_names = list(first_record.keys())
+            st.write("**Available Fields:**")
+            cols = st.columns(3)
+            for i, field in enumerate(field_names):
+                with cols[i % 3]:
+                    st.code(field)
+
+            # Show first few records
+            st.write("**Sample Records:**")
+            sample_size = min(3, total_records)
+            for i in range(sample_size):
+                with st.expander(f"Record {i+1}"):
+                    record = results.extracted_data[i]
+                    for field, value in record.items():
+                        # Truncate long values
+                        display_value = str(value)[:100] + "..." if len(str(value)) > 100 else str(value)
+                        st.write(f"**{field}:** {display_value}")
 
     # Display detailed results
     if hasattr(results, "csv_files") and results.csv_files:

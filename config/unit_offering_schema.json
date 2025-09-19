@@ -1,0 +1,118 @@
+{
+  "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "materialized_views": [
+    "mv_curriculum_units"
+  ],
+  "clear_database_before_import": false,
+  "test_limit": 20,
+  "node_mappings": [
+    {
+      "label": "Year",
+      "id_field": "year_id",
+      "id_generation": "source_field",
+      "properties": {
+        "id": {
+          "source_field": "year_id",
+          "target_type": "string"
+        },
+        "title": {
+          "source_field": "year_title",
+          "target_type": "string"
+        },
+        "year_number": {
+          "source_field": "year_number",
+          "target_type": "int"
+        }
+      }
+    },
+    {
+      "label": "Subject",
+      "id_field": "subject_id",
+      "id_generation": "source_field",
+      "properties": {
+        "id": {
+          "source_field": "subject_id",
+          "target_type": "string"
+        },
+        "title": {
+          "source_field": "subject_title",
+          "target_type": "string"
+        }
+      }
+    },
+    {
+      "label": "UnitOffering",
+      "id_field": "unit_offering_id",
+      "id_generation": "computed",
+      "id_computation": "concat:year_id,subject_id",
+      "deduplication": true,
+      "properties": {
+        "id": {
+          "source_field": "_computed_unit_offering_id",
+          "target_type": "string"
+        },
+        "display_name": {
+          "source_field": "_computed_offering_name",
+          "computation": "concat:year_title,' ',subject_title",
+          "target_type": "string"
+        },
+        "year_title": {
+          "source_field": "year_title",
+          "target_type": "string"
+        },
+        "subject_title": {
+          "source_field": "subject_title",
+          "target_type": "string"
+        }
+      }
+    },
+    {
+      "label": "Unit",
+      "id_field": "unit_id",
+      "id_generation": "source_field",
+      "properties": {
+        "id": {
+          "source_field": "unit_id",
+          "target_type": "string"
+        },
+        "title": {
+          "source_field": "unit_title",
+          "target_type": "string"
+        },
+        "description": {
+          "source_field": "unit_description",
+          "target_type": "string"
+        },
+        "order": {
+          "source_field": "unit_order",
+          "target_type": "int"
+        }
+      }
+    }
+  ],
+  "relationship_mappings": [
+    {
+      "type": "HAS_YEAR",
+      "start_node_id_field": "unit_offering_id",
+      "end_node_id_field": "year_id",
+      "properties": {}
+    },
+    {
+      "type": "HAS_SUBJECT",
+      "start_node_id_field": "unit_offering_id",
+      "end_node_id_field": "subject_id",
+      "properties": {}
+    },
+    {
+      "type": "OFFERS_UNIT",
+      "start_node_id_field": "unit_offering_id",
+      "end_node_id_field": "unit_id",
+      "properties": {
+        "order": {
+          "source_field": "unit_order",
+          "target_type": "int"
+        }
+      }
+    }
+  ]
+}

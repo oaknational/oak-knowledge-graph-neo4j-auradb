@@ -89,7 +89,7 @@ During implementation, there are a number of prompts you can use at the start of
 
 Then refresh your memory by checking `HISTORY.md`. Review the `ARCHITECTURE.md` and `FUNCTIONAL.md` to understand what we are building.
 
-We are working through `TO-DO.md` and are on task 14.
+We are working through `TO-DO.md` and are on task 16.
 
 **Before implementing anything:**
 
@@ -105,18 +105,16 @@ As you implement, explain:
 
 Now, here is the next task to complete:
 
-### Task 14: Unit Tests
-**Description:** Create comprehensive unit tests for core components
-**Deliverables:**
-- `tests/test_config_manager.py` - Configuration tests
-- `tests/test_extractors.py` - Extraction logic tests
-- `tests/test_mappers.py` - Schema mapping tests
-- `tests/test_transformers.py` - CSV transformation tests
-- `tests/test_pipeline.py` - Pipeline orchestration tests
-- Test fixtures for mocking API responses
+Before we start Task 16, i want to properly test the application we have developed with real connections to my Hasura API and my Neo4j database. Lets call this Task 15A.
+I want to step through the testing of the pipeline one stage at a time:
+1. start with testing the extraction of data from the Hasura API. Show me where to enter the name of the MV(s) to test. Show me where to limit the number of records retreieved for each MV. Show me where the MV fields are specified. Show me where I can see the data exported from the MVs. Show me where these results are displayed (CLI and web UI). Then I want to be able to filter the data from the MV import by subject and year.
+2. I will then want to use a schema that is VERY simple for testing. (:Subject)-[:HAS_UNIT]->(:Unit). Show me where to set this up. Show me where and how I 'MAP' the MV data fields extracted to the Neo4j schema (via the UI?).
+3. Show me how to execute the import using the MV data I've exported and the schema mapping I've entered?
+4. Tell me if there is any functionality lacking, or if there is any functionality that I haven't tested here.
 
-**Dependencies:** Task 10, Task 11
-**Definition of Done:** All unit tests pass, core logic covered
+IMPORTANT: I need to be able to validate the data being passed through the pipeline at every stage during the testing.
+
+Please replay your understanding of my requirement to me before you start to execute this additional testing stage.
 
 ```
 

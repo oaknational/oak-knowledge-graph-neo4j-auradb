@@ -8,12 +8,16 @@ import argparse
 import sys
 import os
 
-from utils.logging import PipelineLogger
+from dotenv import load_dotenv
+from utils.logging import PipelineLogger, log_pipeline_stage, log_error_with_context
 from utils.helpers import validate_required_env_vars, format_duration
 from pipeline.pipeline import Pipeline, PipelineError, PipelineStage
 from pipeline.config_manager import ConfigurationError
 
 import time
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 def setup_logging(verbose: bool = False) -> PipelineLogger:
@@ -61,7 +65,7 @@ def create_pipeline(output_dir: str, verbose: bool = False) -> Pipeline:
 def run_full_pipeline(args) -> int:
     """Execute complete pipeline from config to Neo4j."""
     logger = setup_logging(args.verbose)
-    logger.log_pipeline_stage("CLI", "Starting full pipeline execution")
+    log_pipeline_stage(logger.get_logger(), "FULL_PIPELINE", "START")
 
     start_time = time.time()
 
@@ -74,7 +78,6 @@ def run_full_pipeline(args) -> int:
         result = pipeline.run_full_pipeline(
             config_file=args.config,
             use_auradb=args.use_auradb,
-            clear_database=args.clear_database,
         )
 
         execution_time = time.time() - start_time
@@ -100,14 +103,14 @@ def run_full_pipeline(args) -> int:
         return 0
 
     except (PipelineError, ConfigurationError) as e:
-        logger.log_error_with_context("CLI", "Pipeline execution failed", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Pipeline execution")
         print(f"\n❌ Pipeline failed: {e}")
         return 1
     except KeyboardInterrupt:
         print("\n⚠️  Pipeline interrupted by user")
         return 1
     except Exception as e:
-        logger.log_error_with_context("CLI", "Unexpected error", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
         print(f"\n💥 Unexpected error: {e}")
         return 1
 
@@ -115,7 +118,7 @@ def run_full_pipeline(args) -> int:
 def run_extract_only(args) -> int:
     """Extract data only from Hasura API."""
     logger = setup_logging(args.verbose)
-    logger.log_pipeline_stage("CLI", "Starting data extraction only")
+    log_pipeline_stage(logger.get_logger(), "EXTRACTION", "START")
 
     try:
         validate_environment()
@@ -133,11 +136,11 @@ def run_extract_only(args) -> int:
         return 0
 
     except (PipelineError, ConfigurationError) as e:
-        logger.log_error_with_context("CLI", "Data extraction failed", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Data extraction")
         print(f"\n❌ Extraction failed: {e}")
         return 1
     except Exception as e:
-        logger.log_error_with_context("CLI", "Unexpected error", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
         print(f"\n💥 Unexpected error: {e}")
         return 1
 
@@ -145,7 +148,7 @@ def run_extract_only(args) -> int:
 def run_transform_only(args) -> int:
     """Transform data to CSV format (requires previous extraction)."""
     logger = setup_logging(args.verbose)
-    logger.log_pipeline_stage("CLI", "Starting CSV transformation only")
+    log_pipeline_stage(logger.get_logger(), "TRANSFORMATION", "START")
 
     try:
         pipeline = create_pipeline(args.output_dir, args.verbose)
@@ -173,11 +176,11 @@ def run_transform_only(args) -> int:
         return 0
 
     except (PipelineError, ConfigurationError) as e:
-        logger.log_error_with_context("CLI", "CSV transformation failed", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI CSV transformation")
         print(f"\n❌ Transformation failed: {e}")
         return 1
     except Exception as e:
-        logger.log_error_with_context("CLI", "Unexpected error", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
         print(f"\n💥 Unexpected error: {e}")
         return 1
 
@@ -185,7 +188,7 @@ def run_transform_only(args) -> int:
 def run_load_only(args) -> int:
     """Load CSV files to Neo4j (requires previous transformation)."""
     logger = setup_logging(args.verbose)
-    logger.log_pipeline_stage("CLI", "Starting Neo4j load only")
+    log_pipeline_stage(logger.get_logger(), "NEO4J_LOAD", "START")
 
     try:
         pipeline = create_pipeline(args.output_dir, args.verbose)
@@ -217,11 +220,11 @@ def run_load_only(args) -> int:
         return 0
 
     except (PipelineError, ConfigurationError) as e:
-        logger.log_error_with_context("CLI", "Neo4j load failed", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Neo4j load")
         print(f"\n❌ Load failed: {e}")
         return 1
     except Exception as e:
-        logger.log_error_with_context("CLI", "Unexpected error", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
         print(f"\n💥 Unexpected error: {e}")
         return 1
 
@@ -247,8 +250,8 @@ def run_partial_pipeline(args) -> int:
         print("❌ No pipeline stages specified")
         return 1
 
-    logger.log_pipeline_stage(
-        "CLI", f"Starting partial pipeline: {[s.value for s in stages]}"
+    log_pipeline_stage(
+        logger.get_logger(), f"PARTIAL_PIPELINE_{[s.value for s in stages]}", "START"
     )
 
     try:
@@ -270,11 +273,11 @@ def run_partial_pipeline(args) -> int:
         return 0
 
     except (PipelineError, ConfigurationError) as e:
-        logger.log_error_with_context("CLI", "Partial pipeline failed", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Partial pipeline")
         print(f"\n❌ Pipeline failed: {e}")
         return 1
     except Exception as e:
-        logger.log_error_with_context("CLI", "Unexpected error", error=e)
+        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
         print(f"\n💥 Unexpected error: {e}")
         return 1
 
