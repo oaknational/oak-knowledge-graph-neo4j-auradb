@@ -1,0 +1,88 @@
+{
+  "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "materialized_views": {
+    "lessons_mv": [
+      "lesson_id",
+      "lesson_slug",
+      "lesson_title",
+      "lesson_description",
+      "unit_id"
+    ],
+    "units_mv": [
+      "unit_id",
+      "unit_slug",
+      "unit_title",
+      "unit_description",
+      "programme_id"
+    ],
+    "programmes_mv": [
+      "programme_id",
+      "programme_slug",
+      "programme_title",
+      "subject_slug",
+      "keystage_slug"
+    ]
+  },
+  "join_strategy": {
+    "type": "multi_source_join",
+    "primary_mv": "lessons_mv",
+    "joins": [
+      {
+        "mv": "units_mv",
+        "join_type": "left",
+        "on": {
+          "left_key": "unit_id",
+          "right_key": "unit_id"
+        }
+      },
+      {
+        "mv": "programmes_mv",
+        "join_type": "left",
+        "on": {
+          "left_key": "programme_id",
+          "right_key": "programme_id"
+        }
+      }
+    ]
+  },
+  "test_limit": 50,
+  "clear_database_before_import": true,
+  "schema_mapping": {
+    "nodes": {
+      "Lesson": {
+        "id_field": "lesson_slug",
+        "properties": {
+          "title": "lesson_title",
+          "description": "lesson_description"
+        }
+      },
+      "Unit": {
+        "id_field": "unit_slug",
+        "properties": {
+          "title": "unit_title",
+          "description": "unit_description"
+        }
+      },
+      "Programme": {
+        "id_field": "programme_slug",
+        "properties": {
+          "title": "programme_title",
+          "subject": "subject_slug",
+          "keystage": "keystage_slug"
+        }
+      }
+    },
+    "relationships": {
+      "BELONGS_TO_UNIT": {
+        "start_node_field": "lesson_slug",
+        "end_node_field": "unit_slug",
+        "properties": {}
+      },
+      "PART_OF_PROGRAMME": {
+        "start_node_field": "unit_slug",
+        "end_node_field": "programme_slug",
+        "properties": {}
+      }
+    }
+  }
+}

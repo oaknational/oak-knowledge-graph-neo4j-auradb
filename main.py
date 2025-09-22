@@ -1,429 +1,126 @@
 #!/usr/bin/env python3
 """
-CLI entry point for Oak Knowledge Graph pipeline.
-Provides command-line interface for pipeline execution per FUNCTIONAL.md requirements.
+Simple batch job entry point for Oak Knowledge Graph.
+Executes the complete pipeline with a single command.
 """
 
-import argparse
-import sys
 import os
+import sys
+import logging
+from pathlib import Path
 
 from dotenv import load_dotenv
-from utils.logging import PipelineLogger, log_pipeline_stage, log_error_with_context
-from utils.helpers import validate_required_env_vars, format_duration
-from pipeline.pipeline import Pipeline, PipelineError, PipelineStage
-from pipeline.config_manager import ConfigurationError
-
-import time
-
-# Load environment variables from .env file
-load_dotenv()
+from batch_processor import BatchProcessor, BatchProcessorError
 
 
-def setup_logging(verbose: bool = False) -> PipelineLogger:
-    """Setup logging based on environment and verbosity."""
-    log_level = os.getenv("LOG_LEVEL", "DEBUG" if verbose else "INFO")
-    return PipelineLogger("oak_cli", log_level)
+def setup_logging():
+    """Setup console logging."""
+    log_level = os.getenv("LOG_LEVEL", "INFO")
+    log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+    logging.basicConfig(
+        level=getattr(logging, log_level.upper(), logging.INFO),
+        format=log_format,
+        handlers=[logging.StreamHandler()]
+    )
 
 
-def validate_environment() -> None:
+def validate_environment():
     """Validate required environment variables are set."""
     required_vars = ["HASURA_ENDPOINT", "HASURA_API_KEY", "OAK_AUTH_TYPE"]
+    missing_vars = []
 
-    try:
-        validate_required_env_vars(required_vars)
-    except ValueError as e:
-        print(f"Environment validation failed: {e}")
-        print("\nRequired environment variables:")
-        for var in required_vars:
-            print(f"  {var}")
-        print("\nSee .env.example for configuration details.")
+    for var in required_vars:
+        if not os.getenv(var):
+            missing_vars.append(var)
+
+    if missing_vars:
+        print("❌ Missing required environment variables:")
+        for var in missing_vars:
+            print(f"   {var}")
+        print("\nPlease check your .env file or environment configuration.")
+        print("See .env.example for required variables.")
         sys.exit(1)
 
 
-def create_pipeline(output_dir: str, verbose: bool = False) -> Pipeline:
-    """Create and initialize pipeline with progress reporting."""
-
-    def progress_callback(progress):
-        if verbose:
-            stage_msg = (
-                f"[{progress.stage.value}] {progress.progress_percent:.1f}% - "
-                f"{progress.message}"
-            )
-            print(stage_msg)
-            if progress.total_records > 0:
-                print(
-                    f"  Records: {progress.records_processed}/{progress.total_records}"
-                )
-        else:
-            # Simple progress for non-verbose mode
-            print(f"{progress.message}")
-
-    return Pipeline(output_dir=output_dir, progress_callback=progress_callback)
+# Configuration file to use - change this to switch config files
+DEFAULT_CONFIG_FILE = "oak_curriculum_schema_v0.1.0-alpha.json"
 
 
-def run_full_pipeline(args) -> int:
-    """Execute complete pipeline from config to Neo4j."""
-    logger = setup_logging(args.verbose)
-    log_pipeline_stage(logger.get_logger(), "FULL_PIPELINE", "START")
+def find_config_file():
+    """Find the configuration file to use."""
+    config_dir = Path("config")
 
-    start_time = time.time()
+    # Use the default config file if it exists
+    preferred_path = config_dir / DEFAULT_CONFIG_FILE
+
+    if preferred_path.exists():
+        print(f"📋 Using configuration file: {DEFAULT_CONFIG_FILE}")
+        return DEFAULT_CONFIG_FILE
+
+    # Fallback to other config files
+    config_files = list(config_dir.glob("*.json"))
+
+    if not config_files:
+        print("❌ No configuration files found in config/ directory")
+        sys.exit(1)
+
+    # Use the first config file found
+    config_file = config_files[0].name
+    print(f"📋 Using configuration file: {config_file}")
+    return config_file
+
+
+def main():
+    """Main batch job execution."""
+    print("🚀 Oak Knowledge Graph Batch Processor")
+    print("=" * 50)
+
+    # Load environment variables
+    load_dotenv()
+
+    # Setup logging
+    setup_logging()
+    logger = logging.getLogger(__name__)
+
+    # Validate environment
+    validate_environment()
 
     try:
-        validate_environment()
+        # Find configuration file
+        config_file = find_config_file()
 
-        pipeline = create_pipeline(args.output_dir, args.verbose)
+        # Initialize and run batch processor
+        processor = BatchProcessor(output_dir="data")
 
-        # Execute full pipeline
-        result = pipeline.run_full_pipeline(
-            config_file=args.config,
-            use_auradb=args.use_auradb,
+        # Check if we should skip data cleaning
+        skip_cleaning = os.getenv("SKIP_DATA_CLEANING", "").lower() in ("true", "1", "yes")
+
+        if skip_cleaning:
+            print("⚠️  Data cleaning will be skipped (SKIP_DATA_CLEANING=true)")
+
+        # Execute the batch processing pipeline
+        processor.process(
+            config_file=config_file,
+            skip_cleaning=skip_cleaning
         )
 
-        execution_time = time.time() - start_time
+        print("✅ Batch processing completed successfully!")
+        print("📊 Check the data/ directory for output files")
+        print("🎯 Knowledge graph has been updated in Neo4j")
 
-        print(
-            f"\n✅ Pipeline completed successfully in {format_duration(execution_time)}"
-        )
-        print("📊 Results:")
-        node_count = len(result.get("csv_files", {}).get("nodes", []))
-        rel_count = len(result.get("csv_files", {}).get("relationships", []))
-        print(
-            f"  • CSV files: {node_count} node files, {rel_count} "
-            f"relationship files"
-        )
-        print(f"  • Output directory: {args.output_dir}")
-
-        if args.use_auradb and "import_stats" in result:
-            stats = result["import_stats"]
-            nodes = stats.get("nodes_created", 0)
-            rels = stats.get("relationships_created", 0)
-            print(f"  • Database import: {nodes} nodes, {rels} relationships")
-
-        return 0
-
-    except (PipelineError, ConfigurationError) as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Pipeline execution")
-        print(f"\n❌ Pipeline failed: {e}")
-        return 1
+    except BatchProcessorError as e:
+        logger.error(f"Batch processing failed: {e}")
+        print(f"❌ Batch processing failed: {e}")
+        sys.exit(1)
     except KeyboardInterrupt:
-        print("\n⚠️  Pipeline interrupted by user")
-        return 1
+        print("\n⚠️  Batch processing interrupted by user")
+        sys.exit(1)
     except Exception as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
-        print(f"\n💥 Unexpected error: {e}")
-        return 1
-
-
-def run_extract_only(args) -> int:
-    """Extract data only from Hasura API."""
-    logger = setup_logging(args.verbose)
-    log_pipeline_stage(logger.get_logger(), "EXTRACTION", "START")
-
-    try:
-        validate_environment()
-
-        pipeline = create_pipeline(args.output_dir, args.verbose)
-
-        # Load config and extract
-        pipeline.load_config(args.config)
-        extracted_data = pipeline.extract_data()
-
-        print("\n✅ Data extraction completed")
-        print(f"📊 Extracted {len(extracted_data)} records")
-        print("💾 Pipeline state saved for further processing")
-
-        return 0
-
-    except (PipelineError, ConfigurationError) as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Data extraction")
-        print(f"\n❌ Extraction failed: {e}")
-        return 1
-    except Exception as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
-        print(f"\n💥 Unexpected error: {e}")
-        return 1
-
-
-def run_transform_only(args) -> int:
-    """Transform data to CSV format (requires previous extraction)."""
-    logger = setup_logging(args.verbose)
-    log_pipeline_stage(logger.get_logger(), "TRANSFORMATION", "START")
-
-    try:
-        pipeline = create_pipeline(args.output_dir, args.verbose)
-
-        # Load config and check for previous data
-        pipeline.load_config(args.config)
-
-        if not pipeline.extracted_data:
-            print(
-                "❌ No extracted data found. Run extraction first with --extract-only"
-            )
-            return 1
-
-        # Run transformation steps
-        pipeline.validate_data()
-        pipeline.map_data()
-        csv_result = pipeline.transform_to_csv()
-
-        print("\n✅ CSV transformation completed")
-        print("📊 Generated:")
-        print(f"  • Node files: {len(csv_result.get('nodes', []))}")
-        print(f"  • Relationship files: {len(csv_result.get('relationships', []))}")
-        print(f"📁 Output directory: {args.output_dir}")
-
-        return 0
-
-    except (PipelineError, ConfigurationError) as e:
-        log_error_with_context(logger.get_logger(), e, "CLI CSV transformation")
-        print(f"\n❌ Transformation failed: {e}")
-        return 1
-    except Exception as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
-        print(f"\n💥 Unexpected error: {e}")
-        return 1
-
-
-def run_load_only(args) -> int:
-    """Load CSV files to Neo4j (requires previous transformation)."""
-    logger = setup_logging(args.verbose)
-    log_pipeline_stage(logger.get_logger(), "NEO4J_LOAD", "START")
-
-    try:
-        pipeline = create_pipeline(args.output_dir, args.verbose)
-
-        # Load config and check for CSV files
-        pipeline.load_config(args.config)
-
-        if not pipeline.csv_files.get("nodes") and not pipeline.csv_files.get(
-            "relationships"
-        ):
-            print(
-                "❌ No CSV files found. Run transformation first with --transform-only"
-            )
-            return 1
-
-        # Load to Neo4j
-        load_result = pipeline.load_to_neo4j(use_auradb=args.use_auradb)
-
-        print("\n✅ Neo4j load completed")
-
-        if args.use_auradb and "import_stats" in load_result:
-            stats = load_result["import_stats"]
-            nodes = stats.get("nodes_created", 0)
-            rels = stats.get("relationships_created", 0)
-            print(f"📊 Database import: {nodes} nodes, {rels} relationships")
-        else:
-            print("📋 Import commands generated in output directory")
-
-        return 0
-
-    except (PipelineError, ConfigurationError) as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Neo4j load")
-        print(f"\n❌ Load failed: {e}")
-        return 1
-    except Exception as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
-        print(f"\n💥 Unexpected error: {e}")
-        return 1
-
-
-def run_partial_pipeline(args) -> int:
-    """Run pipeline with specified stages."""
-    logger = setup_logging(args.verbose)
-    stages = []
-
-    # Build stage list from arguments
-    if args.extract:
-        stages.append(PipelineStage.EXTRACTING_DATA)
-    if args.validate:
-        stages.append(PipelineStage.VALIDATING_DATA)
-    if args.map:
-        stages.append(PipelineStage.MAPPING_DATA)
-    if args.transform:
-        stages.append(PipelineStage.TRANSFORMING_CSV)
-    if args.load:
-        stages.append(PipelineStage.LOADING_NEO4J)
-
-    if not stages:
-        print("❌ No pipeline stages specified")
-        return 1
-
-    log_pipeline_stage(
-        logger.get_logger(), f"PARTIAL_PIPELINE_{[s.value for s in stages]}", "START"
-    )
-
-    try:
-        validate_environment()
-
-        pipeline = create_pipeline(args.output_dir, args.verbose)
-
-        # Execute partial pipeline
-        pipeline.run_partial_pipeline(
-            config_file=args.config,
-            stages=stages,
-            use_auradb=args.use_auradb,
-            clear_database=args.clear_database,
-        )
-
-        print("\n✅ Partial pipeline completed")
-        print(f"📊 Executed stages: {[s.value for s in stages]}")
-
-        return 0
-
-    except (PipelineError, ConfigurationError) as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Partial pipeline")
-        print(f"\n❌ Pipeline failed: {e}")
-        return 1
-    except Exception as e:
-        log_error_with_context(logger.get_logger(), e, "CLI Unexpected error")
-        print(f"\n💥 Unexpected error: {e}")
-        return 1
-
-
-def create_parser() -> argparse.ArgumentParser:
-    """Create CLI argument parser with all options."""
-    parser = argparse.ArgumentParser(
-        description="Oak Knowledge Graph Data Pipeline - Extract curriculum "
-        "data from Hasura → transform → load to Neo4j",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Full pipeline execution
-  python main.py --config config/oak_curriculum_schema_v0.1.0-alpha.json --full
-
-  # Extract data only
-  python main.py --config config/schema.json --extract-only
-
-  # Transform existing data to CSV
-  python main.py --config config/schema.json --transform-only
-
-  # Load CSV files to AuraDB
-  python main.py --config config/schema.json --load-only --use-auradb
-
-  # Run specific pipeline stages
-  python main.py --config config/schema.json --extract --validate --transform
-
-Environment Variables:
-  HASURA_ENDPOINT     Hasura GraphQL endpoint URL
-  HASURA_API_KEY      Oak authentication key (128 characters)
-  OAK_AUTH_TYPE       Set to 'oak-admin' for Oak authentication
-  LOG_LEVEL           Logging level (DEBUG, INFO, WARNING, ERROR,
-                      CRITICAL)
-  LOG_FILE            Optional file path for detailed logging
-
-For more information, see FUNCTIONAL.md and CLAUDE.md
-        """,
-    )
-
-    # Configuration
-    parser.add_argument(
-        "--config",
-        "-c",
-        required=True,
-        help="Path to JSON configuration file (e.g., "
-        "config/oak_curriculum_schema_v0.1.0-alpha.json)",
-    )
-
-    parser.add_argument(
-        "--output-dir",
-        "-o",
-        default="data",
-        help="Output directory for CSV files and import commands (default: data)",
-    )
-
-    # Execution modes (mutually exclusive)
-    execution_group = parser.add_mutually_exclusive_group(required=True)
-
-    execution_group.add_argument(
-        "--full",
-        action="store_true",
-        help="Execute complete pipeline (extract → validate → map → "
-        "transform → load)",
-    )
-
-    execution_group.add_argument(
-        "--extract-only", action="store_true", help="Extract data from Hasura API only"
-    )
-
-    execution_group.add_argument(
-        "--transform-only",
-        action="store_true",
-        help="Transform previously extracted data to CSV format",
-    )
-
-    execution_group.add_argument(
-        "--load-only",
-        action="store_true",
-        help="Load previously generated CSV files to Neo4j",
-    )
-
-    # Individual stage selection for partial pipeline
-    parser.add_argument(
-        "--extract", action="store_true", help="Extract data from Hasura"
-    )
-    parser.add_argument(
-        "--validate", action="store_true", help="Validate extracted data"
-    )
-    parser.add_argument("--map", action="store_true", help="Apply schema mappings")
-    parser.add_argument(
-        "--transform", action="store_true", help="Transform to CSV format"
-    )
-    parser.add_argument("--load", action="store_true", help="Load to Neo4j database")
-
-    # Database options
-    parser.add_argument(
-        "--use-auradb",
-        action="store_true",
-        help="Use AuraDB direct import instead of generating neo4j-admin commands",
-    )
-
-    parser.add_argument(
-        "--clear-database",
-        action="store_true",
-        help="Clear Neo4j database before import (development/testing only)",
-    )
-
-    # Output options
-    parser.add_argument(
-        "--verbose",
-        "-v",
-        action="store_true",
-        help="Enable verbose output with detailed progress reporting",
-    )
-
-    parser.add_argument(
-        "--version",
-        action="version",
-        version="Oak Knowledge Graph Pipeline v0.1.0-alpha",
-    )
-
-    return parser
-
-
-def main() -> int:
-    """Main CLI entry point."""
-    parser = create_parser()
-    args = parser.parse_args()
-
-    # Validate partial pipeline arguments
-    if any([args.extract, args.validate, args.map, args.transform, args.load]):
-        return run_partial_pipeline(args)
-
-    # Route to appropriate execution mode
-    if args.full:
-        return run_full_pipeline(args)
-    elif args.extract_only:
-        return run_extract_only(args)
-    elif args.transform_only:
-        return run_transform_only(args)
-    elif args.load_only:
-        return run_load_only(args)
-    else:
-        parser.print_help()
-        return 1
+        logger.error(f"Unexpected error: {e}")
+        print(f"❌ Unexpected error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

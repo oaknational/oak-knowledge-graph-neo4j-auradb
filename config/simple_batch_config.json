@@ -1,0 +1,41 @@
+{
+  "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "materialized_views": {
+    "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0": [
+      "is_legacy", "lesson_data", "lesson_slug", "null_unitvariant_id",
+      "order_in_unit", "programme_fields", "programme_slug",
+      "programme_slug_by_year", "static_lesson_list", "unit_data",
+      "unit_slug", "unitvariant_id", "features", "actions"
+    ]
+  },
+  "join_strategy": {
+    "type": "single_source",
+    "primary_mv": "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
+    "joins": []
+  },
+  "test_limit": 10,
+  "clear_database_before_import": true,
+  "schema_mapping": {
+    "nodes": {
+      "Programme": {
+        "id_field": "programme_slug",
+        "properties": {
+          "title": "programme_slug"
+        }
+      },
+      "Unit": {
+        "id_field": "unit_slug",
+        "properties": {
+          "title": "unit_slug"
+        }
+      }
+    },
+    "relationships": {
+      "HAS_UNIT": {
+        "start_node_field": "programme_slug",
+        "end_node_field": "unit_slug",
+        "properties": {}
+      }
+    }
+  }
+}

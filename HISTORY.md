@@ -263,10 +263,30 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 
 **Technical Achievement:** Pipeline successfully extracts data and demonstrates component integration readiness
 
+### ✅ Post-Task 15: Production Pipeline Refinements (NEW)
+**Implementation Details:**
+- **Simplified Architecture Transition**: Moved from complex strategy pattern to simple batch job architecture per user request
+- **Direct Pipeline Components**: BatchProcessor, ConfigManager, HasuraExtractor, DataCleaner, SchemaMapper, Neo4jLoader
+- **Field Reading Fix**: Resolved Hasura field extraction issue - script now reads all configured fields (24 fields) instead of just 2
+- **Configuration Evolution**: Changed from list to dict format for materialized_views with explicit field specification
+- **JOIN Strategy Implementation**: Completely removed concatenation logic, implemented JOIN-only data consolidation
+- **Deduplication System**: Added comprehensive deduplication for both nodes and relationships using `seen_ids` tracking
+- **Directory Clearing**: Added automatic output directory clearing at pipeline start for fresh imports
+- **Schema Mapper Enhancement**: Added `relationship_type` field support for multiple config entries creating same Neo4j relationship type
+- **AuraDB Loader Fix**: Fixed critical bug where relationship types were extracted from filenames instead of CSV `:TYPE` column
+
+**Key Technical Achievements:**
+- **200 Records Processing**: Successfully extracts 200 records with 25 columns from `published_mv_lesson_openapi_1_2_3`
+- **Multi-Node Generation**: Creates Year (11), Subject (20), and UnitVariant (96) nodes with proper deduplication
+- **Unified Relationship Types**: Both Year→UnitVariant and Subject→UnitVariant relationships correctly use "HAS_UNIT" type in Neo4j
+- **Production Data Flow**: Hasura → CSV → Clean → Map → Neo4j with full pipeline validation
+
+**Quality Gates:** ✅ All tests pass, production data validated, Neo4j import successful with correct relationship types
+
 ## Current State
-**Completed:** Task 15 - Integration Testing complete with end-to-end validation and Neo4j CSV compliance
-**Pipeline Status:** Core pipeline, CLI, web interface, unit tests, and integration tests complete - ready for code quality validation
-**Next Task:** Task 16 - Code Quality Validation
+**Completed:** Production Pipeline Refinements - Simplified architecture with field reading, JOIN strategy, deduplication, and relationship type fixes
+**Pipeline Status:** Production-ready batch processor with successful 200-record processing and correct Neo4j relationship import
+**Next Task:** Context window reset and continued development
 
 ### Environment Configuration
 - **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
@@ -290,11 +310,13 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - **Real Data Integration**: Validated pipeline with production Oak materialized views
 
 ### Current Configuration State
-- **Active Schema:** `oak_curriculum_schema_v0.1.0-alpha.json` with comprehensive node/relationship mappings
-- **Python Environment:** Python 3.10 required for Neo4j driver compatibility (documented in `environment.yaml`)
-- **Database Credentials:** Neo4j AuraDB connection tested and validated
-- **Utils Organization:** Complete utilities package with logging, helpers, database_utils
-- **Optional Logging:** `LOG_LEVEL` and `LOG_FILE` environment variables for enhanced debugging
+- **Active Schema:** `oak_curriculum_schema_v0.1.0-alpha.json` using `published_mv_lesson_openapi_1_2_3` (24 fields)
+- **Default Config:** `DEFAULT_CONFIG_FILE = "oak_curriculum_schema_v0.1.0-alpha.json"` in main.py
+- **Data Source:** Single MV with JOIN strategy (no concatenation)
+- **Node Types:** Year (11), Subject (20), UnitVariant (96) with deduplication
+- **Relationship Type:** Unified "HAS_UNIT" for both Year→UnitVariant and Subject→UnitVariant
+- **Python Environment:** Python 3.10 required for Neo4j driver compatibility
+- **Database:** Neo4j AuraDB connection tested and validated
 
 ## Critical Path Progress
 Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 18

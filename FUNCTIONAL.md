@@ -1,84 +1,68 @@
 # Functional Specification
 
 ## Project Summary
-Extract Oak Curriculum data from Hasura materialized views and transform it into Neo4j knowledge graph via bulk CSV import.
+Simple batch job to extract Oak Curriculum data from specified Hasura materialized views, join into a single CSV, apply optional data cleaning, and import into Neo4j knowledge graph.
 
 ## Core Requirements
 
-### 1. Data Extraction
+### 1. Data Extraction & Consolidation
 - Connect to Hasura GraphQL API using configurable endpoint
 - Query specified materialized views based on JSON configuration
-- Support optional row limiting for testing purposes (test_limit parameter)
+- Join all MV data into a single consolidated CSV file
 - Handle authentication and rate limiting
-- Export raw data to intermediate CSV format
-- **Success Criteria:** All configured MVs extracted without data loss
+- **Success Criteria:** All specified MVs extracted and joined without data loss
 
-### 2. Schema Mapping System
-- JSON-based configuration for field mappings (Hasura MV → Neo4j properties)
+### 2. Data Cleaning & Preprocessing
+- Optional preprocessing area in code for data cleaning operations
+- Apply transformations to consolidated CSV before schema mapping
+- Save cleaned CSV for inspection/debugging
+- **Success Criteria:** Clean, validated data ready for knowledge graph import
+
+### 3. Schema Mapping System
+- JSON-based configuration for CSV field mappings to Neo4j knowledge graph
 - Support for node and relationship definitions
 - Field transformation rules (rename, type conversion, computed fields)
-- Validation of mapping configuration against available MV fields
-- **Success Criteria:** Easy maintenance of mappings when MVs or graph schema change
+- **Success Criteria:** Successful mapping from CSV to knowledge graph schema
 
-### 3. Data Transformation
-- Convert Hasura data to Neo4j bulk import CSV format
-- Generate unique node IDs for relationship references
-- Apply proper Neo4j type annotations (`:ID`, `:string`, `:int`, etc.)
-- Split data into separate node and relationship CSV files
-- **Success Criteria:** Valid Neo4j import CSVs with correct headers and data types
-
-### 4. Neo4j Preparation
-- Generate neo4j-admin import command with all CSV files
-- Validate CSV format meets Neo4j bulk import requirements
-- Provide import statistics and file summaries
-- **Success Criteria:** Successful Neo4j database import without errors
+### 4. Knowledge Graph Import
+- Import cleaned and mapped data directly into Neo4j knowledge graph
+- Validate successful import with proper relationships
+- **Success Criteria:** Complete knowledge graph populated without errors
 
 ### 5. Configuration Management
-- Load/save schema mappings from JSON files
-- Validate configuration against Pydantic schemas
-- Support multiple mapping configurations for different data sets
-- Optional test_limit parameter for development/testing with small data samples
-- **Success Criteria:** Non-technical users can edit mappings via JSON files
+- Load schema mappings from JSON files
+- Simple validation of required configuration keys
+- **Success Criteria:** Easy maintenance of mappings when schema changes
 
 ## User Interface Requirements
 
-### CLI Interface
+### Batch Job Interface
 ```bash
-# Full pipeline execution
-python main.py --config config/curriculum.json --full
-
-# Individual steps
-python main.py --config config/curriculum.json --extract-only
-python main.py --config config/curriculum.json --transform-only
-python main.py --config config/curriculum.json --load-only
-
-# Partial pipeline (custom stages)
-python main.py --config config/curriculum.json --extract --validate --transform
+# Simple batch execution
+python main.py
 ```
 
-### Streamlit Web Interface (Local Only)
-- **Schema Mapping Editor:** JSON editor with syntax validation
-- **Data Preview:** Show sample transformations before execution
-- **Pipeline Controls:** Start/stop buttons with progress indicators
-- **Results Viewer:** Display generated CSV files and import commands
-- **Error Display:** Show validation errors and execution logs
+**Features:**
+- Single command execution of complete pipeline
+- Progress logging to console
+- Error reporting with clear messages
+- Final status summary
 
 ## Data Flow Requirements
 
 1. **Configuration Loading:** Parse JSON schema mappings
-2. **Data Extraction:** Fetch data from configured Hasura MVs
-3. **Data Validation:** Validate against Pydantic models
-4. **Field Mapping:** Apply transformations per schema configuration
-5. **CSV Generation:** Create Neo4j-compatible import files
-6. **Import Preparation:** Generate neo4j-admin commands
+2. **Data Extraction:** Fetch data from specified Hasura MVs and join into single CSV
+3. **Data Cleaning:** Apply optional preprocessing transformations
+4. **Schema Mapping:** Apply CSV field mappings to knowledge graph schema
+5. **Knowledge Graph Import:** Import directly into Neo4j knowledge graph
 
 ## Error Handling Requirements
 
 - **Validation Errors:** Clear messages for invalid configurations
-- **API Errors:** Retry logic for transient Hasura failures
+- **API Errors:** Handle Hasura connection and query failures
 - **Data Errors:** Identify and report malformed data records
 - **File Errors:** Handle CSV generation and file system issues
-- **User Feedback:** Show progress and errors in both CLI and web interface
+- **User Feedback:** Show progress and errors via console logging
 
 ## Performance Requirements
 
@@ -105,15 +89,15 @@ python main.py --config config/curriculum.json --extract --validate --transform
 ## Acceptance Criteria
 
 ### Minimum Viable Product
-- [x] Extract data from at least one Hasura MV
-- [x] Transform to valid Neo4j CSV format
-- [x] Generate working neo4j-admin import command
-- [x] Basic Streamlit interface for schema editing
-- [x] JSON configuration validation
+- [x] Extract data from specified Hasura MVs and join into single CSV
+- [x] Optional data cleaning/preprocessing area
+- [x] Map CSV fields to knowledge graph schema via JSON configuration
+- [x] Direct import into Neo4j knowledge graph
+- [x] Simple batch job execution
 
 ### Success Metrics
-- Pipeline completes without manual intervention
-- Generated CSV imports successfully into Neo4j
-- Schema mappings can be modified by non-developers
+- Single command executes complete pipeline without intervention
+- Data successfully imported into Neo4j knowledge graph
+- Schema mappings can be modified via JSON files
 - Error messages provide actionable guidance
-- Documentation sufficient for handoff to development team
+- Simple, maintainable architecture

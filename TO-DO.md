@@ -1,276 +1,254 @@
-# Project Implementation TO-DO
+# Simplified Batch Job Implementation TO-DO
 
 ## Phase 1: Foundation Setup
 
-### Task 1: Environment Setup
+### ✅ Task 1: Environment Setup
 **Description:** Set up basic project structure and dependencies
 **Deliverables:**
-- Updated `requirements.txt` with all dependencies
-- Created directory structure per ARCHITECTURE.md
-- Basic `.gitignore` for Python projects
+- ✅ Updated `requirements.txt` with core dependencies (no Streamlit needed)
+- ✅ Created directory structure (simplified flat structure)
+- ✅ Basic `.gitignore` for Python projects
+- ✅ Environment variables configuration
 
 **Dependencies:** None
-**Definition of Done:** Project structure matches ARCHITECTURE.md, `pip install -r requirements.txt` works
+**Status:** COMPLETED
 
 ---
 
-### Task 2: Pydantic Data Models
-**Description:** Create core data validation models
+### ❌ Task 2: Data Models (REMOVED)
+**Description:** ~~Create core data validation models~~ - REMOVED FOR SIMPLICITY
 **Deliverables:**
-- `models/config.py` - Configuration schemas (FieldMapping, NodeMapping, PipelineConfig)
-- `models/hasura.py` - Hasura API response models
-- `models/neo4j.py` - Neo4j data models for nodes/relationships
+- ❌ ~~Pydantic models~~ - Using plain Python dictionaries instead
+- ✅ Simple JSON configuration loading
+- ✅ Basic dictionary validation
 
 **Dependencies:** Task 1
-**Definition of Done:** All models validate correctly, pass `black` and `flake8`
+**Status:** SIMPLIFIED - No longer using complex data models
 
 ---
 
-### Task 3: Configuration Management
-**Description:** Implement JSON configuration loading and validation
+### ✅ Task 3: Configuration Management (SIMPLIFIED)
+**Description:** Simple JSON configuration loading
 **Deliverables:**
-- `pipeline/config_manager.py` - ConfigManager class
-- `config/schema_template.json` - Example configuration file
-- Environment variable handling for credentials
+- ✅ `config_manager.py` - Simple JSON loading and basic validation
+- ✅ JSON configuration files in `/config` directory
+- ✅ Environment variable handling for credentials
+- ❌ ~~Pydantic validation~~ - Removed for simplicity
 
-**Dependencies:** Task 2
-**Definition of Done:** Can load/validate JSON configs, errors provide clear feedback
-
----
-
-## Phase 2: Core Pipeline Components
-
-### Task 4: Base Strategy Classes
-**Description:** Create abstract base classes for Strategy pattern
-**Deliverables:**
-- `pipeline/extractors.py` - ExtractionStrategy abstract base class
-- `pipeline/transformers.py` - TransformationStrategy abstract base class
-- Factory pattern implementation for component creation
-
-**Dependencies:** Task 2, Task 3
-**Definition of Done:** Abstract classes defined, factory pattern working
+**Dependencies:** Task 1
+**Status:** COMPLETED - Simplified to plain dictionaries
 
 ---
 
-### Task 5: Hasura Extractor
-**Description:** Implement Hasura GraphQL API client
-**Deliverables:**
-- HasuraExtractor class in `pipeline/extractors.py`
-- GraphQL query generation from configuration
-- Authentication and error handling
-- Mock API responses in `tests/fixtures/`
-
-**Dependencies:** Task 4
-**Definition of Done:** Can query Hasura API, handles errors gracefully, unit tests pass
-
----
-
-### Task 6: Data Validator
-**Description:** Implement Pydantic-based data validation
-**Deliverables:**
-- `pipeline/validators.py` - DataValidator class
-- Batch validation for performance
-- Detailed error reporting for invalid data
-
-**Dependencies:** Task 2
-**Definition of Done:** Validates data against models, provides actionable error messages
-
----
-
-### Task 7: Schema Mapper
-**Description:** Implement field mapping and transformation logic
-**Deliverables:**
-- `pipeline/mappers.py` - SchemaMapper class
-- Field transformation rules (rename, type conversion)
-- Node ID generation for relationships
-- Data lineage tracking
-
-**Dependencies:** Task 3, Task 6
-**Definition of Done:** Applies mappings correctly, generates unique IDs, unit tests pass
-
----
-
-### Task 8: CSV Transformer
-**Description:** Convert data to Neo4j bulk import CSV format
-**Deliverables:**
-- CSVTransformer class in `pipeline/transformers.py`
-- Neo4j-compatible headers (`:ID`, `:string`, `:TYPE`, etc.)
-- Separate node and relationship file generation
-- CSV optimization for bulk import
-
-**Dependencies:** Task 7
-**Definition of Done:** Generates valid Neo4j CSV files, headers correctly formatted
-
----
-
-### Task 9: Neo4j Loader
-**Description:** Generate Neo4j import commands and validate CSV format
-**Deliverables:**
-- `pipeline/loaders.py` - Neo4jLoader class
-- neo4j-admin command generation
-- CSV format validation
-- Import statistics and summaries
-
-**Dependencies:** Task 8
-**Definition of Done:** Generates correct import commands, validates CSV format
-
----
-
-## Phase 3: Pipeline Orchestration
-
-### Task 10: Main Pipeline Class
-**Description:** Orchestrate entire data flow process
-**Deliverables:**
-- `pipeline/pipeline.py` - Main Pipeline class
-- Component dependency injection
-- Progress reporting interface
-- High-level error recovery
-
-**Dependencies:** Task 5, Task 6, Task 7, Task 8, Task 9
-**Definition of Done:** Orchestrates full pipeline, handles component failures
-
----
-
-### Task 11: Logging and Utilities
+### ✅ Task 4: Logging and Utilities
 **Description:** Implement logging and shared utilities
 **Deliverables:**
-- `utils/logging.py` - Logging configuration
-- `utils/helpers.py` - Shared utility functions
-- Console and optional file logging
+- ✅ `utils/logging.py` - Logging configuration
+- ✅ `utils/helpers.py` - Shared utility functions
+- ✅ Console logging setup
 
 **Dependencies:** Task 1
-**Definition of Done:** Consistent logging across components, utilities available
+**Status:** COMPLETED
 
 ---
 
-## Phase 4: User Interfaces
+## Phase 2: Core Batch Components
 
-### Task 12: CLI Interface
-**Description:** Create command-line interface for pipeline execution
+### ✅ Task 5: Hasura Extractor
+**Description:** Extract and join data from specified Hasura materialized views
 **Deliverables:**
-- `main.py` - CLI entry point with argparse
-- Support for individual pipeline steps
-- Progress reporting and error display
+- ✅ `hasura_extractor.py` - HasuraExtractor class
+- ✅ GraphQL query generation and execution
+- ✅ Data joining into single consolidated CSV
+- ✅ Authentication and error handling
 
-**Dependencies:** Task 10, Task 11
-**Definition of Done:** CLI supports all operations from FUNCTIONAL.md, help text clear
+**Dependencies:** Task 3
+**Status:** COMPLETED
 
 ---
 
-### Task 13: Streamlit Web Interface
-**Description:** Create single-page web interface for configuration management
+### 🔄 Task 6: Data Cleaner (NEW)
+**Description:** Optional data preprocessing area
 **Deliverables:**
-- `streamlit_app.py` - Single-page Streamlit interface
-- JSON configuration editor with validation
-- Data preview functionality
-- Pipeline execution controls
-- Results and error display
+- ⚠️ `data_cleaner.py` - DataCleaner class with extensible cleaning methods
+- ⚠️ Load consolidated CSV, apply cleaning transformations
+- ⚠️ Save cleaned CSV for inspection/debugging
+- ⚠️ Clear area for user to add custom cleaning logic
 
-**Dependencies:** Task 10, Task 11
-**Definition of Done:** All functional requirements met, runs on localhost:8501
+**Dependencies:** Task 5
+**Status:** NEEDS IMPLEMENTATION
 
 ---
 
-## Phase 5: Testing and Validation
-
-### Task 14: Unit Tests
-**Description:** Create comprehensive unit tests for core components
+### ✅ Task 7: Schema Mapper
+**Description:** Map CSV fields to knowledge graph schema
 **Deliverables:**
-- `tests/test_config_manager.py` - Configuration tests
-- `tests/test_extractors.py` - Extraction logic tests
-- `tests/test_mappers.py` - Schema mapping tests
-- `tests/test_transformers.py` - CSV transformation tests
-- `tests/test_pipeline.py` - Pipeline orchestration tests
-- Test fixtures for mocking API responses
+- ✅ `schema_mapper.py` - SchemaMapper class
+- ✅ CSV field to graph property mapping
+- ✅ Node and relationship mapping logic
+- ✅ Field transformation rules
 
-**Dependencies:** Task 10, Task 11
-**Definition of Done:** All unit tests pass, core logic covered
+**Dependencies:** Task 3, Task 6
+**Status:** COMPLETED
 
 ---
 
-### Task 15: Integration Testing
+### ✅ Task 8: Neo4j Loader
+**Description:** Direct import into Neo4j knowledge graph
+**Deliverables:**
+- ✅ `neo4j_loader.py` - Neo4jLoader class
+- ✅ Direct database import (no CSV generation needed)
+- ✅ Node and relationship creation
+- ✅ Import statistics and validation
+
+**Dependencies:** Task 7
+**Status:** COMPLETED
+
+---
+
+## Phase 3: Batch Orchestration
+
+### 🔄 Task 9: Batch Processor (REVISED)
+**Description:** Simple linear batch job orchestration
+**Deliverables:**
+- ⚠️ `batch_processor.py` - Main BatchProcessor class
+- ⚠️ Linear execution flow: Extract → Join → Clean → Map → Import
+- ⚠️ Progress reporting to console
+- ⚠️ Error handling and graceful exit
+
+**Dependencies:** Task 5, Task 6, Task 7, Task 8
+**Status:** NEEDS SIMPLIFICATION (Pipeline exists but needs to be simplified)
+
+---
+
+### 🔄 Task 10: Main Entry Point (REVISED)
+**Description:** Simple batch job entry point
+**Deliverables:**
+- ⚠️ `main.py` - Single command execution (remove CLI complexity)
+- ⚠️ Load configuration from JSON file
+- ⚠️ Execute BatchProcessor
+- ⚠️ Console progress and error reporting
+
+**Dependencies:** Task 9
+**Status:** NEEDS SIMPLIFICATION (CLI exists but needs to be simplified to batch job)
+
+---
+
+## Phase 4: Testing and Validation
+
+### ✅ Task 11: Unit Tests
+**Description:** Basic unit tests for core components
+**Deliverables:**
+- ✅ `tests/test_config_manager.py` - Configuration tests
+- ✅ `tests/test_extractors.py` - Extraction logic tests
+- ✅ `tests/test_mappers.py` - Schema mapping tests
+- ✅ `tests/test_pipeline.py` - Pipeline orchestration tests
+- ✅ Test fixtures for mocking API responses
+
+**Dependencies:** Task 9
+**Status:** COMPLETED
+
+---
+
+### ✅ Task 12: Integration Testing
 **Description:** End-to-end testing with sample data
 **Deliverables:**
-- Sample configuration files for testing
-- Sample Hasura MV data for validation
-- Neo4j CSV validation with actual import test
-- Documentation of test scenarios
+- ✅ `tests/test_integration.py` - Integration tests
+- ✅ Sample configuration files
+- ✅ Mock data validation
+
+**Dependencies:** Task 11
+**Status:** COMPLETED
+
+---
+
+## Phase 5: Cleanup and Simplification
+
+### ❌ Task 13: Remove Unnecessary Components (EXPANDED)
+**Description:** Remove components not needed for simple batch job
+**Deliverables:**
+- ❌ Remove `streamlit_app.py` (no UI needed)
+- ❌ Remove complex CLI arguments from `main.py`
+- ❌ Remove Strategy pattern complexity if not needed
+- ❌ Simplify Pipeline to BatchProcessor
+- ❌ Remove `models/` directory and pydantic models
+- ❌ Update requirements.txt to remove Streamlit and pydantic
+
+**Dependencies:** Task 10
+**Status:** PENDING
+
+---
+
+### ✅ Task 14: Code Quality Validation
+**Description:** Ensure code meets quality standards
+**Deliverables:**
+- ✅ Code passes `black --check .`
+- ✅ Code passes `flake8`
+- ✅ Unit tests pass
+
+**Dependencies:** Task 13
+**Status:** COMPLETED
+
+---
+
+### ✅ Task 15: Documentation Update
+**Description:** Updated documentation for simplified architecture
+**Deliverables:**
+- ✅ Updated CLAUDE.md, FUNCTIONAL.md, ARCHITECTURE.md
+- ✅ Updated README.md for simple batch execution
+- ✅ Updated BRIEF.md for simplified flow
 
 **Dependencies:** Task 14
-**Definition of Done:** Complete pipeline works with sample data, CSV imports to Neo4j
+**Status:** COMPLETED
 
 ---
 
-## Phase 6: Documentation and Finalization
+## Current Implementation Status
 
-### Task 16: Code Quality Validation
-**Description:** Ensure all code meets quality standards
-**Deliverables:**
-- All code passes `black --check .`
-- All code passes `flake8`
-- All unit tests pass
-- Code review checklist completed
+### ✅ COMPLETED (Already Implemented)
+- Foundation setup and project structure
+- Simple JSON configuration loading and basic validation
+- Configuration management with JSON files
+- Hasura data extraction with authentication
+- Schema mapping from CSV to knowledge graph
+- Neo4j loader for direct database import
+- Comprehensive unit and integration tests
+- Logging and utilities
+- Updated documentation
 
-**Dependencies:** Task 15
-**Definition of Done:** All quality gates from CLAUDE.md pass
+### 🔄 NEEDS WORK (Partially Complete)
+- Data cleaning component (needs implementation)
+- Batch processor simplification (Pipeline exists but too complex)
+- Main entry point simplification (CLI exists but needs to be batch job)
 
----
+### ❌ TO BE REMOVED
+- Streamlit web interface
+- Complex CLI argument parsing
+- Strategy pattern complexity (if not needed)
+- Streamlit dependency
+- Pydantic models and dependency
+- Models directory with complex validation
 
-### Task 17: Documentation Completion
-**Description:** Complete project documentation
-**Deliverables:**
-- Updated README.md with setup/usage instructions
-- API documentation for main classes
-- Troubleshooting guide
-- Sample configuration examples
-
-**Dependencies:** Task 16
-**Definition of Done:** Documentation sufficient for handoff, follows standards from CLAUDE.md
-
----
-
-### Task 18: Final Validation
-**Description:** End-to-end system validation
-**Deliverables:**
-- Complete pipeline execution test
-- Neo4j import validation
-- Performance benchmarking
-- Acceptance criteria validation from FUNCTIONAL.md
-
-**Dependencies:** Task 17
-**Definition of Done:** All acceptance criteria met, system ready for production use
-
----
-
-## Dependency Summary
+## Simplified Dependency Chain
 
 ```
-Task 1 (Environment Setup)
-├── Task 2 (Pydantic Models)
-│   ├── Task 3 (Config Manager)
-│   │   ├── Task 4 (Base Strategy Classes)
-│   │   │   └── Task 5 (Hasura Extractor)
-│   │   └── Task 7 (Schema Mapper)
-│   └── Task 6 (Data Validator)
-│       └── Task 7 (Schema Mapper)
-├── Task 11 (Logging/Utils)
-
-Task 7 (Schema Mapper)
-└── Task 8 (CSV Transformer)
-    └── Task 9 (Neo4j Loader)
-
-Tasks 5,6,7,8,9
-└── Task 10 (Pipeline Orchestration)
-    ├── Task 12 (CLI Interface)
-    └── Task 13 (Streamlit Interface)
-
-Tasks 10,11
-└── Task 14 (Unit Tests)
-    └── Task 15 (Integration Testing)
-        └── Task 16 (Code Quality)
-            └── Task 17 (Documentation)
-                └── Task 18 (Final Validation)
+✅ Environment & Models → ✅ Config Management → ✅ Hasura Extractor
+                                                        ↓
+⚠️ Data Cleaner → ✅ Schema Mapper → ✅ Neo4j Loader
+                                            ↓
+                              ⚠️ Batch Processor → ⚠️ Simple main.py
+                                            ↓
+                                    ❌ Remove Unnecessary → ✅ Final Validation
 ```
 
-## Critical Path
-Tasks 1 → 2 → 3 → 7 → 8 → 9 → 10 → 13 → 15 → 18 form the critical path for MVP delivery.
+## Critical Path for Completion
+1. **Implement Data Cleaner** - Create optional preprocessing area
+2. **Simplify Batch Processor** - Remove Pipeline complexity, create linear BatchProcessor
+3. **Simplify main.py** - Remove CLI complexity, make simple batch execution
+4. **Remove Unnecessary Components** - Clean up Streamlit, pydantic models, and complex features
+5. **Final Testing** - Ensure simplified batch job works end-to-end
+
+## Estimated Effort Remaining
+- **High Priority:** Tasks 6, 9, 10 (core functionality)
+- **Medium Priority:** Task 13 (cleanup)
+- **Total:** ~4-6 hours of development work

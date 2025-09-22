@@ -3,8 +3,7 @@
 ## Quick Setup
 ```bash
 pip install -r requirements.txt
-streamlit run streamlit_app.py  # Web interface
-python main.py --help           # CLI interface
+python main.py  # Run batch job
 ```
 
 ## Code Standards
@@ -16,18 +15,16 @@ python main.py --help           # CLI interface
 - **Docstrings:** Minimal, only where code intent unclear
 
 ### Architecture (Required)
-- **Patterns:** Strategy + Factory for extractors/transformers
-- **Classes:** Pipeline, ConfigManager, HasuraExtractor, SchemaMapper, CSVTransformer, Neo4jLoader, AuraDBLoader, DataValidator
-- **Models:** Pydantic for all data validation and configuration
-- **Structure:** See ARCHITECTURE.md file structure
+- **Pattern:** Simple batch job processing
+- **Classes:** BatchProcessor, ConfigManager, HasuraExtractor, DataCleaner, SchemaMapper, Neo4jLoader
+- **Data:** Plain Python dictionaries for configuration and data
+- **Structure:** Single main.py entry point with simple linear flow
 - **Environment:** Python 3.10+ required for Neo4j driver routing compatibility
 
 ### Dependencies (Locked)
 ```txt
 pandas>=1.5.0      # CSV operations
 requests>=2.28.0   # API calls
-pydantic>=1.10.0   # Data validation
-streamlit>=1.25.0  # Web interface
 black>=22.0.0      # Code formatting
 flake8>=5.0.0      # Linting
 pytest>=7.0.0      # Unit testing
@@ -90,12 +87,12 @@ docs/         # Testing documentation
 ## Critical Implementation Notes
 
 ### Data Flow (Mandatory)
-1. ConfigManager loads JSON → validates with Pydantic
-2. HasuraExtractor queries Oak API → returns raw dict data
-3. DataValidator applies Pydantic models → validates structure
-4. SchemaMapper applies config transformations → mapped data
-5. CSVTransformer generates Neo4j format → typed CSV files
-6. Neo4jLoader/AuraDBLoader imports to Neo4j → production database ready
+1. **Clear Output Directory** → ensures fresh import every time
+2. **ConfigManager** loads JSON → validates with join_strategy checks
+3. **HasuraExtractor** queries specified MVs with explicit fields → JOIN strategy (NO concatenation)
+4. **DataCleaner** optional preprocessing → cleaned CSV
+5. **SchemaMapper** deduplication + transformations → node/relationship CSVs
+6. **Neo4jLoader** imports using CSV `:TYPE` column → production database ready
 
 ### CSV Requirements (Neo4j Compliance)
 - **Node files:** Must include `:ID` column and `:LABEL`
@@ -103,40 +100,50 @@ docs/         # Testing documentation
 - **Types:** Use `:string`, `:int`, `:float`, `:boolean` in headers
 - **IDs:** Generate unique throwaway IDs for import, remove after
 
-### Pydantic Models (Required Structure)
-```python
-# Config models in models/config.py
-class FieldMapping(BaseModel):
-    source_field: str
-    target_type: str
-    transformation: Optional[str] = None
-
-class NodeMapping(BaseModel):
-    label: str
-    id_field: str
-    properties: Dict[str, FieldMapping]
-
-# Data models in models/hasura.py and models/neo4j.py
-# IMPORTANT: Use model_validate() not deprecated parse_obj()
+### Configuration Structure (JSON with Field Specification)
+```json
+{
+  "materialized_views": {
+    "view_name": ["field1", "field2", "field3"]
+  },
+  "join_strategy": {
+    "type": "single_source" | "multi_source_join",
+    "primary_mv": "view_name",
+    "joins": []
+  },
+  "schema_mapping": {
+    "relationships": {
+      "config_key": {
+        "relationship_type": "NEO4J_TYPE",
+        "start_node_field": "field_name",
+        "end_node_field": "field_name"
+      }
+    }
+  }
+}
 ```
 
-### Streamlit Interface (Single Page)
-- **Layout:** Config editor (top) → Preview (middle) → Execute (bottom)
-- **No tabs:** Everything on one page for simplicity
-- **File:** `streamlit_app.py` in root
+**Critical Requirements:**
+- `materialized_views`: Dict format with explicit field lists (NOT list format)
+- `join_strategy`: Required for data consolidation strategy
+- `relationship_type`: Allows multiple configs to create same Neo4j relationship type
+
+### Batch Job Interface
+- **Entry Point:** `main.py` in root
+- **Configuration:** JSON file in `/config` directory
 - **Environment Loading:** Must call `load_dotenv()` to read `.env` file
-- **Local only:** No deployment configuration needed
+- **Execution:** Single command runs complete pipeline
 
 ## Quality Gates (Must Pass)
 1. `black --check .`
 2. `flake8`
 3. `pytest tests/`
-4. Manual validation: sample CSV imports into Neo4j
+4. Manual validation: Neo4j knowledge graph import successful
 
 ### Performance Standards
-- **Database Operations:** UNWIND batch queries (1000 records/batch)
+- **Database Operations:** Efficient bulk import operations
 - **Scalability:** Production-ready for thousands of curriculum records
-- **Memory:** Batch processing to handle large datasets efficiently
+- **Memory:** Efficient CSV processing for large datasets
 
 ## Reference Files
 - **Functional requirements:** FUNCTIONAL.md

@@ -1,234 +1,78 @@
 {
   "hasura_endpoint": "${HASURA_ENDPOINT}",
-  "materialized_views": [
-    "published_mv_lesson_content_published_9_0_0",
-    "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
-    "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0",
-    "published_mv_curriculum_sequence_b_13_0_20"
-  ],
+  "materialized_views": {
+    "published_mv_lesson_openapi_1_2_3": [
+      "examBoardTitle",
+      "isLegacy",
+      "keyLearningPoints",
+      "keyStageTitle",
+      "lessonId",
+      "lessonTitle",
+      "examBoardSlug",
+      "keyStageSlug",
+      "lessonKeywords",
+      "lessonOrderInUnit",
+      "lessonSlug",
+      "nullUnitVariantId",
+      "programmeSlug",
+      "pupilLessonOutcome",
+      "subjectSlug",
+      "subjectTitle",
+      "tierSlug",
+      "tierTitle",
+      "unitOrder",
+      "unitSlug",
+      "unitTitle",
+      "unitVariantId",
+      "yearSlug",
+      "yearTitle"
+    ]
+  },
+  "join_strategy": {
+    "type": "single_source",
+    "primary_mv": "published_mv_lesson_openapi_1_2_3",
+    "joins": []
+  },
+  "test_limit": 200,
   "clear_database_before_import": true,
-  "test_limit": 10,  
-  "node_mappings": [
-    {
-      "label": "Subject",
-      "id_field": "subject_id",
-      "properties": {
-        "id": {
-          "source_field": "subject_id",
-          "target_type": "string"
-        },
-        "subjectTitle": {
-          "source_field": "subject_title",
-          "target_type": "string"
-        },
-        "subjectDescription": {
-          "source_field": "subject_description",
-          "target_type": "string"
+  "schema_mapping": {
+    "nodes": {
+      "Year": {
+        "id_field": "yearTitle",
+        "properties": {
+          "title": "yearTitle"
+        }
+      },
+      "Subject": {
+        "id_field": "subjectTitle",
+        "properties": {
+          "title": "subjectTitle"
+        }
+      },
+      "UnitVariant": {
+        "id_field": "unitVariantId",
+        "properties": {
+          "title": "unitVariantId"
         }
       }
     },
-    {
-      "label": "KeyStage",
-      "id_field": "key_stage_id",
-      "properties": {
-        "id": {
-          "source_field": "key_stage_id",
-          "target_type": "string"
-        },
-        "title": {
-          "source_field": "key_stage_title",
-          "target_type": "string"
-        },
-        "phase": {
-          "source_field": "phase_title",
-          "target_type": "string"
+    "relationships": {
+      "year_has_unit": {
+        "relationship_type": "HAS_UNIT",
+        "start_node_field": "yearTitle",
+        "end_node_field": "unitVariantId",
+        "properties": {
+          "order": "unitOrder"
         }
-      }
-    },
-    {
-      "label": "Year",
-      "id_field": "year_id",
-      "properties": {
-        "id": {
-          "source_field": "year_id",
-          "target_type": "string"
-        },
-        "title": {
-          "source_field": "year_title",
-          "target_type": "string"
-        },
-        "year_number": {
-          "source_field": "year_number",
-          "target_type": "int"
-        }
-      }
-    },
-    {
-      "label": "Unit",
-      "id_field": "unit_id",
-      "properties": {
-        "id": {
-          "source_field": "unit_id",
-          "target_type": "string"
-        },
-        "title": {
-          "source_field": "unit_title",
-          "target_type": "string"
-        },
-        "description": {
-          "source_field": "unit_description",
-          "target_type": "string"
-        },
-        "order": {
-          "source_field": "unit_order",
-          "target_type": "int"
-        },
-        "duration_weeks": {
-          "source_field": "duration_weeks",
-          "target_type": "int"
-        }
-      }
-    },
-    {
-      "label": "Lesson",
-      "id_field": "lesson_id",
-      "properties": {
-        "id": {
-          "source_field": "lesson_id",
-          "target_type": "string"
-        },
-        "title": {
-          "source_field": "lesson_title",
-          "target_type": "string"
-        },
-        "description": {
-          "source_field": "lesson_description",
-          "target_type": "string"
-        },
-        "order": {
-          "source_field": "lesson_order_in_unit",
-          "target_type": "int"
-        },
-        "duration_minutes": {
-          "source_field": "duration_minutes",
-          "target_type": "int"
-        },
-        "lesson_type": {
-          "source_field": "lesson_type",
-          "target_type": "string"
-        }
-      }
-    },
-    {
-      "label": "LearningObjective",
-      "id_field": "objective_id",
-      "properties": {
-        "id": {
-          "source_field": "objective_id",
-          "target_type": "string"
-        },
-        "text": {
-          "source_field": "objective_text",
-          "target_type": "string"
-        },
-        "category": {
-          "source_field": "objective_category",
-          "target_type": "string"
-        }
-      }
-    },
-    {
-      "label": "Skill",
-      "id_field": "skill_id",
-      "properties": {
-        "id": {
-          "source_field": "skill_id",
-          "target_type": "string"
-        },
-        "name": {
-          "source_field": "skill_name",
-          "target_type": "string"
-        },
-        "domain": {
-          "source_field": "skill_domain",
-          "target_type": "string"
+      },
+      "subject_has_unit": {
+        "relationship_type": "HAS_UNIT",
+        "start_node_field": "subjectTitle",
+        "end_node_field": "unitVariantId",
+        "properties": {
+          "order": "unitOrder"
         }
       }
     }
-  ],
-  "relationship_mappings": [
-    {
-      "type": "BELONGS_TO",
-      "start_node_id_field": "unit_id",
-      "end_node_id_field": "subject_id",
-      "properties": {}
-    },
-    {
-      "type": "IN_KEY_STAGE",
-      "start_node_id_field": "subject_id",
-      "end_node_id_field": "key_stage_id",
-      "properties": {}
-    },
-    {
-      "type": "IN_YEAR",
-      "start_node_id_field": "unit_id",
-      "end_node_id_field": "year_id",
-      "properties": {}
-    },
-    {
-      "type": "CONTAINS",
-      "start_node_id_field": "unit_id",
-      "end_node_id_field": "lesson_id",
-      "properties": {
-        "order": {
-          "source_field": "lesson_order_in_unit",
-          "target_type": "int"
-        }
-      }
-    },
-    {
-      "type": "NEXT_LESSON",
-      "start_node_id_field": "lesson_id",
-      "end_node_id_field": "next_lesson_id",
-      "properties": {
-        "sequence_type": {
-          "source_field": "sequence_type",
-          "target_type": "string"
-        }
-      }
-    },
-    {
-      "type": "HAS_OBJECTIVE",
-      "start_node_id_field": "lesson_id",
-      "end_node_id_field": "objective_id",
-      "properties": {
-        "priority": {
-          "source_field": "objective_priority",
-          "target_type": "int"
-        }
-      }
-    },
-    {
-      "type": "DEVELOPS",
-      "start_node_id_field": "lesson_id",
-      "end_node_id_field": "skill_id",
-      "properties": {
-        "level": {
-          "source_field": "skill_level",
-          "target_type": "string"
-        }
-      }
-    },
-    {
-      "type": "PREREQUISITE",
-      "start_node_id_field": "prerequisite_lesson_id",
-      "end_node_id_field": "lesson_id",
-      "properties": {
-        "strength": {
-          "source_field": "prerequisite_strength",
-          "target_type": "float"
-        }
-      }
-    }
-  ]
+  }
 }

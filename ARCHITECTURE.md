@@ -7,8 +7,7 @@
 | Language | Python 3.10+ | Neo4j driver routing compatibility, excellent data processing libraries |
 | Data Processing | pandas | Efficient CSV manipulation and data transformation |
 | API Client | requests | Simple HTTP client for Hasura GraphQL calls |
-| Data Validation | Pydantic | Type safety, automatic validation, JSON schema generation |
-| Web Interface | Streamlit | Rapid development, Python-native, local deployment |
+| Configuration | JSON + Python dict | Simple configuration loading and basic validation |
 | Package Manager | pip + requirements.txt | Simple, widely supported, minimal overhead |
 | Code Quality | Black + flake8 | Standard Python formatting and linting |
 | Testing | pytest | Industry standard, simple unit testing |
@@ -17,169 +16,130 @@
 
 ## System Architecture
 
-### Design Patterns
-- **Strategy Pattern:** Pluggable extraction and transformation strategies
-- **Factory Pattern:** Component creation based on configuration
-- **Class-based Pipeline:** Clear separation of concerns with dependency injection
+### Design Pattern
+- **Simple Batch Processing:** Linear execution flow with clear separation of concerns
 
 ### Core Components
 
 ```
-Pipeline (Orchestrator)
+BatchProcessor (Main orchestrator)
 ├── ConfigManager (JSON configuration handling)
 ├── HasuraExtractor (GraphQL API client)
-├── SchemaMapper (Field mapping logic)
-├── DataValidator (Pydantic model validation)
-├── CSVTransformer (Neo4j format conversion)
-├── Neo4jLoader (Import file generation)
-└── AuraDBLoader (Direct database operations)
+├── DataCleaner (Optional preprocessing area)
+├── SchemaMapper (CSV to knowledge graph mapping)
+└── Neo4jLoader (Direct knowledge graph import)
 ```
 
 ### Component Responsibilities
 
-#### Pipeline
-- Orchestrates entire data flow
-- Manages component dependencies
-- Handles high-level error recovery
-- Provides progress reporting interface
+#### BatchProcessor
+- Orchestrates entire data flow in simple linear sequence
+- Manages component execution order
+- Handles error reporting and logging
+- Provides progress feedback to console
 
 #### ConfigManager
-- Loads/validates JSON schema mappings
-- Manages configuration file discovery
-- Provides typed configuration objects
-- Validates mapping completeness
+- Loads JSON schema mappings
+- Provides configuration as Python dictionaries
+- Basic validation of required configuration keys
 
 #### HasuraExtractor
 - Connects to Oak Hasura GraphQL endpoint
 - Uses Oak authentication (x-oak-auth-key + x-oak-auth-type)
-- Executes parameterized queries based on config
-- Supports optional row limiting for testing (test_limit parameter)
-- Returns structured data for validation
+- Queries specified materialized views
+- Joins all MV data into single consolidated CSV
+- Saves raw extracted data for inspection
+
+#### DataCleaner
+- Provides optional preprocessing area in code
+- Applies data cleaning transformations to consolidated CSV
+- Re-saves cleaned CSV for inspection/debugging
+- User can add custom cleaning logic as needed
 
 #### SchemaMapper
-- Applies field transformations per JSON config
-- Handles type conversions and computed fields
-- Manages node ID generation for relationships
-- Provides data lineage tracking
-
-#### DataValidator
-- Validates extracted data against Pydantic models
-- Ensures data quality before transformation
-- Provides detailed validation error reports
-- Supports batch validation for performance
-
-#### CSVTransformer
-- Converts validated data to Neo4j CSV format
-- Generates proper type headers (`:ID`, `:string`, etc.)
-- Splits data into node and relationship files
-- Optimizes CSV structure for bulk import performance
+- Maps CSV fields to Neo4j knowledge graph schema
+- Applies transformations per JSON configuration
+- Handles node and relationship mappings
+- Prepares data for knowledge graph import
 
 #### Neo4jLoader
-- Generates neo4j-admin import commands
-- Validates CSV format requirements
+- Imports mapped data directly into Neo4j knowledge graph
+- Handles node and relationship creation
 - Provides import statistics and validation
-- Creates import directory structure
-
-#### AuraDBLoader
-- Direct database operations with Neo4j driver
-- UNWIND batch queries for high-performance import (1000 records/batch)
-- Configurable database clearing for development workflows
-- Real-time import statistics and error reporting
-- Production-ready for thousands of curriculum records
+- Production-ready for large datasets
 
 ## Data Flow Architecture
 
 ```
-JSON Config → ConfigManager → Strategy Selection
+JSON Config → ConfigManager → Configuration Loaded
                 ↓
-Hasura MV → HasuraExtractor → Raw Data
+Hasura MVs → HasuraExtractor → Consolidated CSV
                 ↓
-Raw Data → DataValidator → Validated Data
+Raw CSV → DataCleaner → Cleaned CSV (Optional)
                 ↓
-Validated Data + Config → SchemaMapper → Mapped Data
+Cleaned CSV + Config → SchemaMapper → Mapped Data
                 ↓
-Mapped Data → CSVTransformer → Neo4j CSVs
-                ↓
-Neo4j CSVs → Neo4jLoader → Import Commands
-                ↓
-         OR → AuraDBLoader → Direct Database Import
+Mapped Data → Neo4jLoader → Knowledge Graph Import
 ```
 
 ## File Structure
 
 ```
 /
-├── main.py                 # CLI entry point
-├── streamlit_app.py        # Web interface (single-page)
-├── pipeline/
-│   ├── __init__.py
-│   ├── pipeline.py         # Main Pipeline class
-│   ├── config_manager.py   # Configuration handling
-│   ├── extractors.py       # HasuraExtractor + Strategy base
-│   ├── mappers.py          # SchemaMapper implementation
-│   ├── transformers.py     # CSVTransformer + Strategy base
-│   ├── loaders.py          # Neo4jLoader implementation
-│   └── validators.py       # DataValidator + Pydantic models
+├── main.py                 # Batch job entry point
+├── batch_processor.py      # Main BatchProcessor class
+├── config_manager.py       # Configuration handling
+├── hasura_extractor.py     # Hasura data extraction
+├── data_cleaner.py         # Optional data preprocessing
+├── schema_mapper.py        # CSV to knowledge graph mapping
+├── neo4j_loader.py         # Knowledge graph import
 ├── models/
 │   ├── __init__.py
 │   ├── config.py           # Configuration Pydantic models
-│   ├── hasura.py           # Hasura response models
-│   └── neo4j.py            # Neo4j data models
-├── utils/
-│   ├── __init__.py
-│   ├── logging.py          # Logging configuration
-│   └── helpers.py          # Shared utility functions
+│   └── data.py             # Data models
 ├── config/                 # JSON schema mapping files
-│   ├── curriculum_nodes.json
-│   ├── lesson_relationships.json
-│   └── schema_template.json
+│   └── schema_mapping.json # CSV field to knowledge graph mapping
 ├── data/                   # Generated CSV files (gitignored)
 ├── tests/
 │   ├── __init__.py
-│   ├── test_pipeline.py
+│   ├── test_batch_processor.py
 │   ├── test_extractors.py
-│   ├── test_transformers.py
 │   └── fixtures/           # Test data
 └── requirements.txt
 ```
 
 ## Interface Contracts
 
-### Configuration Schema (Pydantic Models)
+### Configuration Schema (Simple JSON)
 ```python
-class NodeMapping(BaseModel):
-    label: str
-    id_field: str
-    properties: Dict[str, FieldMapping]
+# Example configuration structure
+config = {
+    "hasura_endpoint": "https://api.example.com/v1/graphql",
+    "materialized_views": ["curriculum_mv", "lessons_mv"],
+    "schema_mapping": {
+        "nodes": {
+            "Curriculum": {
+                "id_field": "curriculum_id",
+                "properties": {
+                    "title": "curriculum_title",
+                    "subject": "subject_name"
+                }
+            }
+        },
+        "relationships": {
+            "HAS_LESSON": {
+                "start_node_field": "curriculum_id",
+                "end_node_field": "lesson_id",
+                "properties": {}
+            }
+        }
+    }
+}
 
-class FieldMapping(BaseModel):
-    source_field: str
-    target_type: str
-    transformation: Optional[str]
-
-class RelationshipMapping(BaseModel):
-    type: str
-    start_node_id_field: str
-    end_node_id_field: str
-    properties: Dict[str, FieldMapping]
-
-class PipelineConfig(BaseModel):
-    hasura_endpoint: str
-    materialized_views: List[str]
-    node_mappings: List[NodeMapping]
-    relationship_mappings: List[RelationshipMapping]
-    test_limit: Optional[int] = None
-```
-
-### Strategy Interfaces
-```python
-class ExtractionStrategy(ABC):
-    @abstractmethod
-    def extract(self, config: HasuraConfig) -> List[Dict]
-
-class TransformationStrategy(ABC):
-    @abstractmethod
-    def transform(self, data: List[Dict], mapping: NodeMapping) -> DataFrame
+# Simple loading function
+def load_config(config_path):
+    with open(config_path) as f:
+        return json.load(f)
 ```
 
 ## Error Handling Strategy
@@ -193,8 +153,8 @@ class TransformationStrategy(ABC):
 ### Error Handling Approach
 - **Fail Fast:** Validate configuration and connectivity before processing
 - **Clear Messages:** Provide actionable error descriptions with context
-- **Graceful Degradation:** Continue processing when possible, report issues
-- **User Feedback:** Show errors in both CLI and Streamlit interfaces
+- **Console Logging:** Show errors and progress via console output
+- **Graceful Exit:** Stop processing on critical errors with clear status
 
 ## Performance Considerations
 
@@ -259,6 +219,6 @@ class TransformationStrategy(ABC):
 - Environment variable mocking for testing
 
 ### Testing Infrastructure
-- `scripts/run_integration_tests.sh` - Automated test runner
-- `scripts/validate_neo4j_import.py` - Real database validation
-- `docs/INTEGRATION_TESTING.md` - Testing documentation
+- Simple unit tests for each component
+- Integration tests for end-to-end batch processing
+- Mock data for reliable testing

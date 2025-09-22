@@ -87,19 +87,24 @@ CREATE (n:{label} {{id: row.`:ID`{', ' + property_string if property_string else
         return query.strip()
 
     def _generate_relationship_load_query(self, csv_file: str) -> str:
-        # Read CSV headers to build dynamic query
-        df = pd.read_csv(csv_file, nrows=0)
+        # Read CSV to get headers and relationship type
+        df_sample = pd.read_csv(csv_file, nrows=1)  # Read one row to get :TYPE value
+        df_headers = pd.read_csv(csv_file, nrows=0)  # Get just headers for column info
 
-        # Extract relationship type from filename or use default
-        filename = os.path.basename(csv_file)
-        if "_relationships.csv" in filename:
-            rel_type = filename.replace("_relationships.csv", "").upper()
+        # Extract relationship type from :TYPE column in CSV (not filename)
+        if ":TYPE" in df_sample.columns and not df_sample.empty:
+            rel_type = df_sample[":TYPE"].iloc[0]  # Get the relationship type from the first row
         else:
-            rel_type = "RELATED_TO"
+            # Fallback to filename if :TYPE column is missing
+            filename = os.path.basename(csv_file)
+            if "_relationships.csv" in filename:
+                rel_type = filename.replace("_relationships.csv", "").upper()
+            else:
+                rel_type = "RELATED_TO"
 
         # Build property assignments (remove type annotations for Cypher)
         properties = []
-        for col in df.columns:
+        for col in df_headers.columns:
             if col in [":START_ID", ":END_ID", ":TYPE"]:
                 continue  # Skip special columns
             elif ":" in col:
@@ -190,12 +195,16 @@ CREATE (n:{label} {{{prop_string}}})
         """Generate UNWIND batch queries for high-performance relationship import"""
         df = pd.read_csv(csv_file)
 
-        # Extract relationship type from filename
-        filename = os.path.basename(csv_file)
-        if "_relationships.csv" in filename:
-            rel_type = filename.replace("_relationships.csv", "").replace("sample_", "").upper()
+        # Extract relationship type from :TYPE column in CSV (not filename)
+        if ":TYPE" in df.columns and not df.empty:
+            rel_type = df[":TYPE"].iloc[0]  # Get the relationship type from the first row
         else:
-            rel_type = "RELATED_TO"
+            # Fallback to filename if :TYPE column is missing
+            filename = os.path.basename(csv_file)
+            if "_relationships.csv" in filename:
+                rel_type = filename.replace("_relationships.csv", "").replace("sample_", "").upper()
+            else:
+                rel_type = "RELATED_TO"
 
         # Build property mapping for query template
         property_assignments = []

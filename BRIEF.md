@@ -1,11 +1,12 @@
-# Knowledge Graph Data Ingest Pipeline
+# Knowledge Graph Data Ingest Pipeline - Simplified
 
-1. Access Hasura to retrieve data via selected Materialized Views
-2. Save as CSVs
-3. Manipulate data to generate node and relationship CSVs for Neo4j bulk import
-4. Neo4j Bulk Import
+1. Access Hasura to retrieve data via specified Materialized Views
+2. Join all MV data into single consolidated CSV
+3. Optional data cleaning/preprocessing step
+4. Map CSV fields to Neo4j knowledge graph schema via JSON configuration
+5. Import directly into Neo4j knowledge graph
 
-I have a schema for the data in the knowledge graph and I can map this to the elements in the various MVs. I need an easy way to enter and edit this mapping for future maintenance of the extract from Hasura (maybe the MVs change) and the knowledge graph schema (e.g. ne fields are added from the MVs)
+Simple batch job execution with JSON-based schema mapping for easy maintenance.
 
 
 ### Here are notes about bulk imports to Neo4j:
