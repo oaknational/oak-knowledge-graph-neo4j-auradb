@@ -43,16 +43,19 @@ python main.py
 ```
 
 **Features:**
-- Single command execution of complete pipeline
-- Progress logging to console
+- Single command execution with selective phases via config flags
+- Progress logging to console with descriptive phase names
 - Error reporting with clear messages
 - Final status summary
 
 ## Data Flow Requirements
 
+**Hasura Export** (if `export_from_hasura: true`):
 1. **Configuration Loading:** Parse JSON schema mappings
 2. **Data Extraction:** Fetch data from specified Hasura MVs and join into single CSV
-3. **Data Cleaning:** Apply optional preprocessing transformations
+3. **Data Cleaning:** Apply preprocessing transformations to cleaned CSV
+
+**Neo4j Import** (if `import_to_neo4j: true`):
 4. **Schema Mapping:** Apply CSV field mappings to knowledge graph schema
 5. **Knowledge Graph Import:** Import directly into Neo4j knowledge graph
 
@@ -96,8 +99,8 @@ python main.py
 - [x] Simple batch job execution
 
 ### Success Metrics
-- Single command executes complete pipeline without intervention
-- Data successfully imported into Neo4j knowledge graph
-- Schema mappings can be modified via JSON files
+- Single command executes selected phases via config flags without intervention
+- Data successfully exported from Hasura and/or imported into Neo4j knowledge graph
+- Phase execution controlled by simple boolean flags in single JSON config
 - Error messages provide actionable guidance
-- Simple, maintainable architecture
+- Simple, maintainable direct component usage architecture

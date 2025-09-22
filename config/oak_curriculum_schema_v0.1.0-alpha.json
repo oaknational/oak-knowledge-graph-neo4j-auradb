@@ -1,5 +1,7 @@
 {
   "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "export_from_hasura": true,
+  "import_to_neo4j": true,
   "materialized_views": {
     "published_mv_lesson_openapi_1_2_3": [
       "examBoardTitle",

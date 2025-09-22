@@ -15,10 +15,10 @@ python main.py  # Run batch job
 - **Docstrings:** Minimal, only where code intent unclear
 
 ### Architecture (Required)
-- **Pattern:** Simple batch job processing
-- **Classes:** BatchProcessor, ConfigManager, HasuraExtractor, DataCleaner, SchemaMapper, Neo4jLoader
+- **Pattern:** Simple batch job processing with direct component usage
+- **Components:** ConfigManager, HasuraExtractor, DataCleaner, SchemaMapper, AuraDBLoader
 - **Data:** Plain Python dictionaries for configuration and data
-- **Structure:** Single main.py entry point with simple linear flow
+- **Structure:** Single main.py entry point with direct component instantiation
 - **Environment:** Python 3.10+ required for Neo4j driver routing compatibility
 
 ### Dependencies (Locked)
@@ -87,12 +87,15 @@ docs/         # Testing documentation
 ## Critical Implementation Notes
 
 ### Data Flow (Mandatory)
-1. **Clear Output Directory** → ensures fresh import every time
-2. **ConfigManager** loads JSON → validates with join_strategy checks
-3. **HasuraExtractor** queries specified MVs with explicit fields → JOIN strategy (NO concatenation)
-4. **DataCleaner** optional preprocessing → cleaned CSV
+**Hasura Export Phase** (if `export_from_hasura: true`):
+1. **Clear ALL Files** → ensures fresh import every time
+2. **HasuraExtractor** queries specified MVs with explicit fields → JOIN strategy (NO concatenation)
+3. **DataCleaner** preprocessing → cleaned CSV
+
+**Neo4j Import Phase** (if `import_to_neo4j: true`):
+4. **Clear Neo4j CSV Files** → preserves Hasura export outputs
 5. **SchemaMapper** deduplication + transformations → node/relationship CSVs
-6. **Neo4jLoader** imports using CSV `:TYPE` column → production database ready
+6. **AuraDBLoader** imports using CSV `:TYPE` column → production database ready
 
 ### CSV Requirements (Neo4j Compliance)
 - **Node files:** Must include `:ID` column and `:LABEL`
@@ -124,15 +127,17 @@ docs/         # Testing documentation
 ```
 
 **Critical Requirements:**
+- `export_from_hasura`: Boolean flag to control Hasura Export phase
+- `import_to_neo4j`: Boolean flag to control Neo4j Import phase
 - `materialized_views`: Dict format with explicit field lists (NOT list format)
 - `join_strategy`: Required for data consolidation strategy
 - `relationship_type`: Allows multiple configs to create same Neo4j relationship type
 
 ### Batch Job Interface
-- **Entry Point:** `main.py` in root
-- **Configuration:** JSON file in `/config` directory
+- **Entry Point:** `main.py` in root with direct component usage
+- **Configuration:** Single JSON file `oak_curriculum_schema_v0.1.0-alpha.json`
 - **Environment Loading:** Must call `load_dotenv()` to read `.env` file
-- **Execution:** Single command runs complete pipeline
+- **Execution:** `python main.py` runs phases based on boolean config flags
 
 ## Quality Gates (Must Pass)
 1. `black --check .`

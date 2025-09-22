@@ -10,7 +10,10 @@ import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
-from batch_processor import BatchProcessor, BatchProcessorError
+from config_manager import ConfigManager, ConfigurationError
+from hasura_extractor import HasuraExtractor
+from data_cleaner import DataCleaner
+from schema_mapper import SchemaMapper
 
 
 def setup_logging():
@@ -21,7 +24,7 @@ def setup_logging():
     logging.basicConfig(
         level=getattr(logging, log_level.upper(), logging.INFO),
         format=log_format,
-        handlers=[logging.StreamHandler()]
+        handlers=[logging.StreamHandler()],
     )
 
 
@@ -73,7 +76,7 @@ def find_config_file():
 
 def main():
     """Main batch job execution."""
-    print("🚀 Oak Knowledge Graph Batch Processor")
+    print("🚀 Oak Knowledge Graph Batch Job")
     print("=" * 50)
 
     # Load environment variables
@@ -87,38 +90,117 @@ def main():
     validate_environment()
 
     try:
-        # Find configuration file
+        # Find and load configuration
         config_file = find_config_file()
+        config_manager = ConfigManager()
+        config = config_manager.load_config(config_file)
 
-        # Initialize and run batch processor
-        processor = BatchProcessor(output_dir="data")
+        output_dir = Path("data")
+        output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Check if we should skip data cleaning
-        skip_cleaning = os.getenv("SKIP_DATA_CLEANING", "").lower() in ("true", "1", "yes")
+        # Check what to run based on config
+        export_from_hasura = config.get("export_from_hasura", True)
+        import_to_neo4j = config.get("import_to_neo4j", True)
 
-        if skip_cleaning:
-            print("⚠️  Data cleaning will be skipped (SKIP_DATA_CLEANING=true)")
+        logger.info(f"Export from Hasura: {export_from_hasura}")
+        logger.info(f"Import to Neo4j: {import_to_neo4j}")
 
-        # Execute the batch processing pipeline
-        processor.process(
-            config_file=config_file,
-            skip_cleaning=skip_cleaning
-        )
+        # Hasura Export: Extract and clean data from Hasura
+        cleaned_csv_file = None
+        if export_from_hasura:
+            print("🔄 Hasura Export: Extracting and cleaning data from Hasura...")
 
-        print("✅ Batch processing completed successfully!")
+            # Clear ALL existing files before Hasura Export
+            import glob
+
+            existing_files = glob.glob(str(output_dir / "*"))
+            for file_path in existing_files:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            if existing_files:
+                logger.info(f"Cleared {len(existing_files)} existing files")
+
+            # Extract data
+            extractor = HasuraExtractor(
+                endpoint=config["hasura_endpoint"], output_dir=str(output_dir)
+            )
+
+            csv_file = extractor.extract_and_join(
+                materialized_views=config["materialized_views"],
+                join_strategy=config["join_strategy"],
+                test_limit=config.get("test_limit"),
+            )
+
+            # Always clean data
+            cleaner = DataCleaner(output_dir=str(output_dir))
+            cleaned_csv_file = cleaner.clean_data(csv_file)
+
+            print(f"✅ Hasura Export completed: {cleaned_csv_file}")
+
+        # Neo4j Import: Map schema and import to Neo4j
+        if import_to_neo4j:
+            print("🔄 Neo4j Import: Mapping schema and importing to Neo4j...")
+
+            # Clear Neo4j CSV files before Neo4j Import (preserve Hasura Export outputs)
+            import glob
+
+            neo4j_files = glob.glob(str(output_dir / "*nodes*.csv")) + glob.glob(
+                str(output_dir / "*relationships*.csv")
+            )
+            for file_path in neo4j_files:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            if neo4j_files:
+                logger.info(f"Cleared {len(neo4j_files)} existing Neo4j CSV files")
+
+            # Find input file for Neo4j Import
+            if not cleaned_csv_file:
+                # Look for previous Hasura Export
+                possible_files = list(output_dir.glob("*cleaned*.csv")) or list(
+                    output_dir.glob("*.csv")
+                )
+                if not possible_files:
+                    raise Exception(
+                        "No CSV file found for import. Run export_from_hasura first."
+                    )
+                cleaned_csv_file = str(possible_files[0])
+                logger.info(f"Using existing CSV file: {cleaned_csv_file}")
+
+            # Map to Neo4j schema
+            mapper = SchemaMapper()
+            csv_files = mapper.map_from_csv(
+                csv_file=cleaned_csv_file,
+                schema_mapping=config["schema_mapping"],
+                output_dir=str(output_dir),
+            )
+
+            # Import to Neo4j
+            from pipeline.auradb_loader import AuraDBLoader
+
+            clear_database = config.get("clear_database_before_import", False)
+            loader = AuraDBLoader(clear_before_import=clear_database)
+
+            node_files = csv_files.get("node_files", [])
+            rel_files = csv_files.get("relationship_files", [])
+
+            import_stats = loader.execute_import(node_files, rel_files)
+
+            if import_stats.get("success", False):
+                queries = import_stats.get("queries_executed", 0)
+                print(f"✅ Neo4j Import completed: {queries} queries executed")
+            else:
+                errors = import_stats.get("errors", ["Unknown error"])
+                raise Exception(f"Neo4j import failed: {'; '.join(errors)}")
+
+        print("✅ Batch job completed successfully!")
         print("📊 Check the data/ directory for output files")
-        print("🎯 Knowledge graph has been updated in Neo4j")
 
-    except BatchProcessorError as e:
-        logger.error(f"Batch processing failed: {e}")
-        print(f"❌ Batch processing failed: {e}")
+    except (ConfigurationError, Exception) as e:
+        logger.error(f"Batch job failed: {e}")
+        print(f"❌ Batch job failed: {e}")
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\n⚠️  Batch processing interrupted by user")
-        sys.exit(1)
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}")
-        print(f"❌ Unexpected error: {e}")
+        print("\n⚠️  Batch job interrupted by user")
         sys.exit(1)
 
 

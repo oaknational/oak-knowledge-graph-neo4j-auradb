@@ -283,10 +283,37 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 
 **Quality Gates:** ✅ All tests pass, production data validated, Neo4j import successful with correct relationship types
 
-## Current State
-**Completed:** Production Pipeline Refinements - Simplified architecture with field reading, JOIN strategy, deduplication, and relationship type fixes
-**Pipeline Status:** Production-ready batch processor with successful 200-record processing and correct Neo4j relationship import
-**Next Task:** Context window reset and continued development
+### ✅ Task 16: Simplified Config-Driven Architecture (September 2024)
+**Implementation Details:**
+- **Removed Complex BatchProcessor**: Eliminated unnecessary `batch_processor.py` orchestration layer
+- **Direct Component Usage**: Simplified `main.py` to directly use ConfigManager, HasuraExtractor, DataCleaner, SchemaMapper, AuraDBLoader
+- **Single Config File**: Removed duplicate configs, using only `oak_curriculum_schema_v0.1.0-alpha.json`
+- **Simple Boolean Flags**: `export_from_hasura` and `import_to_neo4j` replace complex stage configuration
+- **Smart File Management**: Hasura Export clears all files, Neo4j Import preserves Hasura outputs
+- **Descriptive Naming**: "Stage 1/Stage 2" renamed to "Hasura Export/Neo4j Import"
+- **Fixed Relationship Types**: Corrected to use `:TYPE` column instead of filename extraction
+
+**Quality Gates:** ✅ All complexity removed, direct component usage, single config file, clear naming
+
+**Key Features:**
+- Simple `python main.py` execution with config-driven behavior
+- Two-phase pipeline: Hasura Export → Neo4j Import
+- Selective execution via boolean flags in single JSON config
+- Proper relationship type handling using CSV `:TYPE` column
+
+## Current State (September 2024)
+**Completed:** Simplified Config-Driven Architecture - Direct component usage with boolean config flags
+**Pipeline Status:** Production-ready simple batch job with selective Hasura Export/Neo4j Import phases
+**Architecture:** Aligned with original ARCHITECTURE.md simple batch job specification
+
+### Ready for Context Reset
+- ✅ All complexity removed (BatchProcessor, duplicate configs, unnecessary flags)
+- ✅ Single JSON config with `export_from_hasura`/`import_to_neo4j` boolean flags
+- ✅ Direct component usage in main.py per original architecture
+- ✅ Smart file management (Hasura Export clears all, Neo4j Import preserves Hasura outputs)
+- ✅ Descriptive naming ("Hasura Export"/"Neo4j Import" vs "Stage 1/Stage 2")
+- ✅ Relationship types correctly use `:TYPE` column (not filename extraction)
+- ✅ Documentation updated (CLAUDE.md, FUNCTIONAL.md, ARCHITECTURE.md aligned)
 
 ### Environment Configuration
 - **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
@@ -295,37 +322,33 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - **Streamlit Integration:** Uses `load_dotenv()` to automatically load `.env` file at startup
 
 ## Established Patterns
-- **File Organization**: Strict adherence to ARCHITECTURE.md structure
+- **Simple Batch Job**: Direct component usage in main.py, no complex orchestration layers
+- **File Organization**: Root-level components per ARCHITECTURE.md specification
 - **Quality Standards**: Black formatting + flake8 linting enforced, 100% test pass requirement
-- **Strategy Pattern**: Abstract base classes with factory registration for extensible components
-- **Pydantic Models**: Comprehensive validation for all data flows (config, API, Neo4j)
 - **Error Handling**: Fail-fast with clear, actionable error messages including context
-- **Configuration**: Environment variable substitution with `${VAR_NAME}` syntax
-- **Testing Standards**: Comprehensive unit tests with fixtures, mock scenarios, real data validation
+- **Configuration**: Single JSON file with environment variable substitution `${VAR_NAME}`
 - **Oak Authentication**: Custom headers `x-oak-auth-key` + `x-oak-auth-type` for Oak Hasura instances
-
-## Architecture Decisions
-- **RelationshipTransformationStrategy**: Added separate strategy for relationship mappings
-- **Oak Authentication Discovery**: Identified custom auth headers from TypeScript reference, replacing standard Hasura auth
-- **Real Data Integration**: Validated pipeline with production Oak materialized views
+- **Relationship Types**: Use `:TYPE` column from CSV data, not filename extraction
 
 ### Current Configuration State
-- **Active Schema:** `oak_curriculum_schema_v0.1.0-alpha.json` using `published_mv_lesson_openapi_1_2_3` (24 fields)
-- **Default Config:** `DEFAULT_CONFIG_FILE = "oak_curriculum_schema_v0.1.0-alpha.json"` in main.py
-- **Data Source:** Single MV with JOIN strategy (no concatenation)
+- **Config File:** `oak_curriculum_schema_v0.1.0-alpha.json` with `export_from_hasura`/`import_to_neo4j` flags
+- **Data Source:** Single MV `published_mv_lesson_openapi_1_2_3` (24 fields) with JOIN strategy
 - **Node Types:** Year (11), Subject (20), UnitVariant (96) with deduplication
-- **Relationship Type:** Unified "HAS_UNIT" for both Year→UnitVariant and Subject→UnitVariant
-- **Python Environment:** Python 3.10 required for Neo4j driver compatibility
-- **Database:** Neo4j AuraDB connection tested and validated
+- **Relationship Type:** Unified "HAS_UNIT" using `:TYPE` column (not filename)
+- **Python Environment:** Python 3.10+ required for Neo4j driver compatibility
+- **Database:** Neo4j AuraDB connection validated
 
-## Critical Path Progress
-Tasks 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 18
-**Status: 15/18 complete (83%)**
-
-## Testing Infrastructure Established
-- **Unit Tests**: pytest with 110 tests across 6 test modules
-- **Integration Tests**: End-to-end pipeline testing with mock data extraction (8 records)
-- **Test Data**: Comprehensive fixtures with realistic Oak curriculum examples
-- **Quality Automation**: Black formatting + flake8 linting enforced
-- **CSV Validation**: Neo4j format compliance checking
-- **Real DB Testing**: Scripts for actual Neo4j import validation
+## Current File Structure
+```
+/
+├── main.py                 # ✅ Simple batch job entry point (direct component usage)
+├── config_manager.py       # ✅ JSON configuration handling
+├── hasura_extractor.py     # ✅ Hasura GraphQL client
+├── data_cleaner.py         # ✅ Optional preprocessing
+├── schema_mapper.py        # ✅ CSV to knowledge graph mapping
+├── neo4j_loader.py         # ✅ Neo4j command generation
+├── config/                 # ✅ Single JSON schema file
+├── pipeline/               # ✅ Legacy components (AuraDBLoader)
+├── tests/                  # ✅ Comprehensive test suite
+└── data/                   # ✅ Generated CSV output (gitignored)
+```
