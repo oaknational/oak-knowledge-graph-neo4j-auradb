@@ -98,28 +98,46 @@ docs/         # Testing documentation
 6. **AuraDBLoader** imports using CSV `:TYPE` column → production database ready
 
 ### CSV Requirements (Neo4j Compliance)
-- **Node files:** Must include `:ID` column and `:LABEL`
-- **Relationship files:** Must include `:START_ID`, `:END_ID`, `:TYPE`
-- **Types:** Use `:string`, `:int`, `:float`, `:boolean` in headers
-- **IDs:** Generate unique throwaway IDs for import, remove after
+- **Node files:** Use `property:ID(NodeType)` format (e.g., `slug:ID(Subject)`)
+- **Relationship files:** Use `:START_ID(NodeType)`, `:END_ID(NodeType)`, `:TYPE`
+- **Types:** Use `:string`, `:int`, `:float`, `:boolean` in headers based on config
+- **No UUIDs:** Use actual Hasura field values as unique identifiers
 
-### Configuration Structure (JSON with Field Specification)
+### Configuration Structure (JSON with Type-Safe Field Specification)
 ```json
 {
   "materialized_views": {
     "view_name": ["field1", "field2", "field3"]
   },
-  "join_strategy": {
-    "type": "single_source" | "multi_source_join",
-    "primary_mv": "view_name",
-    "joins": []
-  },
   "schema_mapping": {
+    "nodes": {
+      "NodeType": {
+        "id_field": {
+          "hasura_col": "column_name",
+          "type": "string|int|float|boolean",
+          "property_name": "neo4j_property_name"
+        },
+        "properties": {
+          "property_name": {
+            "hasura_col": "column_name",
+            "type": "string|int|float|boolean"
+          }
+        }
+      }
+    },
     "relationships": {
       "config_key": {
         "relationship_type": "NEO4J_TYPE",
-        "start_node_field": "field_name",
-        "end_node_field": "field_name"
+        "start_node_type": "NodeType",
+        "start_node_field": "hasura_column",
+        "end_node_type": "NodeType",
+        "end_node_field": "hasura_column",
+        "properties": {
+          "property_name": {
+            "hasura_col": "column_name",
+            "type": "string|int|float|boolean"
+          }
+        }
       }
     }
   }
@@ -127,11 +145,11 @@ docs/         # Testing documentation
 ```
 
 **Critical Requirements:**
-- `export_from_hasura`: Boolean flag to control Hasura Export phase
-- `import_to_neo4j`: Boolean flag to control Neo4j Import phase
-- `materialized_views`: Dict format with explicit field lists (NOT list format)
-- `join_strategy`: Required for data consolidation strategy
-- `relationship_type`: Allows multiple configs to create same Neo4j relationship type
+- `export_from_hasura`/`import_to_neo4j`: Boolean flags for phase control
+- `materialized_views`: Dict format with explicit field lists
+- `id_field`: Must specify `hasura_col`, `type`, and `property_name`
+- **Neo4j Naming**: Use initial capital + lowercase (e.g., `Unitvariant`)
+- **Type Safety**: All fields require explicit type specification
 
 ### Batch Job Interface
 - **Entry Point:** `main.py` in root with direct component usage

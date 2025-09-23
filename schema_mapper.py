@@ -68,37 +68,37 @@ class SchemaMapper:
 
             # Create node DataFrame with Neo4j format
             node_data = []
-            id_field = mapping.get("id_field")
+            id_field_config = mapping.get("id_field", {})
             properties = mapping.get("properties", {})
-            seen_ids = set()  # Track unique IDs to prevent duplicates
+            seen_ids = set()  # Track unique IDs for deduplication
 
             for _, row in df.iterrows():
-                # Generate or extract node ID (:ID column required by Neo4j)
-                if id_field and id_field in row:
-                    node_id = str(row[id_field])
-                else:
-                    node_id = str(uuid4())
+                # Get the ID field value for deduplication
+                id_hasura_col = id_field_config.get("hasura_col")
+                if not id_hasura_col or id_hasura_col not in row:
+                    continue  # Skip if ID field is missing
+
+                id_value = str(row[id_hasura_col])
 
                 # Skip if we've already processed this ID
-                if node_id in seen_ids:
+                if id_value in seen_ids:
                     continue
 
-                seen_ids.add(node_id)
+                seen_ids.add(id_value)
 
                 node_row = {}
-                node_row[":ID"] = node_id
 
-                # Add :LABEL column (required by Neo4j)
-                node_row[":LABEL"] = node_label
+                # Add ID field with Neo4j :ID(NodeType) format
+                id_property_name = id_field_config.get("property_name", "id")
+                node_row[f"{id_property_name}:ID({node_label})"] = self._clean_value(row[id_hasura_col])
 
-                # Map properties
-                for prop_name, source_field in properties.items():
-                    if isinstance(source_field, dict):
-                        csv_field = source_field.get("csv_field")
-                        if csv_field and csv_field in row:
-                            node_row[f"{prop_name}:string"] = self._clean_value(row[csv_field])
-                    elif isinstance(source_field, str) and source_field in row:
-                        node_row[f"{prop_name}:string"] = self._clean_value(row[source_field])
+                # Add other properties using config type information
+                for prop_name, prop_config in properties.items():
+                    if isinstance(prop_config, dict):
+                        hasura_col = prop_config.get("hasura_col")
+                        prop_type = prop_config.get("type", "string")
+                        if hasura_col and hasura_col in row:
+                            node_row[f"{prop_name}:{prop_type}"] = self._clean_value(row[hasura_col])
 
                 node_data.append(node_row)
 
@@ -120,14 +120,16 @@ class SchemaMapper:
         csv_files = []
 
         for config_key, mapping in rel_mappings.items():
-            # Support optional relationship_type field, default to config key
             actual_rel_type = mapping.get("relationship_type", config_key)
-            self.logger.info(f"Generating CSV for {config_key} relationships (Neo4j type: {actual_rel_type})")
-
-            rel_data = []
+            start_node_type = mapping.get("start_node_type")
+            end_node_type = mapping.get("end_node_type")
             start_field = mapping.get("start_node_field")
             end_field = mapping.get("end_node_field")
             properties = mapping.get("properties", {})
+
+            self.logger.info(f"Generating CSV for {config_key} relationships (Neo4j type: {actual_rel_type})")
+
+            rel_data = []
             seen_relationships = set()  # Track unique relationships to prevent duplicates
 
             for _, row in df.iterrows():
@@ -136,9 +138,11 @@ class SchemaMapper:
                        start_field in row and end_field in row):
                     continue
 
-                # Create relationship identifier for deduplication
+                # Get the values from Hasura CSV
                 start_id = str(row[start_field])
                 end_id = str(row[end_field])
+
+                # Create relationship identifier for deduplication
                 rel_key = (start_id, end_id, actual_rel_type)
 
                 # Skip if we've already processed this relationship
@@ -147,20 +151,23 @@ class SchemaMapper:
 
                 seen_relationships.add(rel_key)
 
-                rel_row = {
-                    ":START_ID": start_id,
-                    ":END_ID": end_id,
-                    ":TYPE": actual_rel_type
-                }
+                rel_row = {}
+
+                # Add Neo4j relationship headers with node types
+                rel_row[f":START_ID({start_node_type})"] = start_id
+                rel_row[f":END_ID({end_node_type})"] = end_id
+                rel_row[":TYPE"] = actual_rel_type
 
                 # Map relationship properties
-                for prop_name, source_field in properties.items():
-                    if isinstance(source_field, dict):
-                        csv_field = source_field.get("csv_field")
-                        if csv_field and csv_field in row:
-                            rel_row[f"{prop_name}:string"] = self._clean_value(row[csv_field])
-                    elif isinstance(source_field, str) and source_field in row:
-                        rel_row[f"{prop_name}:string"] = self._clean_value(row[source_field])
+                for prop_name, prop_config in properties.items():
+                    if isinstance(prop_config, dict):
+                        hasura_col = prop_config.get("hasura_col")
+                        prop_type = prop_config.get("type", "string")
+                        if hasura_col and hasura_col in row:
+                            rel_row[f"{prop_name}:{prop_type}"] = self._clean_value(row[hasura_col])
+                    elif isinstance(prop_config, str) and prop_config in row:
+                        # Legacy support for simple string mapping
+                        rel_row[f"{prop_name}:string"] = self._clean_value(row[prop_config])
 
                 rel_data.append(rel_row)
 

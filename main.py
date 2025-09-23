@@ -132,7 +132,7 @@ def main():
             )
 
             # Always clean data
-            cleaner = DataCleaner(output_dir=str(output_dir))
+            cleaner = DataCleaner(output_dir=str(output_dir), filters=config.get("filters"))
             cleaned_csv_file = cleaner.clean_data(csv_file)
 
             print(f"✅ Hasura Export completed: {cleaned_csv_file}")
@@ -178,7 +178,8 @@ def main():
             from pipeline.auradb_loader import AuraDBLoader
 
             clear_database = config.get("clear_database_before_import", False)
-            loader = AuraDBLoader(clear_before_import=clear_database)
+            schema_mapping = config.get("schema_mapping", {})
+            loader = AuraDBLoader(clear_before_import=clear_database, schema_config=schema_mapping)
 
             node_files = csv_files.get("node_files", [])
             rel_files = csv_files.get("relationship_files", [])

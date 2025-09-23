@@ -301,54 +301,55 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - Selective execution via boolean flags in single JSON config
 - Proper relationship type handling using CSV `:TYPE` column
 
+### ✅ Task 17: Complete Node and Relationship CSV Generation (September 2024)
+**Implementation Details:**
+- **Config-Driven Node Generation**: Updated schema_mapper.py to use `id_field` with `property_name` and `type` from config
+- **Neo4j ID Format**: Nodes use `property:ID(NodeType)` format (e.g., `slug:ID(Subject)`, `unitVariantId:ID(Unitvariant)`)
+- **No UUID Generation**: Removed all UUID code, using actual Hasura field values as unique identifiers
+- **Type-Safe Property Mapping**: Dynamic property mapping from config with proper type annotations
+- **Deduplication**: Based on ID field values only, each unique ID gets one node
+- **Relationship CSV Format**: Uses `:START_ID(NodeType)` and `:END_ID(NodeType)` headers with type specifications
+
+**Quality Gates:** ✅ Node CSVs generated with correct format, relationships created successfully in Neo4j
+
+**Key Features:**
+- Node CSV format: `slug:ID(Subject),title:string` with data like `"science","Science"`
+- Relationship CSV format: `:START_ID(Subject),:END_ID(Unitvariant),:TYPE,order:int`
+- Config-driven property names and types (no hardcoded values)
+- Neo4j naming convention: `Unitvariant` (not `UnitVariant`)
+
+### ✅ Task 18: Neo4j AuraDB Import with Type-Safe Conversion (September 2024)
+**Implementation Details:**
+- **Config-Driven Type Conversion**: AuraDBLoader reads ID field types from config for proper data conversion
+- **Dynamic Property Name Resolution**: `_get_id_property_name()` and `_get_id_field_type()` methods extract from schema config
+- **Batch Processing**: 1000-row batches using UNWIND queries for high performance
+- **Type-Safe Relationships**: Converts CSV values to correct types (string/int/float) based on config before matching
+- **Cypher Query Generation**: `MATCH (start:Subject {slug: row.start_id}) MATCH (end:Unitvariant {unitVariantId: row.end_id})`
+
+**Quality Gates:** ✅ 27 nodes and 48 relationships successfully created in Neo4j, type conversion works correctly
+
+**Technical Achievement:** Fixed critical type mismatch bug where CSV "104.0" (string) wasn't matching node property 104.0 (float)
+
 ## Current State (September 2024)
-**Completed:** Simplified Config-Driven Architecture - Direct component usage with boolean config flags
-**Pipeline Status:** Production-ready simple batch job with selective Hasura Export/Neo4j Import phases
-**Architecture:** Aligned with original ARCHITECTURE.md simple batch job specification
-
-### Ready for Context Reset
-- ✅ All complexity removed (BatchProcessor, duplicate configs, unnecessary flags)
-- ✅ Single JSON config with `export_from_hasura`/`import_to_neo4j` boolean flags
-- ✅ Direct component usage in main.py per original architecture
-- ✅ Smart file management (Hasura Export clears all, Neo4j Import preserves Hasura outputs)
-- ✅ Descriptive naming ("Hasura Export"/"Neo4j Import" vs "Stage 1/Stage 2")
-- ✅ Relationship types correctly use `:TYPE` column (not filename extraction)
-- ✅ Documentation updated (CLAUDE.md, FUNCTIONAL.md, ARCHITECTURE.md aligned)
-
-### Environment Configuration
-- **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY` (128-char Oak token), `OAK_AUTH_TYPE=oak-admin`
-- **Accessible MVs:** 6/6 Oak curriculum materialized views confirmed working
-- **Authentication:** Oak custom headers (`x-oak-auth-key` + `x-oak-auth-type`)
-- **Streamlit Integration:** Uses `load_dotenv()` to automatically load `.env` file at startup
-
-## Established Patterns
-- **Simple Batch Job**: Direct component usage in main.py, no complex orchestration layers
-- **File Organization**: Root-level components per ARCHITECTURE.md specification
-- **Quality Standards**: Black formatting + flake8 linting enforced, 100% test pass requirement
-- **Error Handling**: Fail-fast with clear, actionable error messages including context
-- **Configuration**: Single JSON file with environment variable substitution `${VAR_NAME}`
-- **Oak Authentication**: Custom headers `x-oak-auth-key` + `x-oak-auth-type` for Oak Hasura instances
-- **Relationship Types**: Use `:TYPE` column from CSV data, not filename extraction
+**Completed:** Full Node and Relationship Generation Pipeline
+**Pipeline Status:** Production-ready with successful Neo4j import (27 nodes, 48 relationships)
+**Architecture:** Config-driven CSV generation with type-safe Neo4j import
 
 ### Current Configuration State
-- **Config File:** `oak_curriculum_schema_v0.1.0-alpha.json` with `export_from_hasura`/`import_to_neo4j` flags
-- **Data Source:** Single MV `published_mv_lesson_openapi_1_2_3` (24 fields) with JOIN strategy
-- **Node Types:** Year (11), Subject (20), UnitVariant (96) with deduplication
-- **Relationship Type:** Unified "HAS_UNIT" using `:TYPE` column (not filename)
-- **Python Environment:** Python 3.10+ required for Neo4j driver compatibility
-- **Database:** Neo4j AuraDB connection validated
+- **Active Config:** `oak_curriculum_schema_v0.1.0-alpha.json` with type-specified ID fields
+- **Node Types:** Year (slug), Subject (slug), Unitvariant (unitVariantId) - all string type
+- **Relationship Types:** HAS_UNIT connecting Year→Unitvariant and Subject→Unitvariant
+- **CSV Format:** Neo4j-compliant with `:ID(NodeType)` and `:START_ID(NodeType)` headers
+- **Batch Import:** 1000-row UNWIND queries for optimal performance
 
-## Current File Structure
-```
-/
-├── main.py                 # ✅ Simple batch job entry point (direct component usage)
-├── config_manager.py       # ✅ JSON configuration handling
-├── hasura_extractor.py     # ✅ Hasura GraphQL client
-├── data_cleaner.py         # ✅ Optional preprocessing
-├── schema_mapper.py        # ✅ CSV to knowledge graph mapping
-├── neo4j_loader.py         # ✅ Neo4j command generation
-├── config/                 # ✅ Single JSON schema file
-├── pipeline/               # ✅ Legacy components (AuraDBLoader)
-├── tests/                  # ✅ Comprehensive test suite
-└── data/                   # ✅ Generated CSV output (gitignored)
-```
+### Environment Configuration
+- **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY`, `OAK_AUTH_TYPE=oak-admin`
+- **Neo4j Variables:** `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`
+- **Database Status:** 27 nodes, 48 relationships successfully imported
+
+## Established Patterns
+- **Config-Driven Everything**: No hardcoded node types, property names, or data types
+- **Neo4j Naming Convention**: Initial capital + lowercase (e.g., `Unitvariant`)
+- **Type-Safe Data Conversion**: Use config `type` field for proper CSV→Neo4j conversion
+- **Batch Processing**: 1000-row UNWIND queries for performance
+- **Error Handling**: Config-based type resolution with fallbacks

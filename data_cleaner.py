@@ -12,9 +12,9 @@ class DataCleaner:
     This provides an area where you can add custom data cleaning logic
     to transform the consolidated CSV before schema mapping.
     """
-
-    def __init__(self, output_dir: str = "data"):
+    def __init__(self, output_dir: str = "data", filters: Optional[dict] = None):
         self.output_dir = Path(output_dir)
+        self.filters = filters or {}
         self.logger = logging.getLogger(__name__)
 
     def clean_data(self, csv_file_path: str) -> str:
@@ -67,35 +67,43 @@ class DataCleaner:
         """
         df_cleaned = df.copy()
 
-        # Example cleaning operations (customize as needed):
-
-        # 1. Remove completely empty rows
+        # Remove empty rows
         df_cleaned = df_cleaned.dropna(how='all')
         self.logger.info(f"Removed empty rows, now have {len(df_cleaned)} rows")
 
-        # 2. Strip whitespace from string columns
+        # Strip whitespace
         for col in df_cleaned.select_dtypes(include=['object']).columns:
             df_cleaned[col] = df_cleaned[col].astype(str).str.strip()
+            
+        # Apply filters (if defined in config)
+        df_cleaned = self._filter_data(df_cleaned)
 
-        # 3. Example: Remove test/placeholder data (customize the condition)
-        # df_cleaned = df_cleaned[~df_cleaned['title'].str.contains('test', case=False, na=False)]
-
-        # 4. Example: Standardize boolean values
-        # for col in ['is_active', 'published']:  # Customize column names
-        #     if col in df_cleaned.columns:
-        #         df_cleaned[col] = df_cleaned[col].astype(str).str.lower().map({
-        #             'true': True, '1': True, 'yes': True,
-        #             'false': False, '0': False, 'no': False
-        #         })
-
-        # 5. Example: Handle missing values with defaults
-        # df_cleaned['description'] = df_cleaned['description'].fillna('No description available')
-
-        # 6. Example: Remove duplicates based on specific columns
-        # df_cleaned = df_cleaned.drop_duplicates(subset=['id', 'title'], keep='first')
-
-        self.logger.info("Applied basic data cleaning transformations")
+        self.logger.info("Applied data cleaning transformations")
         return df_cleaned
+    
+    def _filter_data(self, df: pd.DataFrame) -> pd.DataFrame:
+        if not self.filters:
+            self.logger.info("No filters provided; skipping filtering step")
+            return df
+
+        filtered_df = df.copy()
+        for col, value in self.filters.items():
+            if col not in filtered_df.columns:
+                self.logger.warning(f"Filter column '{col}' not found in DataFrame")
+                continue
+
+            if isinstance(value, list):  # multiple allowed values
+                filtered_df = filtered_df[filtered_df[col].isin(value)]
+                self.logger.info(
+                    f"Applied filter: {col} in {value}, {len(filtered_df)} rows remain"
+                )
+            else:  # single value
+                filtered_df = filtered_df[filtered_df[col] == value]
+                self.logger.info(
+                    f"Applied filter: {col} == {value}, {len(filtered_df)} rows remain"
+                )
+
+        return filtered_df
 
     def _get_cleaned_file_path(self, original_file_path: str) -> Path:
         """Generate file path for cleaned CSV."""

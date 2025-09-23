@@ -1,18 +1,19 @@
 import os
 import pandas as pd
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 
 
 class AuraDBLoader:
-    def __init__(self, clear_before_import: bool = False):
+    def __init__(self, clear_before_import: bool = False, schema_config: Dict[str, Any] = None):
         load_dotenv()
         self.uri = os.getenv("NEO4J_URI")
         self.username = os.getenv("NEO4J_USERNAME")
         self.password = os.getenv("NEO4J_PASSWORD")
         self.database = os.getenv("NEO4J_DATABASE", "neo4j")
         self.clear_before_import = clear_before_import
+        self.schema_config = schema_config or {}
 
         if not all([self.uri, self.username, self.password]):
             raise ValueError(
@@ -135,10 +136,10 @@ CREATE (start)-[r:{rel_type}{{{property_string}}}]->(end)
             label = "Node"
 
         # Build property mapping for query template
-        property_assignments = ["id: row.id"]
+        property_assignments = []
 
         for col in df.columns:
-            if col in [":ID", ":LABEL"]:
+            if col in [":LABEL"]:
                 continue
             elif ":" in col:
                 prop_name = col.split(":")[0]
@@ -161,10 +162,10 @@ CREATE (n:{label} {{{prop_string}}})
             # Convert batch to list of dicts with proper types
             batch_data = []
             for _, row in batch_df.iterrows():
-                record = {"id": row[":ID"]}
+                record = {}
 
                 for col in df.columns:
-                    if col in [":ID", ":LABEL"]:
+                    if col in [":LABEL"]:
                         continue
                     elif ":" in col:
                         prop_name = col.split(":")[0]
@@ -206,10 +207,28 @@ CREATE (n:{label} {{{prop_string}}})
             else:
                 rel_type = "RELATED_TO"
 
+        # Find START_ID and END_ID columns (they now have node type suffixes)
+        start_id_col = None
+        end_id_col = None
+        start_node_type = None
+        end_node_type = None
+
+        for col in df.columns:
+            if col.startswith(":START_ID"):
+                start_id_col = col
+                # Extract node type from :START_ID(NodeType)
+                if "(" in col and ")" in col:
+                    start_node_type = col.split("(")[1].split(")")[0]
+            elif col.startswith(":END_ID"):
+                end_id_col = col
+                # Extract node type from :END_ID(NodeType)
+                if "(" in col and ")" in col:
+                    end_node_type = col.split("(")[1].split(")")[0]
+
         # Build property mapping for query template
         property_assignments = []
         for col in df.columns:
-            if col in [":START_ID", ":END_ID", ":TYPE"]:
+            if col == start_id_col or col == end_id_col or col == ":TYPE":
                 continue
             elif ":" in col:
                 prop_name = col.split(":")[0]
@@ -217,13 +236,15 @@ CREATE (n:{label} {{{prop_string}}})
             else:
                 property_assignments.append(f"{col}: row.{col}")
 
-        # Create UNWIND query template
-        prop_string = "{" + ", ".join(property_assignments) + "}" if property_assignments else ""
+        # Create simple UNWIND query template
+        start_prop = self._get_id_property_name(start_node_type)
+        end_prop = self._get_id_property_name(end_node_type)
+
         query_template = f"""
 UNWIND $batch AS row
-MATCH (start {{id: row.start_id}})
-MATCH (end {{id: row.end_id}})
-CREATE (start)-[r:{rel_type}{prop_string}]->(end)
+MATCH (start:{start_node_type} {{{start_prop}: row.start_id}})
+MATCH (end:{end_node_type} {{{end_prop}: row.end_id}})
+CREATE (start)-[r:{rel_type}]->(end)
 """.strip()
 
         # Process data in batches
@@ -231,16 +252,20 @@ CREATE (start)-[r:{rel_type}{prop_string}]->(end)
         for i in range(0, len(df), batch_size):
             batch_df = df.iloc[i:i + batch_size]
 
-            # Convert batch to list of dicts with proper types
+            # Convert batch to list of dicts with proper types based on config
             batch_data = []
             for _, row in batch_df.iterrows():
+                # Get the correct types from config for start and end node IDs
+                start_id_type = self._get_id_field_type(start_node_type)
+                end_id_type = self._get_id_field_type(end_node_type)
+
                 record = {
-                    "start_id": row[":START_ID"],
-                    "end_id": row[":END_ID"]
+                    "start_id": self._convert_to_type(row[start_id_col], start_id_type),
+                    "end_id": self._convert_to_type(row[end_id_col], end_id_type)
                 }
 
                 for col in df.columns:
-                    if col in [":START_ID", ":END_ID", ":TYPE"]:
+                    if col == start_id_col or col == end_id_col or col == ":TYPE":
                         continue
                     elif ":" in col:
                         prop_name = col.split(":")[0]
@@ -266,6 +291,48 @@ CREATE (start)-[r:{rel_type}{prop_string}]->(end)
             queries.append((query_template, {"batch": batch_data}))
 
         return queries
+
+    def _get_id_property_name(self, node_type: str) -> str:
+        """Get the ID property name for a given node type from the schema config"""
+        nodes_config = self.schema_config.get("nodes", {})
+
+        # Look for the node type in config (try exact match first, then case variations)
+        for config_key, node_config in nodes_config.items():
+            if config_key.lower() == node_type.lower():
+                id_field_config = node_config.get("id_field", {})
+                return id_field_config.get("property_name", "id")
+
+        # Fallback
+        return "id"
+
+    def _get_id_field_type(self, node_type: str) -> str:
+        """Get the ID field type for a given node type from the schema config"""
+        nodes_config = self.schema_config.get("nodes", {})
+
+        # Look for the node type in config
+        for config_key, node_config in nodes_config.items():
+            if config_key.lower() == node_type.lower():
+                id_field_config = node_config.get("id_field", {})
+                return id_field_config.get("type", "string")
+
+        # Fallback
+        return "string"
+
+    def _convert_to_type(self, value, field_type: str):
+        """Convert value to the specified type"""
+        if pd.isna(value):
+            return None
+
+        if field_type == "int":
+            return int(float(value))  # Handle cases where int is stored as float
+        elif field_type == "float":
+            return float(value)
+        elif field_type == "boolean":
+            if isinstance(value, str):
+                return value.lower() in ("true", "1", "yes", "on")
+            return bool(value)
+        else:  # string or any other type
+            return str(value)
 
     def execute_import(
         self, node_files: List[str], relationship_files: List[str]
@@ -302,7 +369,6 @@ CREATE (start)-[r:{rel_type}{prop_string}]->(end)
 
             for i, (query, parameters) in enumerate(queries):
                 try:
-                    # CRITICAL: Don't specify database in session - like working script
                     with driver.session() as session:
                         result = session.run(query, parameters)
                         summary = result.consume()
