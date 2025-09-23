@@ -11,40 +11,33 @@
   },
   
   "hasura_endpoint": "${HASURA_ENDPOINT}",
-  "export_from_hasura": false,
+  "export_from_hasura": true,
   "import_to_neo4j": true,
   "materialized_views": {
-    "published_mv_lesson_openapi_1_2_3": [
-      "examBoardTitle",
-      "isLegacy",
-      "keyLearningPoints",
-      "keyStageTitle",
-      "lessonId",
-      "lessonTitle",
-      "examBoardSlug",
-      "keyStageSlug",
-      "lessonKeywords",
-      "lessonOrderInUnit",
-      "lessonSlug",
-      "nullUnitVariantId",
-      "programmeSlug",
-      "pupilLessonOutcome",
-      "subjectSlug",
-      "subjectTitle",
-      "tierSlug",
-      "tierTitle",
-      "unitOrder",
-      "unitSlug",
-      "unitTitle",
-      "unitVariantId",
-      "yearSlug",
-      "yearTitle"
+    "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0": [
+      "features",
+      "is_legacy",
+      "lesson_data",
+      "lesson_slug",
+      "null_unitvariant_id",
+      "order_in_unit",
+      "programme_fields",
+      "programme_subject: programme_fields(path: \"subject\")",
+      "programme_subject_id: programme_fields(path: \"subject_id\")",
+      "programme_subject_slug: programme_fields(path: \"subject_slug\")",
+      "programme_subject_display_order: programme_fields(path: \"subject_display_order\")",
+      "programme_slug",
+      "programme_slug_by_year",
+      "static_lesson_list",
+      "unit_data",
+      "unit_slug",
+      "unitvariant_id"
     ]
   },
 
   "join_strategy": {
     "type": "single_source",
-    "primary_mv": "published_mv_lesson_openapi_1_2_3",
+    "primary_mv": "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
     "joins": []
   },
   "filters": {
@@ -61,71 +54,24 @@
 
     "nodes": {
 
-      "Year": {
-        "id_field": {
-          "hasura_col": "yearSlug",
-          "type": "string",
-          "property_name": "slug"
-        },
-        "properties": {
-          "title": {
-            "hasura_col": "yearTitle",
-            "type": "string"
-          }
-        }
-      },
-
       "Subject": {
         "id_field": {
-          "hasura_col": "subjectSlug",
+          "hasura_col": "programme_subject_slug",
           "type": "string",
           "property_name": "slug"
         },
         "properties": {
           "title": {
-            "hasura_col": "subjectTitle",
+            "hasura_col": "programme_subject",
             "type": "string"
-          }
-        }
-      },
-
-      "Unitvariant": {
-        "id_field": {
-          "hasura_col": "unitVariantId",
-          "type": "string",
-          "property_name": "unitVariantId"
-        },
-        "properties": {
-        }
-      }
-    },
-
-    "relationships": {
-
-      "subject_has_unit": {
-        "relationship_type": "HAS_UNIT",
-        "start_node_type": "Subject",
-        "start_node_field": "subjectSlug",
-        "end_node_type": "Unitvariant",
-        "end_node_field": "unitVariantId",
-        "properties": {
-          "order": {
-            "hasura_col": "unitOrder",
+          },
+          "displayOrder": {
+            "hasura_col": "programme_subject_display_order",
             "type": "int"
-          }
-        }
-      },
-
-      "year_has_unit": {
-        "relationship_type": "HAS_UNIT",
-        "start_node_type": "Year",
-        "start_node_field": "yearSlug",
-        "end_node_type": "Unitvariant",
-        "end_node_field": "unitVariantId",
-        "properties": {
-          "order": {
-            "hasura_col": "unitOrder",
-            "type": "int"
+          },
+          "id": {
+            "hasura_col": "programme_subject_id",
+            "type": "string"
           }
         }
       }

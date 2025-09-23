@@ -1,0 +1,134 @@
+{
+  "_comments": {
+    "materialized_views": "These are the columns extracted from Hasura MV",
+    "filters": "Filters applied during data cleaning",
+    "filters_example": {
+      "subjectTitle": ["Science", "Maths"],
+      "keyStageTitle": "Key Stage 1",
+      "yearTitle": "Year 1"
+    },
+    "schema_mapping": "Mapping from CSV columns to Neo4j nodes and relationships"
+  },
+  
+  "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "export_from_hasura": false,
+  "import_to_neo4j": true,
+  "materialized_views": {
+    "published_mv_lesson_openapi_1_2_3": [
+      "examBoardTitle",
+      "isLegacy",
+      "keyLearningPoints",
+      "keyStageTitle",
+      "lessonId",
+      "lessonTitle",
+      "examBoardSlug",
+      "keyStageSlug",
+      "lessonKeywords",
+      "lessonOrderInUnit",
+      "lessonSlug",
+      "nullUnitVariantId",
+      "programmeSlug",
+      "pupilLessonOutcome",
+      "subjectSlug",
+      "subjectTitle",
+      "tierSlug",
+      "tierTitle",
+      "unitOrder",
+      "unitSlug",
+      "unitTitle",
+      "unitVariantId",
+      "yearSlug",
+      "yearTitle"
+    ]
+  },
+
+  "join_strategy": {
+    "type": "single_source",
+    "primary_mv": "published_mv_lesson_openapi_1_2_3",
+    "joins": []
+  },
+  "filters": {
+    "isLegacy": false,
+    "subjectTitle": ["Science", "Maths"],
+    "keyStageTitle": "Key Stage 1",
+    "yearTitle": "Year 1"
+  },
+
+  "test_limit": null,
+  "clear_database_before_import": true,
+
+  "schema_mapping": {
+
+    "nodes": {
+
+      "Year": {
+        "id_field": {
+          "hasura_col": "yearSlug",
+          "type": "string",
+          "property_name": "slug"
+        },
+        "properties": {
+          "title": {
+            "hasura_col": "yearTitle",
+            "type": "string"
+          }
+        }
+      },
+
+      "Subject": {
+        "id_field": {
+          "hasura_col": "subjectSlug",
+          "type": "string",
+          "property_name": "slug"
+        },
+        "properties": {
+          "title": {
+            "hasura_col": "subjectTitle",
+            "type": "string"
+          }
+        }
+      },
+
+      "Unitvariant": {
+        "id_field": {
+          "hasura_col": "unitVariantId",
+          "type": "string",
+          "property_name": "unitVariantId"
+        },
+        "properties": {
+        }
+      }
+    },
+
+    "relationships": {
+
+      "subject_has_unit": {
+        "relationship_type": "HAS_UNIT",
+        "start_node_type": "Subject",
+        "start_node_field": "subjectSlug",
+        "end_node_type": "Unitvariant",
+        "end_node_field": "unitVariantId",
+        "properties": {
+          "order": {
+            "hasura_col": "unitOrder",
+            "type": "int"
+          }
+        }
+      },
+
+      "year_has_unit": {
+        "relationship_type": "HAS_UNIT",
+        "start_node_type": "Year",
+        "start_node_field": "yearSlug",
+        "end_node_type": "Unitvariant",
+        "end_node_field": "unitVariantId",
+        "properties": {
+          "order": {
+            "hasura_col": "unitOrder",
+            "type": "int"
+          }
+        }
+      }
+    }
+  }
+}

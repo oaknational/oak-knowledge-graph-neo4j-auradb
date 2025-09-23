@@ -24,10 +24,10 @@ class HasuraExtractor(ExtractionStrategy):
     def extract(self, config: PipelineConfig) -> List[Dict]:
         all_data = []
 
-        for view_name in config.materialized_views:
+        for view_name, fields in config.materialized_views.items():
             try:
                 view_data = self._query_materialized_view(
-                    config.hasura_endpoint, view_name, config.test_limit
+                    config.hasura_endpoint, view_name, fields, config.test_limit
                 )
                 all_data.extend(view_data)
             except Exception as e:
@@ -38,9 +38,9 @@ class HasuraExtractor(ExtractionStrategy):
         return all_data
 
     def _query_materialized_view(
-        self, endpoint: str, view_name: str, limit: int = None
+        self, endpoint: str, view_name: str, fields: List[str], limit: int = None
     ) -> List[Dict]:
-        query = self._build_graphql_query(view_name, limit)
+        query = self._build_graphql_query(view_name, fields, limit)
 
         headers = {
             "Content-Type": "application/json",
@@ -72,17 +72,20 @@ class HasuraExtractor(ExtractionStrategy):
         except Exception as e:
             raise RuntimeError(f"Unexpected error: {str(e)}")
 
-    def _build_graphql_query(self, view_name: str, limit: int = None) -> str:
+    def _build_graphql_query(self, view_name: str, fields: List[str], limit: int = None) -> str:
         words = view_name.split("_")
         query_name = "Get" + "".join(word.capitalize() for word in words)
 
         # Add limit parameter to query if specified
         limit_clause = f"(limit: {limit})" if limit else ""
 
+        # Build field selection from config
+        field_selection = "\n            ".join(fields)
+
         return f"""
         query {query_name} {{
           {view_name}{limit_clause} {{
-            __typename
+            {field_selection}
           }}
         }}
         """
