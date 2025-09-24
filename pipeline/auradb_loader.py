@@ -135,23 +135,45 @@ CREATE (start)-[r:{rel_type}{{{property_string}}}]->(end)
         else:
             label = "Node"
 
-        # Build property mapping for query template
+        # Find ID field and build property mappings
+        id_field = None
+        id_property = None
         property_assignments = []
+        other_properties = []
 
         for col in df.columns:
             if col in [":LABEL"]:
                 continue
+            elif ":" in col and ":ID(" in col:
+                # This is the ID field
+                id_property = col.split(":")[0]
+                id_field = col
             elif ":" in col:
                 prop_name = col.split(":")[0]
-                property_assignments.append(f"{prop_name}: row.{prop_name}")
+                other_properties.append(f"{prop_name}: row.{prop_name}")
             else:
-                property_assignments.append(f"{col}: row.{col}")
+                other_properties.append(f"{col}: row.{col}")
 
-        # Create UNWIND query template
-        prop_string = ", ".join(property_assignments)
-        query_template = f"""
+        # Create MERGE query template using ID field
+        if id_field and id_property:
+            other_props_string = ", ".join(other_properties) if other_properties else ""
+            if other_props_string:
+                query_template = f"""
 UNWIND $batch AS row
-CREATE (n:{label} {{{prop_string}}})
+MERGE (n:{label} {{{id_property}: row.{id_property}}})
+SET n += {{{other_props_string}}}
+""".strip()
+            else:
+                query_template = f"""
+UNWIND $batch AS row
+MERGE (n:{label} {{{id_property}: row.{id_property}}})
+""".strip()
+        else:
+            # Fallback to CREATE if no ID field found
+            all_props = ", ".join(property_assignments)
+            query_template = f"""
+UNWIND $batch AS row
+CREATE (n:{label} {{{all_props}}})
 """.strip()
 
         # Process data in batches
@@ -240,11 +262,21 @@ CREATE (n:{label} {{{prop_string}}})
         start_prop = self._get_id_property_name(start_node_type)
         end_prop = self._get_id_property_name(end_node_type)
 
+        # Include properties in relationship creation
+        prop_string = ", ".join(property_assignments) if property_assignments else ""
+        rel_props = f" {{{prop_string}}}" if prop_string else ""
+
         query_template = f"""
 UNWIND $batch AS row
 MATCH (start:{start_node_type} {{{start_prop}: row.start_id}})
 MATCH (end:{end_node_type} {{{end_prop}: row.end_id}})
-CREATE (start)-[r:{rel_type}]->(end)
+MERGE (start)-[r:{rel_type}]->(end)
+SET r += {{{prop_string}}}
+""".strip() if prop_string else f"""
+UNWIND $batch AS row
+MATCH (start:{start_node_type} {{{start_prop}: row.start_id}})
+MATCH (end:{end_node_type} {{{end_prop}: row.end_id}})
+MERGE (start)-[r:{rel_type}]->(end)
 """.strip()
 
         # Process data in batches

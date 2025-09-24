@@ -73,14 +73,18 @@ class SchemaMapper:
             seen_ids = set()  # Track unique IDs for deduplication
 
             for _, row in df.iterrows():
-                # Get the ID field value for deduplication
+                # Get ID from Hasura column (works for both real and synthetic columns)
                 id_hasura_col = id_field_config.get("hasura_col")
                 if not id_hasura_col or id_hasura_col not in row:
                     continue  # Skip if ID field is missing
 
                 id_value = str(row[id_hasura_col])
 
-                # Skip if we've already processed this ID
+                # Skip if value is empty (synthetic column generation failed)
+                if not id_value or id_value.strip() == "":
+                    continue
+
+                # Skip if we've already processed this ID (deduplication)
                 if id_value in seen_ids:
                     continue
 
@@ -90,7 +94,7 @@ class SchemaMapper:
 
                 # Add ID field with Neo4j :ID(NodeType) format
                 id_property_name = id_field_config.get("property_name", "id")
-                node_row[f"{id_property_name}:ID({node_label})"] = self._clean_value(row[id_hasura_col])
+                node_row[f"{id_property_name}:ID({node_label})"] = id_value
 
                 # Add other properties using config type information
                 for prop_name, prop_config in properties.items():
@@ -133,14 +137,19 @@ class SchemaMapper:
             seen_relationships = set()  # Track unique relationships to prevent duplicates
 
             for _, row in df.iterrows():
-                # Skip if required fields are missing
-                if not (start_field and end_field and
-                       start_field in row and end_field in row):
-                    continue
-
-                # Get the values from Hasura CSV
+                # Get start ID value (works for both real and synthetic columns)
+                if start_field not in row:
+                    continue  # Skip if start field missing
                 start_id = str(row[start_field])
+
+                # Get end ID value (works for both real and synthetic columns)
+                if end_field not in row:
+                    continue  # Skip if end field missing
                 end_id = str(row[end_field])
+
+                # Skip if either ID is empty
+                if not start_id or not end_id or start_id.strip() == "" or end_id.strip() == "":
+                    continue
 
                 # Create relationship identifier for deduplication
                 rel_key = (start_id, end_id, actual_rel_type)
@@ -189,6 +198,7 @@ class SchemaMapper:
         if pd.isna(value):
             return ""
         return str(value).strip()
+
 
     def _map_nodes(self, df: pd.DataFrame, node_mappings: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
         """Map DataFrame to node structures."""

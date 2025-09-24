@@ -131,8 +131,12 @@ def main():
                 test_limit=config.get("test_limit"),
             )
 
-            # Always clean data
-            cleaner = DataCleaner(output_dir=str(output_dir), filters=config.get("filters"))
+            # Always clean data (includes synthetic column generation)
+            cleaner = DataCleaner(
+                output_dir=str(output_dir),
+                filters=config.get("filters"),
+                schema_mapping=config.get("schema_mapping")
+            )
             cleaned_csv_file = cleaner.clean_data(csv_file)
 
             print(f"✅ Hasura Export completed: {cleaned_csv_file}")

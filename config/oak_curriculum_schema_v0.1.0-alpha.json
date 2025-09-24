@@ -3,9 +3,9 @@
     "materialized_views": "These are the columns extracted from Hasura MV",
     "filters": "Filters applied during data cleaning",
     "filters_example": {
-      "subjectTitle": ["Science", "Maths"],
-      "keyStageTitle": "Key Stage 1",
-      "yearTitle": "Year 1"
+      "subjectTitle": ["Biology", "Maths"],
+      "keyStageTitle": "Key Stage 4",
+      "yearTitle": "Year 11"
     },
     "schema_mapping": "Mapping from CSV columns to Neo4j nodes and relationships"
   },
@@ -22,15 +22,53 @@
       "null_unitvariant_id",
       "order_in_unit",
       "programme_fields",
+      "programme_tier: programme_fields(path: \"tier\")",
+      "programme_tier_id: programme_fields(path: \"tier_id\")",
+      "programme_tier_slug: programme_fields(path: \"tier_slug\")",
+      "programme_tier_description: programme_fields(path: \"tier_description\")",
+      "programme_tier_display_order: programme_fields(path: \"tier_display_order\")",
+      "programme_year: programme_fields(path: \"year\")",
+      "programme_year_id: programme_fields(path: \"year_id\")",
+      "programme_year_slug: programme_fields(path: \"year_slug\")",
+      "programme_year_description: programme_fields(path: \"year_description\")",
+      "programme_year_display_order: programme_fields(path: \"year_display_order\")",
+      "programme_phase: programme_fields(path: \"phase\")",
+      "programme_phase_id: programme_fields(path: \"phase_id\")",
+      "programme_phase_slug: programme_fields(path: \"phase_slug\")",
+      "programme_phase_description: programme_fields(path: \"phase_description\")",
+      "programme_phase_display_order: programme_fields(path: \"phase_display_order\")",
+      "programme_pathway: programme_fields(path: \"pathway\")",
+      "programme_pathway_id: programme_fields(path: \"pathway_id\")",
+      "programme_pathway_slug: programme_fields(path: \"pathway_slug\")",
+      "programme_pathway_description: programme_fields(path: \"pathway_description\")",
+      "programme_pathway_display_order: programme_fields(path: \"pathway_display_order\")",
       "programme_subject: programme_fields(path: \"subject\")",
       "programme_subject_id: programme_fields(path: \"subject_id\")",
       "programme_subject_slug: programme_fields(path: \"subject_slug\")",
+      "programme_subject_description: programme_fields(path: \"subject_description\")",
       "programme_subject_display_order: programme_fields(path: \"subject_display_order\")",
+      "programme_subject_parent: programme_fields(path: \"subject_parent\")",
+      "programme_subject_parent_id: programme_fields(path: \"subject_parent_id\")",
+      "programme_keystage: programme_fields(path: \"keystage\")",
+      "programme_keystage_id: programme_fields(path: \"keystage_id\")",
+      "programme_keystage_slug: programme_fields(path: \"keystage_slug\")",
+      "programme_keystage_description: programme_fields(path: \"keystage_description\")",
+      "programme_keystage_display_order: programme_fields(path: \"keystage_display_order\")",
+      "programme_examboard: programme_fields(path: \"examboard\")",
+      "programme_examboard_id: programme_fields(path: \"examboard_id\")",
+      "programme_examboard_slug: programme_fields(path: \"examboard_slug\")",
+      "programme_examboard_description: programme_fields(path: \"examboard_description\")",
+      "programme_examboard_display_order: programme_fields(path: \"examboard_display_order\")",
       "programme_slug",
       "programme_slug_by_year",
       "static_lesson_list",
       "unit_data",
-      "unit_slug",
+      "unit_id: unit_data(path: \"unit_id\")",
+      "unit_title: unit_data(path: \"title\")",
+      "unit_slug: unit_data(path: \"slug\")",
+      "unit_description: unit_data(path: \"description\")",
+      "unit_why_this_why_now: unit_data(path: \"why_this_why_now\")",
+      "unit_planned_number_of_lessons: unit_data(path: \"planned_number_of_lessons\")",
       "unitvariant_id"
     ]
   },
@@ -41,10 +79,9 @@
     "joins": []
   },
   "filters": {
-    "isLegacy": false,
-    "subjectTitle": ["Science", "Maths"],
-    "keyStageTitle": "Key Stage 1",
-    "yearTitle": "Year 1"
+    "is_legacy": false,
+    "programme_subject": ["Biology", "Maths"],
+    "programme_year_description": "Year 11"
   },
 
   "test_limit": null,
@@ -58,10 +95,12 @@
         "id_field": {
           "hasura_col": "programme_subject_slug",
           "type": "string",
-          "property_name": "slug"
+          "property_name": "subjectSlug",
+          "synthetic": false,
+          "pattern": ""
         },
         "properties": {
-          "title": {
+          "subjectTitle": {
             "hasura_col": "programme_subject",
             "type": "string"
           },
@@ -69,9 +108,248 @@
             "hasura_col": "programme_subject_display_order",
             "type": "int"
           },
-          "id": {
+          "subjectId": {
             "hasura_col": "programme_subject_id",
+            "type": "int"
+          },
+          "subjectDescription": {
+            "hasura_col": "programme_subject_description",
             "type": "string"
+          },
+          "subjectParentTitle": {
+            "hasura_col": "programme_subject_parent",
+            "type": "string"
+          },
+          "subjectParentId": {
+            "hasura_col": "programme_subject_parent_id",
+            "type": "int"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      "Phase": {
+        "id_field": {
+          "hasura_col": "programme_phase_slug",
+          "type": "string",
+          "property_name": "phaseSlug",
+          "synthetic": false,
+          "pattern": ""
+        },
+        "properties": {
+          "phaseTitle": {
+            "hasura_col": "programme_phase",
+            "type": "string"
+          },
+          "phaseDescription": {
+            "hasura_col": "programme_phase_description",
+            "type": "string"
+          },
+          "phaseId": {
+            "hasura_col": "programme_phase_id",
+            "type": "int"
+          },
+          "displayOrder": {
+            "hasura_col": "programme_phase_display_order",
+            "type": "int"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      "Keystage": {
+        "id_field": {
+          "hasura_col": "programme_keystage_slug",
+          "type": "string",
+          "property_name": "keyStageSlug",
+          "synthetic": false,
+          "pattern": ""
+        },
+        "properties": {
+          "keyStageTitle": {
+            "hasura_col": "programme_keystage",
+            "type": "string"
+          },
+          "keyStageDescription": {
+            "hasura_col": "programme_keystage_description",
+            "type": "string"
+          },
+          "keyStageId": {
+            "hasura_col": "programme_keystage_id",
+            "type": "int"
+          },
+          "displayOrder": {
+            "hasura_col": "programme_keystage_display_order",
+            "type": "int"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      "Year": {
+        "id_field": {
+          "hasura_col": "programme_year_slug",
+          "type": "string",
+          "property_name": "yearSlug",
+          "synthetic": false,
+          "pattern": ""
+        },
+        "properties": {
+          "yearTitle": {
+            "hasura_col": "programme_year_description",
+            "type": "string"
+          },
+          "yearId": {
+            "hasura_col": "programme_year_id",
+            "type": "int"
+          },
+          "displayOrder": {
+            "hasura_col": "programme_year_display_order",
+            "type": "int"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      "Unit": {
+        "id_field": {
+          "hasura_col": "unit_id",
+          "type": "string",
+          "property_name": "unitId",
+          "synthetic": false,
+          "pattern": ""
+        },
+        "properties": {
+          "unitSlug": {
+            "hasura_col": "unit_slug",
+            "type": "string"
+          },
+          "unitTitle": {
+            "hasura_col": "unit_title",
+            "type": "string"
+          },
+          "unitDescription": {
+            "hasura_col": "unit_description",
+            "type": "string"
+          },
+          "whyThisWhyNow": {
+            "hasura_col": "unit_why_this_why_now",
+            "type": "string"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      "Unitoffering": {
+        "id_field": {
+          "hasura_col": "unit_offering_slug",
+          "type": "string",
+          "property_name": "unitOfferingSlug",
+          "synthetic": true,
+          "pattern": "{programme_year_slug}-{programme_subject_slug}"
+        },
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      "Programme": {
+        "id_field": {
+          "hasura_col": "programme_slug",
+          "type": "string",
+          "property_name": "programmeSlug",
+          "synthetic": false,
+          "pattern": ""
+        },
+        "properties": {
+          
+          "examBoard": {
+            "hasura_col": "programme_examboard",
+            "type": "string"
+          },
+          "tier": {
+            "hasura_col": "programme_tier",
+            "type": "string"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      "Unitvariant": {
+        "id_field": {
+          "hasura_col": "unitvariant_id",
+          "type": "string",
+          "property_name": "unitVariantId",
+          "synthetic": false,
+          "pattern": ""
+        },
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      }
+    },
+
+    "relationships": {
+
+      "subject_has_offering": {
+        "relationship_type": "HAS_UNIT_OFFERING",
+        "start_node_type": "Subject",
+        "start_node_field": "programme_subject_slug",
+        "end_node_type": "Unitoffering",
+        "end_node_field": "unit_offering_slug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "year_has_offering": {
+        "relationship_type": "HAS_UNIT_OFFERING",
+        "start_node_type": "Year",
+        "start_node_field": "programme_year_slug",
+        "end_node_type": "Unitoffering",
+        "end_node_field": "unit_offering_slug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "offering_has_unit": {
+        "relationship_type": "HAS_UNIT",
+        "start_node_type": "Unitoffering",
+        "start_node_field": "unit_offering_slug",
+        "end_node_type": "Unit",
+        "end_node_field": "unit_id",
+        "properties": {
+          "unitOrder": {
+            "hasura_col": "order_in_unit",
+            "type": "int"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
           }
         }
       }
