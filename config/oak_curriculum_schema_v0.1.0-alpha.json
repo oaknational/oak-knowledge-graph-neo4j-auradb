@@ -18,7 +18,11 @@
       "features",
       "is_legacy",
       "lesson_data",
-      "lesson_slug",
+      "lesson_slug: lesson_data(path: \"slug\")",
+      "lesson_title: lesson_data(path: \"title\")",
+      "lesson_id: lesson_data(path: \"lesson_id\")",
+      "lesson_description: lesson_data(path: \"description\")",
+      "lesson_key_learning_points: lesson_data(path: \"key_learning_points\")",
       "null_unitvariant_id",
       "order_in_unit",
       "programme_fields",
@@ -60,8 +64,6 @@
       "programme_examboard_description: programme_fields(path: \"examboard_description\")",
       "programme_examboard_display_order: programme_fields(path: \"examboard_display_order\")",
       "programme_slug",
-      "programme_slug_by_year",
-      "static_lesson_list",
       "unit_data",
       "unit_id: unit_data(path: \"unit_id\")",
       "unit_title: unit_data(path: \"title\")",
@@ -80,8 +82,8 @@
   },
   "filters": {
     "is_legacy": false,
-    "programme_subject": ["Biology", "Maths"],
-    "programme_year_description": "Year 11"
+    "programme_subject": ["History"],
+    "programme_year_description": "Year 5"
   },
 
   "test_limit": null,
@@ -91,42 +93,73 @@
 
     "nodes": {
 
+      "Schemaversion": {
+        "id_field": {
+          "hasura_col": "",
+          "type": "string",
+          "property_name": "schemaVersion",
+          "synthetic_value": "v0.1.0-alpha"
+        },
+        "properties": {
+          "schemaDescription": {
+            "hasura_col": "",
+            "type": "string",
+            "synthetic_value": "Schema design and experimentation."
+          },
+          "isActive": {
+            "hasura_col": "",
+            "type": "boolean",
+            "synthetic_value": true
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
+      },
       "Subject": {
         "id_field": {
           "hasura_col": "programme_subject_slug",
           "type": "string",
           "property_name": "subjectSlug",
-          "synthetic": false,
-          "pattern": ""
+          "synthetic_value": ""
         },
         "properties": {
           "subjectTitle": {
             "hasura_col": "programme_subject",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "displayOrder": {
             "hasura_col": "programme_subject_display_order",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "subjectId": {
             "hasura_col": "programme_subject_id",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "subjectDescription": {
             "hasura_col": "programme_subject_description",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "subjectParentTitle": {
             "hasura_col": "programme_subject_parent",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "subjectParentId": {
             "hasura_col": "programme_subject_parent_id",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       },
@@ -135,29 +168,33 @@
           "hasura_col": "programme_phase_slug",
           "type": "string",
           "property_name": "phaseSlug",
-          "synthetic": false,
-          "pattern": ""
+          "synthetic_value": ""
         },
         "properties": {
           "phaseTitle": {
             "hasura_col": "programme_phase",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "phaseDescription": {
             "hasura_col": "programme_phase_description",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "phaseId": {
             "hasura_col": "programme_phase_id",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "displayOrder": {
             "hasura_col": "programme_phase_display_order",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       },
@@ -166,29 +203,33 @@
           "hasura_col": "programme_keystage_slug",
           "type": "string",
           "property_name": "keyStageSlug",
-          "synthetic": false,
-          "pattern": ""
+          "synthetic_value": ""
         },
         "properties": {
           "keyStageTitle": {
             "hasura_col": "programme_keystage",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "keyStageDescription": {
             "hasura_col": "programme_keystage_description",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "keyStageId": {
             "hasura_col": "programme_keystage_id",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "displayOrder": {
             "hasura_col": "programme_keystage_display_order",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       },
@@ -197,71 +238,83 @@
           "hasura_col": "programme_year_slug",
           "type": "string",
           "property_name": "yearSlug",
-          "synthetic": false,
-          "pattern": ""
+          "synthetic_value": ""
         },
         "properties": {
           "yearTitle": {
+            "hasura_col": "programme_year",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "yearDescription": {
             "hasura_col": "programme_year_description",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "yearId": {
             "hasura_col": "programme_year_id",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "displayOrder": {
             "hasura_col": "programme_year_display_order",
-            "type": "int"
+            "type": "int",
+            "synthetic_value": ""
           },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       },
       "Unit": {
         "id_field": {
-          "hasura_col": "unit_id",
+          "hasura_col": "unit_slug",
           "type": "string",
-          "property_name": "unitId",
-          "synthetic": false,
-          "pattern": ""
+          "property_name": "unitSlug",
+          "synthetic_value": ""
         },
         "properties": {
-          "unitSlug": {
-            "hasura_col": "unit_slug",
-            "type": "string"
+          "unitId": {
+            "hasura_col": "unit_id",
+            "type": "int",
+            "synthetic_value": ""
           },
           "unitTitle": {
             "hasura_col": "unit_title",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "unitDescription": {
             "hasura_col": "unit_description",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "whyThisWhyNow": {
             "hasura_col": "unit_why_this_why_now",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
           },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       },
       "Unitoffering": {
         "id_field": {
-          "hasura_col": "unit_offering_slug",
+          "hasura_col": "",
           "type": "string",
           "property_name": "unitOfferingSlug",
-          "synthetic": true,
-          "pattern": "{programme_year_slug}-{programme_subject_slug}"
+          "synthetic_value": "{programme_year_slug}-{programme_subject_slug}"
         },
         "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       },
@@ -270,37 +323,148 @@
           "hasura_col": "programme_slug",
           "type": "string",
           "property_name": "programmeSlug",
-          "synthetic": false,
-          "pattern": ""
+          "synthetic_value": ""
         },
         "properties": {
-          
-          "examBoard": {
-            "hasura_col": "programme_examboard",
-            "type": "string"
-          },
-          "tier": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
+      },
+      "Tier": {
+        "id_field": {
+          "hasura_col": "programme_tier_slug",
+          "type": "string",
+          "property_name": "tierSlug",
+          "synthetic_value": ""
+        },
+        "properties": {
+          "tierTitle": {
             "hasura_col": "programme_tier",
-            "type": "string"
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "tierId": {
+            "hasura_col": "programme_tier_id",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "tierDescription": {
+            "hasura_col": "programme_tier_description",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "displayOrder": {
+            "hasura_col": "programme_tier_display_order",
+            "type": "int",
+            "synthetic_value": ""
           },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
+      },
+      "Examboard": {
+        "id_field": {
+          "hasura_col": "programme_examboard_slug",
+          "type": "string",
+          "property_name": "examBoardSlug",
+          "synthetic_value": ""
+        },
+        "properties": {
+          "examBoardTitle": {
+            "hasura_col": "programme_examboard",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "examBoardId": {
+            "hasura_col": "programme_examboard_id",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "examBoardDescription": {
+            "hasura_col": "programme_examboard_description",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "displayOrder": {
+            "hasura_col": "programme_examboard_display_order",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       },
       "Unitvariant": {
         "id_field": {
-          "hasura_col": "unitvariant_id",
+          "hasura_col": "",
           "type": "string",
-          "property_name": "unitVariantId",
-          "synthetic": false,
-          "pattern": ""
+          "property_name": "unitVariantSlug",
+          "synthetic_value": "{unitvariant_id}-{unit_slug}"
+        },
+        "properties": {
+          "unitVariantId": {
+            "hasura_col": "unitvariant_id",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
+      },
+      "Lesson": {
+        "id_field": {
+          "hasura_col": "lesson_slug",
+          "type": "string",
+          "property_name": "lessonSlug",
+          "synthetic_value": ""
+        },
+        "properties": {
+          "lessonTitle": {
+            "hasura_col": "lesson_title",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "lessonId": {
+            "hasura_col": "lesson_id",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "lessonDescription": {
+            "hasura_col": "lesson_description",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
+      },
+      "Keylearningpoint": {
+        "id_field": {
+          "hasura_col": "lesson_key_learning_points_key_learning_point",
+          "type": "string",
+          "property_name": "keyLearningPoint",
+          "synthetic_value": ""
         },
         "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
-            "type": "datetime"
+            "type": "datetime",
+            "synthetic_value": ""
           }
         }
       }
@@ -308,12 +472,40 @@
 
     "relationships": {
 
+      "phase_has_keystage": {
+        "relationship_type": "HAS_KEY_STAGE",
+        "start_node_type": "Phase",
+        "start_node_field": "programme_phase_slug",
+        "end_node_type": "Keystage",
+        "end_node_field": "programme_keystage_slug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      
+      "keystage_has_year": {
+        "relationship_type": "HAS_YEAR",
+        "start_node_type": "Keystage",
+        "start_node_field": "programme_keystage_slug",
+        "end_node_type": "Year",
+        "end_node_field": "programme_year_slug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      
       "subject_has_offering": {
         "relationship_type": "HAS_UNIT_OFFERING",
         "start_node_type": "Subject",
         "start_node_field": "programme_subject_slug",
         "end_node_type": "Unitoffering",
-        "end_node_field": "unit_offering_slug",
+        "end_node_field": "unitOfferingSlug",
         "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
@@ -327,7 +519,7 @@
         "start_node_type": "Year",
         "start_node_field": "programme_year_slug",
         "end_node_type": "Unitoffering",
-        "end_node_field": "unit_offering_slug",
+        "end_node_field": "unitOfferingSlug",
         "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
@@ -336,17 +528,87 @@
         }
       },
 
+      "offering_has_programme": {
+        "relationship_type": "HAS_PROGRAMME",
+        "start_node_type": "Unitoffering",
+        "start_node_field": "unitOfferingSlug",
+        "end_node_type": "Programme",
+        "end_node_field": "programme_slug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      
       "offering_has_unit": {
         "relationship_type": "HAS_UNIT",
         "start_node_type": "Unitoffering",
-        "start_node_field": "unit_offering_slug",
+        "start_node_field": "unitOfferingSlug",
         "end_node_type": "Unit",
-        "end_node_field": "unit_id",
+        "end_node_field": "unit_slug",
         "properties": {
           "unitOrder": {
             "hasura_col": "order_in_unit",
             "type": "int"
           },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "unit_has_unitvariant": {
+        "relationship_type": "HAS_UNITVARIANT",
+        "start_node_type": "Unit",
+        "start_node_field": "unit_slug",
+        "end_node_type": "Unitvariant",
+        "end_node_field": "unitVariantSlug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "programme_has_unitvariant": {
+        "relationship_type": "HAS_UNITVARIANT",
+        "start_node_type": "Programme",
+        "start_node_field": "programme_slug",
+        "end_node_type": "Unitvariant",
+        "end_node_field": "unitVariantSlug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "unitvariant_has_lesson": {
+        "relationship_type": "HAS_LESSON",
+        "start_node_type": "Unitvariant",
+        "start_node_field": "unitVariantSlug",
+        "end_node_type": "Lesson",
+        "end_node_field": "lesson_slug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "lesson_has_keylearningpoint": {
+        "relationship_type": "HAS_KLP",
+        "start_node_type": "Lesson",
+        "start_node_field": "lesson_slug",
+        "end_node_type": "Keylearningpoint",
+        "end_node_field": "lesson_key_learning_points_key_learning_point",
+        "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime"

@@ -193,15 +193,9 @@ CREATE (n:{label} {{{all_props}}})
                         prop_name = col.split(":")[0]
                         value = row[col]
                         if not pd.isna(value):
-                            # Convert based on type annotation
-                            if "int" in col:
-                                record[prop_name] = int(value)
-                            elif "float" in col:
-                                record[prop_name] = float(value)
-                            elif "boolean" in col:
-                                record[prop_name] = bool(value)
-                            else:
-                                record[prop_name] = str(value)
+                            # Get proper field type from config and convert
+                            field_type = self._get_property_field_type(label, prop_name)
+                            record[prop_name] = self._convert_to_type(value, field_type)
                     else:
                         value = row[col]
                         if not pd.isna(value):
@@ -303,15 +297,13 @@ MERGE (start)-[r:{rel_type}]->(end)
                         prop_name = col.split(":")[0]
                         value = row[col]
                         if not pd.isna(value):
-                            # Convert based on type annotation
-                            if "int" in col:
-                                record[prop_name] = int(value)
-                            elif "float" in col:
-                                record[prop_name] = float(value)
-                            elif "boolean" in col:
-                                record[prop_name] = bool(value)
-                            else:
-                                record[prop_name] = str(value)
+                            # Get relationship config key from filename
+                            filename = os.path.basename(csv_file)
+                            rel_config_key = filename.replace("_relationships.csv", "")
+
+                            # Get proper field type from config and convert
+                            field_type = self._get_relationship_property_type(rel_config_key, prop_name)
+                            record[prop_name] = self._convert_to_type(value, field_type)
                     else:
                         value = row[col]
                         if not pd.isna(value):
@@ -346,6 +338,39 @@ MERGE (start)-[r:{rel_type}]->(end)
             if config_key.lower() == node_type.lower():
                 id_field_config = node_config.get("id_field", {})
                 return id_field_config.get("type", "string")
+
+        # Fallback
+        return "string"
+
+    def _get_property_field_type(self, node_type: str, property_name: str) -> str:
+        """Get the field type for a property from the schema config"""
+        nodes_config = self.schema_config.get("nodes", {})
+
+        # Look for the node type in config
+        for config_key, node_config in nodes_config.items():
+            if config_key.lower() == node_type.lower():
+                # Check ID field first
+                id_field_config = node_config.get("id_field", {})
+                if id_field_config.get("property_name") == property_name:
+                    return id_field_config.get("type", "string")
+
+                # Check properties
+                properties_config = node_config.get("properties", {})
+                if property_name in properties_config:
+                    return properties_config[property_name].get("type", "string")
+
+        # Fallback
+        return "string"
+
+    def _get_relationship_property_type(self, rel_config_key: str, property_name: str) -> str:
+        """Get the field type for a relationship property from the schema config"""
+        relationships_config = self.schema_config.get("relationships", {})
+
+        if rel_config_key in relationships_config:
+            rel_config = relationships_config[rel_config_key]
+            properties_config = rel_config.get("properties", {})
+            if property_name in properties_config:
+                return properties_config[property_name].get("type", "string")
 
         # Fallback
         return "string"
