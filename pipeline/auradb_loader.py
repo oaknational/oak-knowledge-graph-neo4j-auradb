@@ -1,4 +1,5 @@
 import os
+import logging
 import pandas as pd
 from typing import Dict, List, Tuple, Optional, Any
 from neo4j import GraphDatabase
@@ -14,6 +15,7 @@ class AuraDBLoader:
         self.database = os.getenv("NEO4J_DATABASE", "neo4j")
         self.clear_before_import = clear_before_import
         self.schema_config = schema_config or {}
+        self.logger = logging.getLogger(__name__)
 
         if not all([self.uri, self.username, self.password]):
             raise ValueError(
@@ -126,12 +128,14 @@ CREATE (start)-[r:{rel_type}{{{property_string}}}]->(end)
 
     def _generate_node_batch_queries(self, csv_file: str, batch_size: int) -> List[Tuple[str, Dict]]:
         """Generate UNWIND batch queries for high-performance node import"""
-        df = pd.read_csv(csv_file)
+        df = pd.read_csv(csv_file, low_memory=False)
 
         # Extract label from filename
         filename = os.path.basename(csv_file)
-        if "_nodes.csv" in filename:
-            label = filename.replace("_nodes.csv", "").replace("sample_", "").title()
+        if "_nodes" in filename:
+            # Handle both original and split files (e.g., lesson_nodes.csv or lesson_nodes_part1.csv)
+            base_name = filename.split("_nodes")[0]
+            label = base_name.replace("sample_", "").title()
         else:
             label = "Node"
 
@@ -210,7 +214,7 @@ CREATE (n:{label} {{{all_props}}})
 
     def _generate_relationship_batch_queries(self, csv_file: str, batch_size: int) -> List[Tuple[str, Dict]]:
         """Generate UNWIND batch queries for high-performance relationship import"""
-        df = pd.read_csv(csv_file)
+        df = pd.read_csv(csv_file, low_memory=False)
 
         # Extract relationship type from :TYPE column in CSV (not filename)
         if ":TYPE" in df.columns and not df.empty:
@@ -252,7 +256,22 @@ CREATE (n:{label} {{{all_props}}})
             else:
                 property_assignments.append(f"{col}: row.{col}")
 
-        # Create simple UNWIND query template
+        # Get relationship config to use correct property names
+        filename = os.path.basename(csv_file)
+        # Handle split files by removing _partX suffix
+        base_filename = filename
+        for i in range(1, 10):  # Handle up to part9
+            base_filename = base_filename.replace(f"_part{i}", "")
+        rel_config_key = base_filename.replace("_relationships.csv", "")
+
+        relationships_config = self.schema_config.get("relationships", {})
+        rel_config = relationships_config.get(rel_config_key, {})
+
+        # Get CSV field names from relationship config (these are CSV column names)
+        start_csv_field = rel_config.get("start_csv_field", "id")
+        end_csv_field = rel_config.get("end_csv_field", "id")
+
+        # Get the Neo4j property names for matching nodes
         start_prop = self._get_id_property_name(start_node_type)
         end_prop = self._get_id_property_name(end_node_type)
 
@@ -272,6 +291,9 @@ MATCH (start:{start_node_type} {{{start_prop}: row.start_id}})
 MATCH (end:{end_node_type} {{{end_prop}: row.end_id}})
 MERGE (start)-[r:{rel_type}]->(end)
 """.strip()
+
+        # Debug logging
+        self.logger.info(f"Generated query for {rel_config_key}: {query_template}")
 
         # Process data in batches
         queries = []
@@ -391,6 +413,47 @@ MERGE (start)-[r:{rel_type}]->(end)
         else:  # string or any other type
             return str(value)
 
+    def _split_large_csv_files(self, csv_files: List[str], max_rows: int = 10000) -> List[str]:
+        """Split large CSV files into smaller chunks."""
+        all_files = []
+
+        for csv_file in csv_files:
+            if not os.path.exists(csv_file):
+                continue
+
+            # Count rows in the file
+            df = pd.read_csv(csv_file, low_memory=False)
+            total_rows = len(df)
+
+            if total_rows <= max_rows:
+                # File is small enough, keep as is
+                all_files.append(csv_file)
+                self.logger.info(f"Keeping {os.path.basename(csv_file)}: {total_rows} rows")
+            else:
+                # Split large file into chunks
+                base_name = csv_file.replace('.csv', '')
+                self.logger.info(f"Splitting {os.path.basename(csv_file)}: {total_rows} rows into chunks of {max_rows}")
+
+                num_chunks = (total_rows + max_rows - 1) // max_rows  # Ceiling division
+
+                for i in range(num_chunks):
+                    start_idx = i * max_rows
+                    end_idx = min((i + 1) * max_rows, total_rows)
+                    chunk_df = df.iloc[start_idx:end_idx]
+
+                    chunk_file = f"{base_name}_part{i+1}.csv"
+                    chunk_df.to_csv(chunk_file, index=False)
+                    all_files.append(chunk_file)
+
+                    chunk_rows = len(chunk_df)
+                    self.logger.info(f"Created {os.path.basename(chunk_file)}: {chunk_rows} rows")
+
+                # Remove the original large file after splitting
+                os.remove(csv_file)
+                self.logger.info(f"Removed original large file: {os.path.basename(csv_file)}")
+
+        return all_files
+
     def execute_import(
         self, node_files: List[str], relationship_files: List[str]
     ) -> Dict[str, any]:
@@ -411,51 +474,80 @@ MERGE (start)-[r:{rel_type}]->(end)
                 results["errors"].append(f"Failed to clear database: {clear_message}")
                 return results
 
+        # Split large CSV files first
+        self.logger.info("Checking for large CSV files that need splitting...")
+        split_node_files = self._split_large_csv_files(node_files, max_rows=10000)
+        split_relationship_files = self._split_large_csv_files(relationship_files, max_rows=10000)
+
         # Generate batch queries (UNWIND for high performance)
         batch_size = 1000  # Optimal batch size for performance
-        queries = self.generate_batch_queries(node_files, relationship_files, batch_size)
-        results["total_queries"] = len(queries)
 
-        if not queries:
-            results["errors"].append("No valid CSV files found for import")
-            return results
+        # Import nodes first
+        self.logger.info("Starting node import...")
+        node_queries = self.generate_batch_queries(split_node_files, [], batch_size)
+        results["total_node_queries"] = len(node_queries)
 
-        # Execute queries - exact working pattern (NO database specified in session)
+        # Execute node import
         try:
             driver = GraphDatabase.driver(self.uri, auth=(self.username, self.password))
 
-            for i, (query, parameters) in enumerate(queries):
-                try:
-                    with driver.session() as session:
-                        result = session.run(query, parameters)
-                        summary = result.consume()
+            if node_queries:
+                self.logger.info(f"Importing nodes: {len(node_queries)} batches")
+                for i, (query, parameters) in enumerate(node_queries):
+                    self._execute_single_query(driver, i + 1, query, parameters, results, "nodes")
 
-                        execution_info = {
-                            "query_index": i + 1,
-                            "nodes_created": summary.counters.nodes_created,
-                            "relationships_created": summary.counters.relationships_created,
-                            "properties_set": summary.counters.properties_set,
-                            "batch_size": len(parameters.get("batch", [])),
-                            "query": (
-                                query[:100] + "..." if len(query) > 100 else query
-                            ),
-                        }
-                        results["execution_summary"].append(execution_info)
-                        results["queries_executed"] += 1
+                self.logger.info(f"✅ Node import completed: {results['nodes_created']} nodes created")
 
-                except Exception as e:
-                    error_msg = f"Batch {i + 1} failed: {str(e)}"
-                    results["errors"].append(error_msg)
+            # Import relationships separately by type
+            self.logger.info("Starting relationship import...")
+            for rel_file in split_relationship_files:
+                if os.path.exists(rel_file):
+                    rel_type = os.path.basename(rel_file).replace('_relationships.csv', '')
+                    self.logger.info(f"Importing {rel_type} relationships...")
+
+                    rel_queries = self._generate_relationship_batch_queries(rel_file, batch_size)
+                    results["total_queries"] = results.get("total_queries", 0) + len(rel_queries)
+
+                    if rel_queries:
+                        for i, (query, parameters) in enumerate(rel_queries):
+                            self._execute_single_query(driver, i + 1, query, parameters, results, f"{rel_type}")
+
+                        rel_count = sum(len(params.get("batch", [])) for _, params in rel_queries)
+                        self.logger.info(f"✅ {rel_type} relationships completed: {rel_count} relationships processed")
 
             driver.close()
-            results["success"] = (
-                results["queries_executed"] == results["total_queries"]
-            )
+            results["success"] = len(results["errors"]) == 0
 
         except Exception as e:
             results["errors"].append(f"Database connection failed: {str(e)}")
 
         return results
+
+    def _execute_single_query(self, driver, query_index: int, query: str, parameters: dict, results: dict, import_type: str):
+        """Execute a single query and update results."""
+        try:
+            with driver.session() as session:
+                result = session.run(query, parameters)
+                summary = result.consume()
+
+                execution_info = {
+                    "query_index": query_index,
+                    "type": import_type,
+                    "nodes_created": summary.counters.nodes_created,
+                    "relationships_created": summary.counters.relationships_created,
+                    "properties_set": summary.counters.properties_set,
+                    "batch_size": len(parameters.get("batch", [])),
+                    "query": (query[:100] + "..." if len(query) > 100 else query),
+                }
+                results["execution_summary"].append(execution_info)
+                results["queries_executed"] = results.get("queries_executed", 0) + 1
+                results["nodes_created"] = results.get("nodes_created", 0) + summary.counters.nodes_created
+                results["relationships_created"] = results.get("relationships_created", 0) + summary.counters.relationships_created
+
+        except Exception as e:
+            error_msg = f"{import_type} batch {query_index} failed: {str(e)}"
+            results["errors"].append(error_msg)
+            self.logger.error(error_msg)
 
     def clear_database(self) -> Tuple[bool, str]:
         """Clear all nodes and relationships - USE WITH CAUTION!"""

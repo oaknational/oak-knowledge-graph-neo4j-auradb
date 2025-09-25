@@ -1,6 +1,8 @@
 import pandas as pd
 import logging
-from typing import Dict, List, Any
+import json
+import ast
+from typing import Dict, List, Any, Optional
 from uuid import uuid4
 
 
@@ -10,8 +12,9 @@ class SchemaMapper:
     based on configuration mapping.
     """
 
-    def __init__(self):
+    def __init__(self, array_expansion: Optional[Dict[str, bool]] = None):
         self.logger = logging.getLogger(__name__)
+        self.array_expansion = array_expansion or {}
 
     def map_from_csv(
         self, csv_file: str, schema_mapping: Dict[str, Any], output_dir: str = "data"
@@ -31,7 +34,7 @@ class SchemaMapper:
 
         # Load CSV data
         try:
-            df = pd.read_csv(csv_file)
+            df = pd.read_csv(csv_file, low_memory=False)
             self.logger.info(f"Loaded {len(df)} records with {len(df.columns)} columns")
         except Exception as e:
             raise ValueError(f"Failed to load CSV file: {e}")
@@ -131,7 +134,10 @@ class SchemaMapper:
                     property_name = id_field_config.get("property_name", "id")
                     id_hasura_col = property_name
 
-                for _, row in df.iterrows():
+                # Check if this node type needs array expansion
+                expanded_rows = self._expand_arrays_for_node(df, node_label, mapping)
+
+                for _, row in expanded_rows.iterrows():
                     # Get ID from Hasura column (real and synthetic)
                     if not id_hasura_col:
                         # For synthetic nodes, use generated synthetic column name
@@ -217,8 +223,8 @@ class SchemaMapper:
             actual_rel_type = mapping.get("relationship_type", config_key)
             start_node_type = mapping.get("start_node_type")
             end_node_type = mapping.get("end_node_type")
-            start_field = mapping.get("start_node_field")
-            end_field = mapping.get("end_node_field")
+            start_field = mapping.get("start_csv_field")
+            end_field = mapping.get("end_csv_field")
             properties = mapping.get("properties", {})
 
             self.logger.info(
@@ -226,12 +232,18 @@ class SchemaMapper:
                 f"(Neo4j type: {actual_rel_type})"
             )
 
+            # Check if end field needs array expansion
+            expanded_df = df
+            if end_field in self.array_expansion and self.array_expansion[end_field]:
+                self.logger.info(f"Expanding array {end_field} for relationships")
+                expanded_df = self._expand_array_column_for_nodes(df, end_field)
+
             rel_data = []
             seen_relationships = (
                 set()
             )  # Track unique relationships to prevent duplicates
 
-            for _, row in df.iterrows():
+            for _, row in expanded_df.iterrows():
                 # Get start ID value (works for both real and synthetic columns)
                 if start_field not in row:
                     continue  # Skip if start field missing
@@ -298,6 +310,109 @@ class SchemaMapper:
                 )
 
         return csv_files
+
+    def _expand_arrays_for_node(self, df: pd.DataFrame, node_label: str, mapping: Dict[str, Any]) -> pd.DataFrame:
+        """
+        Expand arrays just-in-time for specific node types that need it.
+
+        Detects if the node uses array columns and expands them dynamically.
+        """
+        # Get the ID field configuration
+        id_field_config = mapping.get("id_field", {})
+        id_hasura_col = id_field_config.get("hasura_col", "")
+
+        # Check if the ID field is a configured array expansion column
+        if id_hasura_col in self.array_expansion and self.array_expansion[id_hasura_col]:
+            self.logger.info(f"Expanding array {id_hasura_col} for {node_label} nodes")
+            return self._expand_array_column_for_nodes(df, id_hasura_col)
+
+        # If no array expansion needed, return original dataframe
+        return df
+
+    def _is_expanded_array_column(self, column_name: str) -> bool:
+        """Check if a column name looks like an expanded array column."""
+        # Pattern: original_array_column_key_name
+        # Example: lesson_key_learning_points_key_learning_point
+        if not column_name:
+            return False
+
+        # Check if the base array column exists in our array_expansion config
+        for array_col in self.array_expansion:
+            if column_name.startswith(f"{array_col}_"):
+                return True
+        return False
+
+    def _parse_expanded_column_name(self, column_name: str) -> tuple:
+        """Parse expanded column name to get source array and key."""
+        # Example: lesson_key_learning_points_key_learning_point
+        # Returns: ("lesson_key_learning_points", "key_learning_point")
+        for array_col in self.array_expansion:
+            if column_name.startswith(f"{array_col}_"):
+                key_field = column_name[len(array_col) + 1:]  # +1 for the underscore
+                return array_col, key_field
+        return None, None
+
+    def _expand_array_column_for_nodes(self, df: pd.DataFrame, array_col: str) -> pd.DataFrame:
+        """
+        Expand a specific array column into separate rows for node creation.
+        Each array item becomes a separate row with the item value as the ID.
+        """
+        if array_col not in df.columns:
+            self.logger.warning(f"Array column {array_col} not found in dataframe")
+            return df
+
+        expanded_rows = []
+
+        for _, row in df.iterrows():
+            array_value = row[array_col]
+
+            # Skip if null or not a string
+            if pd.isna(array_value) or not isinstance(array_value, str):
+                continue
+
+            try:
+                # Parse JSON array
+                parsed_array = None
+                try:
+                    parsed_array = json.loads(array_value)
+                except json.JSONDecodeError:
+                    try:
+                        parsed_array = ast.literal_eval(array_value)
+                    except (ValueError, SyntaxError):
+                        continue
+
+                if isinstance(parsed_array, list) and len(parsed_array) > 0:
+                    # Create a row for each array item
+                    for item in parsed_array:
+                        new_row = row.to_dict()
+
+                        if isinstance(item, dict):
+                            # For objects, try common key names for the main value
+                            item_value = None
+                            for key in ['key_learning_point', 'keyword', 'tip', 'outline', 'content', 'value', 'text']:
+                                if key in item:
+                                    item_value = item[key]
+                                    break
+
+                            if item_value is None:
+                                # If no common key found, use the first value
+                                item_value = next(iter(item.values())) if item else str(item)
+                        else:
+                            # If array contains primitives, use the item directly
+                            item_value = item
+
+                        # Replace the original array column with the extracted value
+                        new_row[array_col] = str(item_value).strip() if item_value else ""
+
+                        # Skip empty values
+                        if new_row[array_col]:
+                            expanded_rows.append(new_row)
+
+            except Exception as e:
+                self.logger.warning(f"Failed to parse array in {array_col}: {e}")
+                continue
+
+        return pd.DataFrame(expanded_rows) if expanded_rows else df.iloc[:0].copy()
 
     def _clean_value(self, value: Any, data_type: str = "string") -> Any:
         """Clean and convert values for CSV export with proper type preservation."""
@@ -393,8 +508,8 @@ class SchemaMapper:
             )
 
             relationships = []
-            start_field = mapping.get("start_node_field")
-            end_field = mapping.get("end_node_field")
+            start_field = mapping.get("start_csv_field")
+            end_field = mapping.get("end_csv_field")
             properties = mapping.get("properties", {})
 
             for _, row in df.iterrows():

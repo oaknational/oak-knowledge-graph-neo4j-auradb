@@ -17,10 +17,12 @@ class DataCleaner:
         output_dir: str = "data",
         filters: Optional[dict] = None,
         schema_mapping: Optional[dict] = None,
+        array_expansion: Optional[dict] = None,
     ):
         self.output_dir = Path(output_dir)
         self.filters = filters or {}
         self.schema_mapping = schema_mapping or {}
+        self.array_expansion = array_expansion or {}
         self.logger = logging.getLogger(__name__)
 
     def clean_data(self, csv_file_path: str) -> str:
@@ -89,8 +91,8 @@ class DataCleaner:
         # Apply filters (if defined in config)
         df_cleaned = self._filter_data(df_cleaned)
 
-        # Unpack any JSON arrays into separate rows
-        df_cleaned = self._unpack_json_arrays(df_cleaned)
+        # Skip JSON array unpacking - now handled just-in-time by SchemaMapper
+        self.logger.info("Skipping JSON array unpacking - handled just-in-time by SchemaMapper")
 
         # Generate synthetic columns (if defined in schema)
         df_cleaned = self._generate_synthetic_columns(df_cleaned)
@@ -144,10 +146,16 @@ class DataCleaner:
         unpacked_any = False
 
         for col in df_unpacked.columns:
-            if self._column_contains_json_arrays(df_unpacked[col]):
-                self.logger.info(f"Unpacking JSON arrays in column: {col}")
-                df_unpacked = self._unpack_column_arrays(df_unpacked, col)
-                unpacked_any = True
+            # Only unpack arrays that are configured for expansion
+            if col in self.array_expansion and self.array_expansion[col]:
+                if self._column_contains_json_arrays(df_unpacked[col]):
+                    self.logger.info(f"Unpacking JSON arrays in column: {col}")
+                    df_unpacked = self._unpack_column_arrays(df_unpacked, col)
+                    unpacked_any = True
+                else:
+                    self.logger.info(f"Column {col} configured for expansion but contains no JSON arrays")
+            elif self._column_contains_json_arrays(df_unpacked[col]):
+                self.logger.info(f"Skipping JSON array expansion for column: {col} (not configured)")
 
         if unpacked_any:
             self.logger.info(f"After unpacking arrays: {len(df_unpacked)} rows")

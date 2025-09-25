@@ -330,26 +330,99 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 
 **Technical Achievement:** Fixed critical type mismatch bug where CSV "104.0" (string) wasn't matching node property 104.0 (float)
 
-## Current State (September 2024)
-**Completed:** Full Node and Relationship Generation Pipeline
-**Pipeline Status:** Production-ready with successful Neo4j import (27 nodes, 48 relationships)
-**Architecture:** Config-driven CSV generation with type-safe Neo4j import
+## Session 2: Full-Scale Production Deployment (Sept 25, 2025)
 
-### Current Configuration State
-- **Active Config:** `oak_curriculum_schema_v0.1.0-alpha.json` with type-specified ID fields
-- **Node Types:** Year (slug), Subject (slug), Unitvariant (unitVariantId) - all string type
-- **Relationship Types:** HAS_UNIT connecting Year→Unitvariant and Subject→Unitvariant
-- **CSV Format:** Neo4j-compliant with `:ID(NodeType)` and `:START_ID(NodeType)` headers
-- **Batch Import:** 1000-row UNWIND queries for optimal performance
+### Critical Production Issues Resolved
 
-### Environment Configuration
-- **Required Variables:** `HASURA_ENDPOINT`, `HASURA_API_KEY`, `OAK_AUTH_TYPE=oak-admin`
-- **Neo4j Variables:** `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`
-- **Database Status:** 27 nodes, 48 relationships successfully imported
+#### 1. HAS_UNITVARIANT Relationships Not Created
+**Problem**: Despite successful processing logs, no HAS_UNITVARIANT relationships appeared in Neo4j due to property name mismatches between CSV data (snake_case) and existing Neo4j nodes (camelCase).
 
-## Established Patterns
-- **Config-Driven Everything**: No hardcoded node types, property names, or data types
-- **Neo4j Naming Convention**: Initial capital + lowercase (e.g., `Unitvariant`)
-- **Type-Safe Data Conversion**: Use config `type` field for proper CSV→Neo4j conversion
-- **Batch Processing**: 1000-row UNWIND queries for performance
-- **Error Handling**: Config-based type resolution with fallbacks
+**Root Cause**: Relationship config used Neo4j property names (`unitSlug`, `programmeSlug`) but CSV contained Hasura column names (`unit_slug`, `programme_slug`).
+
+**Solution**:
+- Updated relationship config to use Hasura column names for CSV data reading
+- Enhanced AuraDBLoader to translate to Neo4j property names for node matching
+- Added missing Unit and Programme node definitions to schema config
+
+**Result**: 9,060 HAS_UNITVARIANT relationships successfully created
+
+#### 2. Massive Data Expansion Performance Issue (36 rows → 2.78M rows)
+**Problem**: Script timeout due to JSON array unpacking creating massive data expansion in DataCleaner.
+
+**Solution**: Implemented just-in-time array expansion strategy:
+- Removed hardcoded array unpacking from DataCleaner
+- Added dynamic array expansion in SchemaMapper only when needed
+- Made array expansion config-driven via `array_expansion` parameter
+
+#### 3. Large CSV File Import Timeouts (50K+ rows)
+**Problem**: Neo4j import failing on large CSV files.
+
+**Solution**: Implemented automatic file splitting:
+- Split large CSVs into 10,000-row chunks in AuraDBLoader
+- Fixed node label extraction bug for split files
+- Added DtypeWarning suppression with `low_memory=False`
+
+#### 4. Config Clarity and Consistency Issues
+**Problem**: Confusing mixed naming conventions in relationship configuration.
+
+**Solution**: Implemented unified field mapping (Option 3):
+- Renamed `start_node_field` → `start_csv_field`
+- Renamed `end_node_field` → `end_csv_field`
+- All relationship fields now consistently reference CSV column names
+- AuraDBLoader automatically maps to Neo4j property names
+
+### Production Scale Results
+- **Records Processed**: 18,238 curriculum records
+- **Nodes Created**: 2,053 Unitvariant + 12,473 Lesson nodes
+- **Relationships Created**: 15,218 HAS_LESSON + 9,060 HAS_UNITVARIANT relationships
+- **Performance**: ~1,000 records per batch via UNWIND queries
+- **File Management**: Automatic chunking prevents timeout issues
+
+### Configuration Pattern Established
+```json
+"relationships": {
+  "unit_has_unitvariant": {
+    "start_csv_field": "unit_slug",        // CSV column (Hasura)
+    "end_csv_field": "unitVariantSlug",    // CSV column (synthetic)
+    "start_node_type": "Unit",             // Neo4j label
+    "end_node_type": "Unitvariant"         // Neo4j label
+  }
+}
+```
+
+### Data Flow Optimization
+1. **Hasura Export**: Extract → Clean (no array expansion) → CSV
+2. **Schema Mapping**: Just-in-time array expansion → Node/relationship CSVs
+3. **Neo4j Import**: File splitting → Batch UNWIND queries → Database
+
+### Technical Standards Established
+- Consistent use of pandas `low_memory=False` for large CSV processing
+- UNWIND batch queries (1,000 records) for optimal Neo4j performance
+- Proper type conversion based on schema config field types
+- CSV field references always point to actual data columns
+- Synthetic field generation follows Neo4j naming conventions
+
+## Current State (Sept 25, 2025)
+**Status**: Production-ready full-scale curriculum data pipeline
+**Database**: 9,060 HAS_UNITVARIANT relationships successfully imported
+**Config**: `oak_curriculum_schema_v0.1.0-alpha-2.json` (upgraded to -alpha-3)
+**Performance**: Optimized for large dataset processing without timeouts
+
+### Active Configuration
+- **Export Phase**: `export_from_hasura: false` (skip Hasura extraction)
+- **Import Phase**: `import_to_neo4j: true` (run Neo4j import only)
+- **Array Expansion**: All disabled for performance
+- **Database Clearing**: Disabled to preserve existing data
+- **File Splitting**: Automatic chunking at 10,000 rows
+
+### Environment Status
+- **Hasura**: `HASURA_ENDPOINT`, `HASURA_API_KEY`, `OAK_AUTH_TYPE=oak-admin`
+- **Neo4j**: `NEO4J_URI`, `NEO4J_USERNAME`, `NEO4J_PASSWORD`
+- **Database**: Production-ready with thousands of nodes and relationships
+
+### Established Patterns
+- **Property Name Mapping**: CSV generation uses source names, Neo4j import translates to target names
+- **Relationship Configuration**: `start_csv_field`/`end_csv_field` reference actual CSV columns
+- **Synthetic Fields**: Added to cleaned CSV with Neo4j naming convention (camelCase)
+- **File Organization**: Auto-split files use `{original_name}_part{N}.csv` pattern
+- **Error Handling**: Fail fast with clear error messages including identifiers

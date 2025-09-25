@@ -1,0 +1,268 @@
+{
+  "_comments": {
+    "materialized_views": "These are the columns extracted from Hasura MV",
+    "filters": "Filters applied during data cleaning",
+    "filters_example": {
+      "is_legacy": false,
+      "programme_subject": ["History", "Maths"],
+      "programme_keystage": "Key Stage 2",
+      "programme_year_description": "Year 5"
+    },
+    "schema_mapping": "Mapping from CSV columns to Neo4j nodes and relationships",
+    "relationship_fields": "start_csv_field and end_csv_field reference CSV column names (Hasura columns or synthetic fields). AuraDBLoader automatically maps these to Neo4j property names for node matching."
+  },
+  
+  "hasura_endpoint": "${HASURA_ENDPOINT}",
+  "export_from_hasura": false,
+  "import_to_neo4j": true,
+
+  "array_expansion": {
+    "lesson_key_learning_points": false,
+    "lesson_keywords": false,
+    "lesson_teacher_tips": false,
+    "lesson_lesson_outline": false,
+    "lesson_tpc_media_list": false,
+    "lesson_content_guidance": false,
+    "lesson_misconceptions_and_common_mistakes": false,
+    "programme_slug_by_year": false,
+    "static_lesson_list": false,
+    "unit_national_curriculum_content": false,
+    "unit_prior_knowledge_requirements": false
+  },
+  "materialized_views": {
+    "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0": [
+      "features",
+      "is_legacy",
+      "lesson_slug: lesson_data(path: \"slug\")",
+      "lesson_title: lesson_data(path: \"title\")",
+      "lesson_id: lesson_data(path: \"lesson_id\")",
+      "lesson_key_learning_points: lesson_data(path: \"key_learning_points\")",
+      "lesson_tags: lesson_data(path: \"tags\")",
+      "lesson_cohort: lesson_data(path: \"_cohort\")",
+      "lesson_features: lesson_data(path: \"features\")",
+      "lesson_keywords: lesson_data(path: \"keywords\")",
+      "lesson_video_id: lesson_data(path: \"video_id\")",
+      "lesson_created_at: lesson_data(path: \"created_at\")",
+      "lesson_lesson_uid: lesson_data(path: \"lesson_uid\")",
+      "lesson_updated_at: lesson_data(path: \"updated_at\")",
+      "lesson_release_id: lesson_data(path: \"_release_id\")",
+      "lesson_attribution: lesson_data(path: \"attribution\")",
+      "lesson_media_clips: lesson_data(path: \"media_clips\")",
+      "lesson_quiz_id_exit: lesson_data(path: \"quiz_id_exit\")",
+      "lesson_teacher_tips: lesson_data(path: \"teacher_tips\")",
+      "lesson_lesson_outline: lesson_data(path: \"lesson_outline\")",
+      "lesson_tpc_media_list: lesson_data(path: \"tpc_media_list\")",
+      "lesson_tpc_works_list: lesson_data(path: \"tpc_works_list\")",
+      "lesson_phonics_outcome: lesson_data(path: \"phonics_outcome\")",
+      "lesson_quiz_id_starter: lesson_data(path: \"quiz_id_starter\")",
+      "lesson_content_guidance: lesson_data(path: \"content_guidance\")",
+      "lesson_copyright_content: lesson_data(path: \"copyright_content\")",
+      "lesson_deprecated_fields: lesson_data(path: \"deprecated_fields\")",
+      "lesson_supervision_level: lesson_data(path: \"supervision_level\")",
+      "lesson_asset_id_slidedeck: lesson_data(path: \"asset_id_slidedeck\")",
+      "lesson_asset_id_worksheet: lesson_data(path: \"asset_id_worksheet\")",
+      "lesson_downloadable_files: lesson_data(path: \"downloadable_files\")",
+      "lesson_lesson_release_date: lesson_data(path: \"lesson_release_date\")",
+      "lesson_pupil_lesson_outcome: lesson_data(path: \"pupil_lesson_outcome\")",
+      "lesson_asset_id_lesson_guide: lesson_data(path: \"asset_id_lesson_guide\")",
+      "lesson_sign_language_video_id: lesson_data(path: \"sign_language_video_id\")",
+      "lesson_equipment_and_resources: lesson_data(path: \"equipment_and_resources\")",
+      "lesson_content_guidance_details: lesson_data(path: \"content_guidance_details\")",
+      "lesson_asset_id_worksheet_answers: lesson_data(path: \"asset_id_worksheet_answers\")",
+      "lesson_tpc_downloadablefiles_list: lesson_data(path: \"tpc_downloadablefiles_list\")",
+      "lesson_asset_id_supplementary_asset: lesson_data(path: \"asset_id_supplementary_asset\")",
+      "lesson_misconceptions_and_common_mistakes: lesson_data(path: \"misconceptions_and_common_mistakes\")",
+      "null_unitvariant_id",
+      "order_in_unit",
+      "programme_dataset: programme_fields(path: \"dataset\")",
+      "programme_legacy: programme_fields(path: \"legacy\")",
+      "programme_optionality: programme_fields(path: \"optionality\")",
+      "programme_unit_variant_type: programme_fields(path: \"unit_variant_type\")",
+      "programme_tier: programme_fields(path: \"tier\")",
+      "programme_tier_id: programme_fields(path: \"tier_id\")",
+      "programme_tier_slug: programme_fields(path: \"tier_slug\")",
+      "programme_tier_description: programme_fields(path: \"tier_description\")",
+      "programme_tier_display_order: programme_fields(path: \"tier_display_order\")",
+      "programme_year: programme_fields(path: \"year\")",
+      "programme_year_id: programme_fields(path: \"year_id\")",
+      "programme_year_slug: programme_fields(path: \"year_slug\")",
+      "programme_year_description: programme_fields(path: \"year_description\")",
+      "programme_year_display_order: programme_fields(path: \"year_display_order\")",
+      "programme_phase: programme_fields(path: \"phase\")",
+      "programme_phase_id: programme_fields(path: \"phase_id\")",
+      "programme_phase_slug: programme_fields(path: \"phase_slug\")",
+      "programme_phase_description: programme_fields(path: \"phase_description\")",
+      "programme_phase_display_order: programme_fields(path: \"phase_display_order\")",
+      "programme_subject: programme_fields(path: \"subject\")",
+      "programme_subject_id: programme_fields(path: \"subject_id\")",
+      "programme_subject_slug: programme_fields(path: \"subject_slug\")",
+      "programme_subject_description: programme_fields(path: \"subject_description\")",
+      "programme_subject_display_order: programme_fields(path: \"subject_display_order\")",
+      "programme_subject_parent: programme_fields(path: \"subject_parent\")",
+      "programme_subject_parent_id: programme_fields(path: \"subject_parent_id\")",
+      "programme_keystage: programme_fields(path: \"keystage\")",
+      "programme_keystage_id: programme_fields(path: \"keystage_id\")",
+      "programme_keystage_slug: programme_fields(path: \"keystage_slug\")",
+      "programme_keystage_description: programme_fields(path: \"keystage_description\")",
+      "programme_keystage_display_order: programme_fields(path: \"keystage_display_order\")",
+      "programme_examboard: programme_fields(path: \"examboard\")",
+      "programme_examboard_id: programme_fields(path: \"examboard_id\")",
+      "programme_examboard_slug: programme_fields(path: \"examboard_slug\")",
+      "programme_examboard_description: programme_fields(path: \"examboard_description\")",
+      "programme_examboard_display_order: programme_fields(path: \"examboard_display_order\")",
+      "programme_slug",
+      "programme_slug_by_year",
+      "static_lesson_list",
+      "unit_tags: unit_data(path: \"tags\")",
+      "unit_cohort: unit_data(path: \"_cohort\")",
+      "unit_unit_uid: unit_data(path: \"unit_uid\")",
+      "unit_created_at: unit_data(path: \"created_at\")",
+      "unit_updated_at: unit_data(path: \"updated_at\")",
+      "unit_release_id: unit_data(path: \"_release_id\")",
+      "unit_deprecated_fields: unit_data(path: \"deprecated_fields\")",
+      "unit_subjectcategories: unit_data(path: \"subjectcategories\")",
+      "unit_cross_subject_links: unit_data(path: \"cross_subject_links\")",
+      "unit_connection_prior_unit_id: unit_data(path: \"connection_prior_unit_id\")",
+      "unit_connection_future_unit_id: unit_data(path: \"connection_future_unit_id\")",
+      "unit_national_curriculum_content: unit_data(path: \"national_curriculum_content\")",
+      "unit_prior_knowledge_requirements: unit_data(path: \"prior_knowledge_requirements\")",
+      "unit_exam_board_specification_content: unit_data(path: \"exam_board_specification_content\")",
+      "unit_connection_prior_unit_description: unit_data(path: \"connection_prior_unit_description\")",
+      "unit_connection_future_unit_description: unit_data(path: \"connection_future_unit_description\")",
+      "unit_id: unit_data(path: \"unit_id\")",
+      "unit_title: unit_data(path: \"title\")",
+      "unit_slug: unit_data(path: \"slug\")",
+      "unit_description: unit_data(path: \"description\")",
+      "unit_why_this_why_now: unit_data(path: \"why_this_why_now\")",
+      "unit_planned_number_of_lessons: unit_data(path: \"planned_number_of_lessons\")",
+      "unitvariant_id"
+    ]
+  },
+
+  "join_strategy": {
+    "type": "single_source",
+    "primary_mv": "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
+    "joins": []
+  },
+  "filters": {
+    "is_legacy": false
+  },
+
+  "test_limit": null,
+  "clear_database_before_import": false,
+
+  "schema_mapping": {
+
+    "nodes": {
+
+      "Unit": {
+        "id_field": {
+          "hasura_col": "unit_slug",
+          "type": "string",
+          "property_name": "unitSlug",
+          "synthetic_value": ""
+        }
+      },
+
+      "Programme": {
+        "id_field": {
+          "hasura_col": "programme_slug",
+          "type": "string",
+          "property_name": "programmeSlug",
+          "synthetic_value": ""
+        }
+      },
+
+      "Unitvariant": {
+        "id_field": {
+          "hasura_col": "",
+          "type": "string",
+          "property_name": "unitVariantSlug",
+          "synthetic_value": "{unitvariant_id}-{unit_slug}"
+        },
+        "properties": {
+          "unitVariantId": {
+            "hasura_col": "unitvariant_id",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
+      },
+      "Lesson": {
+        "id_field": {
+          "hasura_col": "lesson_slug",
+          "type": "string",
+          "property_name": "lessonSlug",
+          "synthetic_value": ""
+        },
+        "properties": {
+          "lessonTitle": {
+            "hasura_col": "lesson_title",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "lessonId": {
+            "hasura_col": "lesson_id",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
+      }
+    },
+
+    "relationships": {
+
+      "unit_has_unitvariant": {
+        "relationship_type": "HAS_UNITVARIANT",
+        "start_node_type": "Unit",
+        "start_csv_field": "unit_slug",
+        "end_node_type": "Unitvariant",
+        "end_csv_field": "unitVariantSlug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      
+      "programme_has_unitvariant": {
+        "relationship_type": "HAS_UNITVARIANT",
+        "start_node_type": "Programme",
+        "start_csv_field": "programme_slug",
+        "end_node_type": "Unitvariant",
+        "end_csv_field": "unitVariantSlug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+      
+      "unitvariant_has_lesson": {
+        "relationship_type": "HAS_LESSON",
+        "start_node_type": "Unitvariant",
+        "start_csv_field": "unitVariantSlug",
+        "end_node_type": "Lesson",
+        "end_csv_field": "lesson_slug",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

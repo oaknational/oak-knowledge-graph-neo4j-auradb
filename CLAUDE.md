@@ -129,9 +129,9 @@ docs/         # Testing documentation
       "config_key": {
         "relationship_type": "NEO4J_TYPE",
         "start_node_type": "NodeType",
-        "start_node_field": "hasura_column",
+        "start_csv_field": "csv_column_name",
         "end_node_type": "NodeType",
-        "end_node_field": "hasura_column",
+        "end_csv_field": "csv_column_name",
         "properties": {
           "property_name": {
             "hasura_col": "column_name",
@@ -150,6 +150,7 @@ docs/         # Testing documentation
 - `id_field`: Must specify `hasura_col`, `type`, and `property_name`
 - **Neo4j Naming**: Use initial capital + lowercase (e.g., `Unitvariant`)
 - **Type Safety**: All fields require explicit type specification
+- **Relationship Fields**: `start_csv_field`/`end_csv_field` reference CSV column names (Hasura or synthetic)
 
 ### Batch Job Interface
 - **Entry Point:** `main.py` in root with direct component usage
@@ -164,12 +165,14 @@ docs/         # Testing documentation
 4. Manual validation: Neo4j knowledge graph import successful
 
 ### Performance Standards
-- **Database Operations:** Efficient bulk import operations
-- **Scalability:** Production-ready for thousands of curriculum records
-- **Memory:** Efficient CSV processing for large datasets
+- **Database Operations:** UNWIND batch queries (1,000 records/batch) for optimal Neo4j performance
+- **File Splitting:** Automatic chunking at 10,000 rows to prevent timeout issues
+- **Memory:** Use `pandas.read_csv(low_memory=False)` for large CSV processing
+- **Scalability:** Production-tested with 18,238+ curriculum records
+- **Error Prevention:** Suppress DtypeWarnings with proper memory settings
 
 ## Reference Files
 - **Functional requirements:** FUNCTIONAL.md
 - **Architecture details:** ARCHITECTURE.md
-- **Active configuration:** `config/oak_curriculum_schema_v0.1.0-alpha.json`
+- **Active configuration:** `config/oak_curriculum_schema_v0.1.0-alpha.json` (main.py references -alpha.json, but -alpha-2.json contains latest updates)
 - **Version history:** `config/config_versions.md`

@@ -17,26 +17,27 @@
 ## System Architecture
 
 ### Design Pattern
-- **Simple Batch Processing:** Linear execution flow with clear separation of concerns
+- **Direct Component Usage:** Simple main.py entry point with direct component instantiation
+- **Config-Driven Pipeline:** Boolean flags control execution phases
 
 ### Core Components
 
 ```
-BatchProcessor (Main orchestrator)
+main.py (Entry point - direct component usage)
 ├── ConfigManager (JSON configuration handling)
 ├── HasuraExtractor (GraphQL API client)
-├── DataCleaner (Optional preprocessing area)
-├── SchemaMapper (CSV to knowledge graph mapping)
-└── Neo4jLoader (Direct knowledge graph import)
+├── DataCleaner (Preprocessing with optional array expansion)
+├── SchemaMapper (CSV to Neo4j mapping with just-in-time processing)
+└── AuraDBLoader (Direct Neo4j AuraDB import with file splitting)
 ```
 
 ### Component Responsibilities
 
-#### BatchProcessor
-- Orchestrates entire data flow in simple linear sequence
-- Manages component execution order
-- Handles error reporting and logging
-- Provides progress feedback to console
+#### main.py
+- Direct component instantiation and execution
+- Two-phase pipeline: Hasura Export → Neo4j Import
+- Config-driven execution with boolean flags
+- Comprehensive error handling and logging
 
 #### ConfigManager
 - Loads JSON schema mappings
@@ -58,15 +59,16 @@ BatchProcessor (Main orchestrator)
 
 #### SchemaMapper
 - Maps CSV fields to Neo4j knowledge graph schema
-- Applies transformations per JSON configuration
-- Handles node and relationship mappings
-- Prepares data for knowledge graph import
+- Just-in-time array expansion when needed
+- Generates separate node and relationship CSV files
+- Handles synthetic field generation (e.g., unitVariantSlug)
 
-#### Neo4jLoader
-- Imports mapped data directly into Neo4j knowledge graph
-- Handles node and relationship creation
-- Provides import statistics and validation
-- Production-ready for large datasets
+#### AuraDBLoader
+- Imports CSV files directly into Neo4j AuraDB
+- Automatic file splitting (10,000+ row chunks)
+- UNWIND batch queries (1,000 records/batch)
+- Type-safe conversion using schema config
+- Property name translation (CSV → Neo4j)
 
 ## Data Flow Architecture
 

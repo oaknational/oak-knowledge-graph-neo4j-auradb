@@ -135,7 +135,8 @@ def main():
             cleaner = DataCleaner(
                 output_dir=str(output_dir),
                 filters=config.get("filters"),
-                schema_mapping=config.get("schema_mapping")
+                schema_mapping=config.get("schema_mapping"),
+                array_expansion=config.get("array_expansion", {})
             )
             cleaned_csv_file = cleaner.clean_data(csv_file)
 
@@ -171,7 +172,7 @@ def main():
                 logger.info(f"Using existing CSV file: {cleaned_csv_file}")
 
             # Map to Neo4j schema
-            mapper = SchemaMapper()
+            mapper = SchemaMapper(array_expansion=config.get("array_expansion", {}))
             csv_files = mapper.map_from_csv(
                 csv_file=cleaned_csv_file,
                 schema_mapping=config["schema_mapping"],

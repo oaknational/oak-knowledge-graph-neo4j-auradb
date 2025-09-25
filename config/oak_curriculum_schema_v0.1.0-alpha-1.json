@@ -464,66 +464,6 @@
             "synthetic_value": ""
           }
         }
-      },
-      "Unitvariant": {
-        "id_field": {
-          "hasura_col": "",
-          "type": "string",
-          "property_name": "unitVariantSlug",
-          "synthetic_value": "{unitvariant_id}-{unit_slug}"
-        },
-        "properties": {
-          "unitVariantId": {
-            "hasura_col": "unitvariant_id",
-            "type": "int",
-            "synthetic_value": ""
-          },
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime",
-            "synthetic_value": ""
-          }
-        }
-      },
-      "Lesson": {
-        "id_field": {
-          "hasura_col": "lesson_slug",
-          "type": "string",
-          "property_name": "lessonSlug",
-          "synthetic_value": ""
-        },
-        "properties": {
-          "lessonTitle": {
-            "hasura_col": "lesson_title",
-            "type": "string",
-            "synthetic_value": ""
-          },
-          "lessonId": {
-            "hasura_col": "lesson_id",
-            "type": "int",
-            "synthetic_value": ""
-          },
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime",
-            "synthetic_value": ""
-          }
-        }
-      },
-      "Keylearningpoint": {
-        "id_field": {
-          "hasura_col": "lesson_key_learning_points",
-          "type": "string",
-          "property_name": "keyLearningPoint",
-          "synthetic_value": ""
-        },
-        "properties": {
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime",
-            "synthetic_value": ""
-          }
-        }
       }
     },
 
@@ -610,62 +550,6 @@
             "hasura_col": "order_in_unit",
             "type": "int"
           },
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime"
-          }
-        }
-      },
-
-      "unit_has_unitvariant": {
-        "relationship_type": "HAS_UNITVARIANT",
-        "start_node_type": "Unit",
-        "start_csv_field": "unit_slug",
-        "end_node_type": "Unitvariant",
-        "end_csv_field": "unitVariantSlug",
-        "properties": {
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime"
-          }
-        }
-      },
-      
-      "programme_has_unitvariant": {
-        "relationship_type": "HAS_UNITVARIANT",
-        "start_node_type": "Programme",
-        "start_csv_field": "programme_slug",
-        "end_node_type": "Unitvariant",
-        "end_csv_field": "unitVariantSlug",
-        "properties": {
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime"
-          }
-        }
-      },
-      
-      "unitvariant_has_lesson": {
-        "relationship_type": "HAS_LESSON",
-        "start_node_type": "Unitvariant",
-        "start_csv_field": "unitVariantSlug",
-        "end_node_type": "Lesson",
-        "end_csv_field": "lesson_slug",
-        "properties": {
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime"
-          }
-        }
-      },
-
-      "lesson_has_keylearningpoint": {
-        "relationship_type": "HAS_KLP",
-        "start_node_type": "Lesson",
-        "start_csv_field": "lesson_slug",
-        "end_node_type": "Keylearningpoint",
-        "end_csv_field": "lesson_key_learning_points",
-        "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime"
