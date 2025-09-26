@@ -120,7 +120,7 @@ docs/         # Testing documentation
         "properties": {
           "property_name": {
             "hasura_col": "column_name",
-            "type": "string|int|float|boolean"
+            "type": "string|int|float|boolean|list"
           }
         }
       }
@@ -149,8 +149,10 @@ docs/         # Testing documentation
 - `materialized_views`: Dict format with explicit field lists
 - `id_field`: Must specify `hasura_col`, `type`, and `property_name`
 - **Neo4j Naming**: Use initial capital + lowercase (e.g., `Unitvariant`)
-- **Type Safety**: All fields require explicit type specification
+- **Type Safety**: All fields require explicit type specification including `list` for arrays
+- **Collection Types**: `list` for native Neo4j arrays, `string` for JSON objects
 - **Relationship Fields**: `start_csv_field`/`end_csv_field` reference CSV column names (Hasura or synthetic)
+- **No Array Expansion**: Collections stored as native properties, not separate nodes
 
 ### Batch Job Interface
 - **Entry Point:** `main.py` in root with direct component usage

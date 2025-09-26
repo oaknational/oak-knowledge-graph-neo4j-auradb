@@ -136,7 +136,7 @@ def main():
                 output_dir=str(output_dir),
                 filters=config.get("filters"),
                 schema_mapping=config.get("schema_mapping"),
-                array_expansion=config.get("array_expansion", {})
+                array_expansion=config.get("array_expansion", {}),
             )
             cleaned_csv_file = cleaner.clean_data(csv_file)
 
@@ -172,7 +172,7 @@ def main():
                 logger.info(f"Using existing CSV file: {cleaned_csv_file}")
 
             # Map to Neo4j schema
-            mapper = SchemaMapper(array_expansion=config.get("array_expansion", {}))
+            mapper = SchemaMapper()
             csv_files = mapper.map_from_csv(
                 csv_file=cleaned_csv_file,
                 schema_mapping=config["schema_mapping"],
@@ -184,7 +184,9 @@ def main():
 
             clear_database = config.get("clear_database_before_import", False)
             schema_mapping = config.get("schema_mapping", {})
-            loader = AuraDBLoader(clear_before_import=clear_database, schema_config=schema_mapping)
+            loader = AuraDBLoader(
+                clear_before_import=clear_database, schema_config=schema_mapping
+            )
 
             node_files = csv_files.get("node_files", [])
             rel_files = csv_files.get("relationship_files", [])

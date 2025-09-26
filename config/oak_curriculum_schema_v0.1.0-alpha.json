@@ -16,19 +16,6 @@
   "export_from_hasura": false,
   "import_to_neo4j": true,
 
-  "array_expansion": {
-    "lesson_key_learning_points": false,
-    "lesson_keywords": false,
-    "lesson_teacher_tips": false,
-    "lesson_lesson_outline": false,
-    "lesson_tpc_media_list": false,
-    "lesson_content_guidance": false,
-    "lesson_misconceptions_and_common_mistakes": false,
-    "programme_slug_by_year": false,
-    "static_lesson_list": false,
-    "unit_national_curriculum_content": false,
-    "unit_prior_knowledge_requirements": false
-  },
   "materialized_views": {
     "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0": [
       "features",
@@ -503,21 +490,46 @@
             "type": "int",
             "synthetic_value": ""
           },
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime",
+          "pupilLessonOutcome": {
+            "hasura_col": "lesson_pupil_lesson_outcome",
+            "type": "string",
             "synthetic_value": ""
-          }
-        }
-      },
-      "Keylearningpoint": {
-        "id_field": {
-          "hasura_col": "lesson_key_learning_points",
-          "type": "string",
-          "property_name": "keyLearningPoint",
-          "synthetic_value": ""
-        },
-        "properties": {
+          },
+          "keyLearningPoints": {
+            "hasura_col": "lesson_key_learning_points",
+            "type": "list",
+            "synthetic_value": ""
+          },
+          "keywords": {
+            "hasura_col": "lesson_keywords",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "contentGuidance": {
+            "hasura_col": "lesson_content_guidance",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "misconceptionsMistakes": {
+            "hasura_col": "lesson_misconceptions_and_common_mistakes",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "supervisionLevel": {
+            "hasura_col": "lesson_supervision_level",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "equipmentResources": {
+            "hasura_col": "lesson_equipment_and_resources",
+            "type": "string",
+            "synthetic_value": ""
+          },
+          "teacherTips": {
+            "hasura_col": "lesson_teacher_tips",
+            "type": "list",
+            "synthetic_value": ""
+          },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime",
@@ -651,20 +663,6 @@
         "start_csv_field": "unitVariantSlug",
         "end_node_type": "Lesson",
         "end_csv_field": "lesson_slug",
-        "properties": {
-          "lastUpdated": {
-            "hasura_col": "current_timestamp",
-            "type": "datetime"
-          }
-        }
-      },
-
-      "lesson_has_keylearningpoint": {
-        "relationship_type": "HAS_KLP",
-        "start_node_type": "Lesson",
-        "start_csv_field": "lesson_slug",
-        "end_node_type": "Keylearningpoint",
-        "end_csv_field": "lesson_key_learning_points",
         "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",

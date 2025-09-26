@@ -92,7 +92,9 @@ class DataCleaner:
         df_cleaned = self._filter_data(df_cleaned)
 
         # Skip JSON array unpacking - now handled just-in-time by SchemaMapper
-        self.logger.info("Skipping JSON array unpacking - handled just-in-time by SchemaMapper")
+        self.logger.info(
+            "Skipping JSON array unpacking - handled just-in-time by SchemaMapper"
+        )
 
         # Generate synthetic columns (if defined in schema)
         df_cleaned = self._generate_synthetic_columns(df_cleaned)
@@ -153,9 +155,13 @@ class DataCleaner:
                     df_unpacked = self._unpack_column_arrays(df_unpacked, col)
                     unpacked_any = True
                 else:
-                    self.logger.info(f"Column {col} configured for expansion but contains no JSON arrays")
+                    self.logger.info(
+                        f"Column {col} configured for expansion but contains no JSON arrays"
+                    )
             elif self._column_contains_json_arrays(df_unpacked[col]):
-                self.logger.info(f"Skipping JSON array expansion for column: {col} (not configured)")
+                self.logger.info(
+                    f"Skipping JSON array expansion for column: {col} (not configured)"
+                )
 
         if unpacked_any:
             self.logger.info(f"After unpacking arrays: {len(df_unpacked)} rows")
@@ -172,7 +178,7 @@ class DataCleaner:
 
         for value in non_null_values:
             try:
-                if isinstance(value, str) and value.strip().startswith('['):
+                if isinstance(value, str) and value.strip().startswith("["):
                     # Try JSON first (double quotes)
                     try:
                         parsed = json.loads(value)

@@ -72,7 +72,9 @@ class HasuraExtractor(ExtractionStrategy):
         except Exception as e:
             raise RuntimeError(f"Unexpected error: {str(e)}")
 
-    def _build_graphql_query(self, view_name: str, fields: List[str], limit: int = None) -> str:
+    def _build_graphql_query(
+        self, view_name: str, fields: List[str], limit: int = None
+    ) -> str:
         words = view_name.split("_")
         query_name = "Get" + "".join(word.capitalize() for word in words)
 

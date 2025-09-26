@@ -426,3 +426,75 @@ Oak Knowledge Graph Data Pipeline - Extract curriculum data from Hasura material
 - **Synthetic Fields**: Added to cleaned CSV with Neo4j naming convention (camelCase)
 - **File Organization**: Auto-split files use `{original_name}_part{N}.csv` pattern
 - **Error Handling**: Fail fast with clear error messages including identifiers
+
+## Session 3: Array Expansion Removal & Native Collection Support (Sept 26, 2025)
+
+### Array Expansion Issue & Solution
+**Problem**: When `lesson_key_learning_points: true`, array expansion created 46,074+ key learning point nodes and 50,946+ relationships, causing massive performance issues and timeouts in Neo4j import.
+
+**Root Cause**: Complex array expansion logic was designed for separate node creation but Neo4j supports native list properties.
+
+**Solution**: Complete architectural simplification:
+1. **Removed Array Expansion**: Deleted entire `array_expansion` section from config
+2. **Native Lists**: Store `keyLearningPoints` as native Neo4j list property on Lesson nodes
+3. **JSON String Maps**: Store complex objects as JSON strings (Neo4j doesn't support native maps)
+
+### Code Simplification Completed
+**SchemaMapper Changes**:
+- Removed all array expansion methods (`_expand_arrays_for_node`, `_expand_array_column_for_nodes`, etc.)
+- Removed `array_expansion` parameter from constructor
+- Enhanced `_clean_value()` to handle `list` and `string` types for collections
+- Simplified node generation - direct DataFrame iteration (no array expansion)
+
+**AuraDBLoader Changes**:
+- Removed complex file splitting logic (largest file now ~12K rows vs 46K+)
+- Removed special batch sizing for key learning points
+- Simplified timeout and batching configuration
+- Added `list` type support to `_convert_to_type()` method
+- Enhanced JSON parsing for native Neo4j lists
+
+**Config Changes**:
+- Removed entire `array_expansion` section
+- Added `keyLearningPoints` as `type: "list"` property on Lesson nodes
+- Removed `Keylearningpoint` node definition
+- Removed `lesson_has_keylearningpoint` relationship
+
+### Native Collection Types Implemented
+**List Type**: For arrays like `keyLearningPoints`
+```json
+"keyLearningPoints": {
+  "hasura_col": "lesson_key_learning_points",
+  "type": "list"
+}
+```
+
+**Map Type Attempted & Revised**:
+- Initial implementation for `keywords` with `type: "map"`
+- **Discovery**: Neo4j error "Property values can only be of primitive types or arrays thereof"
+- **Solution**: Changed to `type: "string"` - stores JSON objects as strings
+- **Removed**: All map-specific code from both SchemaMapper and AuraDBLoader
+
+### Data Flow Optimization Results
+**Before**:
+- 46,074 Keylearningpoint nodes + 50,946 relationships
+- Complex file splitting and special batch handling
+- Array expansion timeouts
+
+**After**:
+- 12,473 Lesson nodes with native `keyLearningPoints` lists
+- No separate key learning point entities
+- Standard batch processing (1000 records)
+- Significantly faster imports
+
+### Performance Improvements
+- **Node Count Reduction**: From ~62K to ~16K total nodes
+- **Relationship Simplification**: Removed 50K+ key learning point relationships
+- **Import Speed**: Eliminated complex array processing bottlenecks
+- **Batch Processing**: Removed special handling, standard 1000-record batches
+- **Memory Usage**: Reduced by eliminating massive array expansions
+
+### Configuration State
+**Active Schema**: `oak_curriculum_schema_v0.1.0-alpha.json`
+**Array Expansion**: Completely removed
+**Collection Support**: Native lists for arrays, JSON strings for objects
+**Import Performance**: Optimized for standard dataset sizes

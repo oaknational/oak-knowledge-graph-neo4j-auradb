@@ -32,12 +32,12 @@ def test_config_manager():
             "hasura_endpoint": "https://api.example.com/v1/graphql",
             "materialized_views": {
                 "curriculum_mv": ["id", "curriculum_title", "subject_name"],
-                "lessons_mv": ["lesson_id", "curriculum_id", "lesson_title"]
+                "lessons_mv": ["lesson_id", "curriculum_id", "lesson_title"],
             },
             "join_strategy": {
                 "type": "single_source",
                 "primary_mv": "curriculum_mv",
-                "joins": []
+                "joins": [],
             },
             "schema_mapping": {
                 "nodes": {
@@ -45,22 +45,22 @@ def test_config_manager():
                         "id_field": "id",
                         "properties": {
                             "title": "curriculum_title",
-                            "subject": "subject_name"
-                        }
+                            "subject": "subject_name",
+                        },
                     }
                 },
                 "relationships": {
                     "HAS_LESSON": {
                         "start_node_field": "curriculum_id",
                         "end_node_field": "lesson_id",
-                        "properties": {}
+                        "properties": {},
                     }
-                }
-            }
+                },
+            },
         }
 
         # Save config
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             json.dump(test_config, f, indent=2)
 
         # Test loading
@@ -87,7 +87,7 @@ def test_data_cleaner():
 3,,Empty title,active"""
 
         csv_path = Path(temp_dir) / "test_data.csv"
-        with open(csv_path, 'w') as f:
+        with open(csv_path, "w") as f:
             f.write(csv_content)
 
         # Test cleaning
@@ -112,7 +112,7 @@ def test_schema_mapper():
 2,Science Fun,201,What is Science,Science"""
 
         csv_path = Path(temp_dir) / "test_mapping.csv"
-        with open(csv_path, 'w') as f:
+        with open(csv_path, "w") as f:
             f.write(csv_content)
 
         # Test schema mapping
@@ -122,23 +122,21 @@ def test_schema_mapper():
                     "id_field": "curriculum_id",
                     "properties": {
                         "title": "curriculum_title",
-                        "subject": "subject_name"
-                    }
+                        "subject": "subject_name",
+                    },
                 },
                 "Lesson": {
                     "id_field": "lesson_id",
-                    "properties": {
-                        "title": "lesson_title"
-                    }
-                }
+                    "properties": {"title": "lesson_title"},
+                },
             },
             "relationships": {
                 "HAS_LESSON": {
                     "start_node_field": "curriculum_id",
                     "end_node_field": "lesson_id",
-                    "properties": {}
+                    "properties": {},
                 }
-            }
+            },
         }
 
         mapper = SchemaMapper()
@@ -168,7 +166,7 @@ def test_invalid_config():
             # Missing materialized_views and schema_mapping
         }
 
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             json.dump(invalid_config, f, indent=2)
 
         # Test validation failure
@@ -200,6 +198,7 @@ def main():
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

@@ -43,12 +43,13 @@ class TestIntegrationPipeline:
     @pytest.fixture
     def integration_test_data(self, test_data_path):
         """Load integration test data from fixtures."""
-        with open(test_data_path, 'r') as f:
+        with open(test_data_path, "r") as f:
             return json.load(f)
 
     @pytest.fixture
     def mock_hasura_responses(self, integration_test_data):
         """Mock Hasura API responses with integration test data."""
+
         def mock_query_mv(endpoint, view_name, limit=None):
             if view_name in integration_test_data:
                 data = integration_test_data[view_name]["data"][view_name]
@@ -56,6 +57,7 @@ class TestIntegrationPipeline:
                     data = data[:limit]
                 return data
             return []
+
         return mock_query_mv
 
     def test_pipeline_configuration_loading(self, test_config_path):
@@ -70,31 +72,26 @@ class TestIntegrationPipeline:
         assert len(config.node_mappings) == 3
         assert len(config.relationship_mappings) == 2
 
-    @patch.dict('os.environ', {
-        'HASURA_API_KEY': 'test_key_123',
-        'OAK_AUTH_TYPE': 'oak-admin'
-    })
-    @patch('pipeline.extractors.HasuraExtractor._query_materialized_view')
+    @patch.dict(
+        "os.environ", {"HASURA_API_KEY": "test_key_123", "OAK_AUTH_TYPE": "oak-admin"}
+    )
+    @patch("pipeline.extractors.HasuraExtractor._query_materialized_view")
     def test_full_pipeline_execution(
-        self, mock_extract, test_config_path, temp_output_dir,
-        mock_hasura_responses
+        self, mock_extract, test_config_path, temp_output_dir, mock_hasura_responses
     ):
         """Test complete pipeline execution with mock data."""
         # Setup mock responses
         mock_extract.side_effect = mock_hasura_responses
 
         # Initialize pipeline
-        pipeline = Pipeline(
-            output_dir=temp_output_dir
-        )
+        pipeline = Pipeline(output_dir=temp_output_dir)
 
         # Mock progress callback
         progress_callback = Mock()
 
         # Execute full pipeline
         result = pipeline.run_full_pipeline(
-            config_file=test_config_path,
-            use_auradb=False
+            config_file=test_config_path, use_auradb=False
         )
 
         # Verify pipeline execution success
@@ -126,12 +123,13 @@ class TestIntegrationPipeline:
         self, test_config_path, temp_output_dir, mock_hasura_responses
     ):
         """Test that generated CSV files meet Neo4j import requirements."""
-        with patch('pipeline.extractors.HasuraExtractor._query_materialized_view') as mock_extract:
+        with patch(
+            "pipeline.extractors.HasuraExtractor._query_materialized_view"
+        ) as mock_extract:
             mock_extract.side_effect = mock_hasura_responses
 
             pipeline = Pipeline(
-                config_path=test_config_path,
-                output_dir=temp_output_dir
+                config_path=test_config_path, output_dir=temp_output_dir
             )
 
             # Execute pipeline
@@ -167,8 +165,9 @@ class TestIntegrationPipeline:
         valid_types = [":ID", ":LABEL", ":string", ":int", ":float", ":boolean"]
         for col in type_columns:
             col_type = col.split(":")[-1] if ":" in col else ""
-            assert any(valid_type.endswith(col_type) for valid_type in valid_types), \
-                f"Invalid type annotation {col} in {csv_path}"
+            assert any(
+                valid_type.endswith(col_type) for valid_type in valid_types
+            ), f"Invalid type annotation {col} in {csv_path}"
 
         # Check for non-empty data
         assert len(df) > 0, f"No data in node file {csv_path}"
@@ -189,22 +188,20 @@ class TestIntegrationPipeline:
         assert len(df) > 0, f"No data in relationship file {csv_path}"
 
         # Check no null values in required columns
-        assert not df[":START_ID"].isnull().any(), f"Null :START_ID values in {csv_path}"
+        assert (
+            not df[":START_ID"].isnull().any()
+        ), f"Null :START_ID values in {csv_path}"
         assert not df[":END_ID"].isnull().any(), f"Null :END_ID values in {csv_path}"
         assert not df[":TYPE"].isnull().any(), f"Null :TYPE values in {csv_path}"
 
-    @patch('pipeline.extractors.HasuraExtractor.extract_from_view')
+    @patch("pipeline.extractors.HasuraExtractor.extract_from_view")
     def test_neo4j_import_command_generation(
-        self, mock_extract, test_config_path, temp_output_dir,
-        mock_hasura_responses
+        self, mock_extract, test_config_path, temp_output_dir, mock_hasura_responses
     ):
         """Test Neo4j import command generation."""
         mock_extract.side_effect = mock_hasura_responses
 
-        pipeline = Pipeline(
-            config_path=test_config_path,
-            output_dir=temp_output_dir
-        )
+        pipeline = Pipeline(config_path=test_config_path, output_dir=temp_output_dir)
 
         # Execute pipeline
         result = pipeline.run_full_pipeline(use_auradb=False)
@@ -220,7 +217,9 @@ class TestIntegrationPipeline:
         self, test_config_path, temp_output_dir, integration_test_data
     ):
         """Test data validation during pipeline execution."""
-        with patch('pipeline.extractors.HasuraExtractor._query_materialized_view') as mock_extract:
+        with patch(
+            "pipeline.extractors.HasuraExtractor._query_materialized_view"
+        ) as mock_extract:
             # Test with valid data
             def valid_mock_extract(endpoint, view_name, limit=None):
                 if view_name in integration_test_data:
@@ -233,8 +232,7 @@ class TestIntegrationPipeline:
             mock_extract.side_effect = valid_mock_extract
 
             pipeline = Pipeline(
-                config_path=test_config_path,
-                output_dir=temp_output_dir
+                config_path=test_config_path, output_dir=temp_output_dir
             )
 
             result = pipeline.run_full_pipeline(use_auradb=False)
@@ -242,13 +240,14 @@ class TestIntegrationPipeline:
 
     def test_error_handling_integration(self, test_config_path, temp_output_dir):
         """Test pipeline error handling with invalid data."""
-        with patch('pipeline.extractors.HasuraExtractor._query_materialized_view') as mock_extract:
+        with patch(
+            "pipeline.extractors.HasuraExtractor._query_materialized_view"
+        ) as mock_extract:
             # Mock API error
             mock_extract.side_effect = Exception("Mock Hasura API error")
 
             pipeline = Pipeline(
-                config_path=test_config_path,
-                output_dir=temp_output_dir
+                config_path=test_config_path, output_dir=temp_output_dir
             )
 
             result = pipeline.run_full_pipeline(use_auradb=False)
@@ -257,12 +256,14 @@ class TestIntegrationPipeline:
 
     @pytest.mark.skipif(
         not os.getenv("NEO4J_URI") or not os.getenv("NEO4J_USER"),
-        reason="Neo4j credentials not configured"
+        reason="Neo4j credentials not configured",
     )
     def test_actual_neo4j_import(self, test_config_path, temp_output_dir):
         """Test actual Neo4j database import (requires real credentials)."""
         # This test only runs when Neo4j credentials are available
-        with patch('pipeline.extractors.HasuraExtractor._query_materialized_view') as mock_extract:
+        with patch(
+            "pipeline.extractors.HasuraExtractor._query_materialized_view"
+        ) as mock_extract:
             # Use small dataset for actual database testing
             test_data = [
                 {
@@ -270,17 +271,18 @@ class TestIntegrationPipeline:
                     "unit_title": "Test Unit",
                     "unit_description": "Test Description",
                     "subject_id": "test_subject_001",
-                    "subject_title": "Test Subject"
+                    "subject_title": "Test Subject",
                 }
             ]
+
             # Mock method takes endpoint, view_name, limit parameters
             def mock_query_mv(endpoint, view_name, limit=None):
                 return test_data[:limit] if limit else test_data
+
             mock_extract.side_effect = mock_query_mv
 
             pipeline = Pipeline(
-                config_path=test_config_path,
-                output_dir=temp_output_dir
+                config_path=test_config_path, output_dir=temp_output_dir
             )
 
             # Execute with AuraDB loader
@@ -297,15 +299,17 @@ class TestIntegrationScenarios:
     def test_empty_dataset_handling(self):
         """Test pipeline behavior with empty datasets."""
         with tempfile.TemporaryDirectory() as temp_dir:
-            with patch('pipeline.extractors.HasuraExtractor._query_materialized_view') as mock_extract:
+            with patch(
+                "pipeline.extractors.HasuraExtractor._query_materialized_view"
+            ) as mock_extract:
                 # Mock method takes endpoint, view_name, limit parameters
                 def mock_query_mv(endpoint, view_name, limit=None):
                     return []
+
                 mock_extract.side_effect = mock_query_mv
 
                 pipeline = Pipeline(
-                    config_path="integration_test_config.json",
-                    output_dir=temp_dir
+                    config_path="integration_test_config.json", output_dir=temp_dir
                 )
 
                 result = pipeline.run_full_pipeline(use_auradb=False)
@@ -317,25 +321,29 @@ class TestIntegrationScenarios:
         # Generate synthetic test data
         large_dataset = []
         for i in range(100):  # Simulate 100 records
-            large_dataset.append({
-                "unit_id": f"sim_unit_{i:03d}",
-                "unit_title": f"Simulated Unit {i}",
-                "unit_description": f"Description for unit {i}",
-                "subject_id": f"sim_subject_{i % 10}",  # 10 subjects
-                "subject_title": f"Subject {i % 10}"
-            })
+            large_dataset.append(
+                {
+                    "unit_id": f"sim_unit_{i:03d}",
+                    "unit_title": f"Simulated Unit {i}",
+                    "unit_description": f"Description for unit {i}",
+                    "subject_id": f"sim_subject_{i % 10}",  # 10 subjects
+                    "subject_title": f"Subject {i % 10}",
+                }
+            )
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            with patch('pipeline.extractors.HasuraExtractor._query_materialized_view') as mock_extract:
+            with patch(
+                "pipeline.extractors.HasuraExtractor._query_materialized_view"
+            ) as mock_extract:
                 # Mock method takes endpoint, view_name, limit parameters
                 def mock_query_mv(endpoint, view_name, limit=None):
                     data = large_dataset[:limit] if limit else large_dataset
                     return data
+
                 mock_extract.side_effect = mock_query_mv
 
                 pipeline = Pipeline(
-                    config_path="integration_test_config.json",
-                    output_dir=temp_dir
+                    config_path="integration_test_config.json", output_dir=temp_dir
                 )
 
                 result = pipeline.run_full_pipeline(use_auradb=False)

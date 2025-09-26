@@ -33,13 +33,9 @@ class TransformerFactory:
         cls._relationship_strategies[name] = strategy_class
 
     @classmethod
-    def create_node_transformer(
-        cls, strategy_name: str
-    ) -> TransformationStrategy:
+    def create_node_transformer(cls, strategy_name: str) -> TransformationStrategy:
         if strategy_name not in cls._node_strategies:
-            raise ValueError(
-                f"Unknown node transformation strategy: {strategy_name}"
-            )
+            raise ValueError(f"Unknown node transformation strategy: {strategy_name}")
         return cls._node_strategies[strategy_name]()
 
     @classmethod
@@ -48,8 +44,7 @@ class TransformerFactory:
     ) -> RelationshipTransformationStrategy:
         if strategy_name not in cls._relationship_strategies:
             raise ValueError(
-                f"Unknown relationship transformation strategy: "
-                f"{strategy_name}"
+                f"Unknown relationship transformation strategy: " f"{strategy_name}"
             )
         return cls._relationship_strategies[strategy_name]()
 
@@ -75,9 +70,7 @@ class CSVTransformer:
         self, node_data: pd.DataFrame, node_mapping: NodeMapping
     ) -> str:
         if node_data.empty:
-            raise ValueError(
-                f"No data to transform for node {node_mapping.label}"
-            )
+            raise ValueError(f"No data to transform for node {node_mapping.label}")
 
         # Validate required columns
         required_columns = [":ID", ":LABEL"]
@@ -117,8 +110,7 @@ class CSVTransformer:
     ) -> str:
         if relationship_data.empty:
             raise ValueError(
-                f"No data to transform for relationship "
-                f"{relationship_mapping.type}"
+                f"No data to transform for relationship " f"{relationship_mapping.type}"
             )
 
         # Validate required columns
@@ -166,9 +158,7 @@ class CSVTransformer:
                 typed_headers.append(":LABEL")
             else:
                 # Find the field mapping to get the target type
-                field_type = self._get_field_type_from_mapping(
-                    column, node_mapping
-                )
+                field_type = self._get_field_type_from_mapping(column, node_mapping)
                 typed_headers.append(f"{column}:{field_type}")
 
         return typed_headers

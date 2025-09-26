@@ -41,14 +41,16 @@ def clear_database_interactive() -> bool:
         print(f"   Node labels: {stats['node_labels']}")
         print(f"   Relationship types: {stats['relationship_types']}")
 
-        if stats['nodes'] == 0:
+        if stats["nodes"] == 0:
             print("\n✅ Database is already empty!")
             return True
 
         # Confirm deletion
-        confirm = input(f"\n⚠️  This will DELETE ALL {stats['nodes']} nodes and {stats['relationships']} relationships!\n   Continue? (type 'DELETE' to confirm): ")
+        confirm = input(
+            f"\n⚠️  This will DELETE ALL {stats['nodes']} nodes and {stats['relationships']} relationships!\n   Continue? (type 'DELETE' to confirm): "
+        )
 
-        if confirm != 'DELETE':
+        if confirm != "DELETE":
             print("❌ Deletion cancelled")
             return False
 

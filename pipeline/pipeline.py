@@ -538,8 +538,8 @@ class Pipeline:
                 )
 
         # Add extracted data to results for debugging
-        if hasattr(self, 'extracted_data') and self.extracted_data:
-            results['extracted_data'] = self.extracted_data
+        if hasattr(self, "extracted_data") and self.extracted_data:
+            results["extracted_data"] = self.extracted_data
 
         return results
 

@@ -26,6 +26,7 @@ from utils.database_utils import DatabaseConnection
 @dataclass
 class ValidationResult:
     """Result of Neo4j import validation."""
+
     success: bool
     nodes_imported: int
     relationships_imported: int
@@ -51,7 +52,7 @@ class Neo4jImportValidator:
             self.db_connection = DatabaseConnection(
                 uri=self.neo4j_uri,
                 username=self.neo4j_user,
-                password=self.neo4j_password
+                password=self.neo4j_password,
             )
             self.db_connection.connect()
             self.logger.info("✅ Connected to Neo4j database")
@@ -61,13 +62,11 @@ class Neo4jImportValidator:
             return False
 
     def validate_csv_import(
-        self,
-        csv_directory: Path,
-        config_path: str,
-        clear_before_import: bool = True
+        self, csv_directory: Path, config_path: str, clear_before_import: bool = True
     ) -> ValidationResult:
         """Validate complete CSV import process."""
         import time
+
         start_time = time.time()
 
         validation_errors = []
@@ -82,7 +81,7 @@ class Neo4jImportValidator:
                     relationships_imported=0,
                     validation_errors=["Failed to connect to Neo4j database"],
                     warnings=[],
-                    execution_time_seconds=time.time() - start_time
+                    execution_time_seconds=time.time() - start_time,
                 )
 
             # Load configuration
@@ -93,7 +92,7 @@ class Neo4jImportValidator:
             auradb_loader = AuraDBLoader(
                 uri=self.neo4j_uri,
                 username=self.neo4j_user,
-                password=self.neo4j_password
+                password=self.neo4j_password,
             )
 
             # Clear database if requested
@@ -111,7 +110,7 @@ class Neo4jImportValidator:
                     relationships_imported=0,
                     validation_errors=validation_errors,
                     warnings=warnings,
-                    execution_time_seconds=time.time() - start_time
+                    execution_time_seconds=time.time() - start_time,
                 )
 
             self.logger.info(f"📁 Found {len(csv_files)} CSV files for import")
@@ -126,7 +125,7 @@ class Neo4jImportValidator:
                     relationships_imported=0,
                     validation_errors=validation_errors,
                     warnings=warnings,
-                    execution_time_seconds=time.time() - start_time
+                    execution_time_seconds=time.time() - start_time,
                 )
 
             # Import data using AuraDB loader
@@ -141,7 +140,7 @@ class Neo4jImportValidator:
                     relationships_imported=0,
                     validation_errors=validation_errors,
                     warnings=warnings,
-                    execution_time_seconds=time.time() - start_time
+                    execution_time_seconds=time.time() - start_time,
                 )
 
             # Validate imported data
@@ -163,7 +162,7 @@ class Neo4jImportValidator:
                 relationships_imported=relationship_count,
                 validation_errors=validation_errors,
                 warnings=warnings,
-                execution_time_seconds=time.time() - start_time
+                execution_time_seconds=time.time() - start_time,
             )
 
         except Exception as e:
@@ -175,7 +174,7 @@ class Neo4jImportValidator:
                 relationships_imported=0,
                 validation_errors=validation_errors,
                 warnings=warnings,
-                execution_time_seconds=time.time() - start_time
+                execution_time_seconds=time.time() - start_time,
             )
 
         finally:
@@ -216,10 +215,7 @@ class Neo4jImportValidator:
             except Exception as e:
                 errors.append(f"Error reading {csv_file.name}: {str(e)}")
 
-        return {
-            "success": len(errors) == 0,
-            "errors": errors
-        }
+        return {"success": len(errors) == 0, "errors": errors}
 
     def _clear_database(self):
         """Clear all nodes and relationships from database."""
@@ -229,7 +225,7 @@ class Neo4jImportValidator:
         # Delete all relationships and nodes
         queries = [
             "MATCH (n)-[r]-() DELETE r",  # Delete relationships first
-            "MATCH (n) DELETE n"          # Then delete nodes
+            "MATCH (n) DELETE n",  # Then delete nodes
         ]
 
         for query in queries:
@@ -249,7 +245,9 @@ class Neo4jImportValidator:
 
             for label in expected_labels:
                 if label not in actual_labels:
-                    warnings.append(f"Expected node label '{label}' not found in database")
+                    warnings.append(
+                        f"Expected node label '{label}' not found in database"
+                    )
 
             # Check relationship type consistency
             expected_types = [mapping.type for mapping in config.relationship_mappings]
@@ -257,7 +255,9 @@ class Neo4jImportValidator:
 
             for rel_type in expected_types:
                 if rel_type not in actual_types:
-                    warnings.append(f"Expected relationship type '{rel_type}' not found in database")
+                    warnings.append(
+                        f"Expected relationship type '{rel_type}' not found in database"
+                    )
 
             # Check for orphaned nodes (nodes without relationships)
             orphaned_count = self._count_orphaned_nodes()
@@ -267,15 +267,14 @@ class Neo4jImportValidator:
             # Check for invalid relationships (pointing to non-existent nodes)
             invalid_rels = self._count_invalid_relationships()
             if invalid_rels > 0:
-                errors.append(f"{invalid_rels} relationships point to non-existent nodes")
+                errors.append(
+                    f"{invalid_rels} relationships point to non-existent nodes"
+                )
 
         except Exception as e:
             errors.append(f"Data validation error: {str(e)}")
 
-        return {
-            "errors": errors,
-            "warnings": warnings
-        }
+        return {"errors": errors, "warnings": warnings}
 
     def _get_node_labels(self) -> List[str]:
         """Get all node labels in the database."""
@@ -285,7 +284,9 @@ class Neo4jImportValidator:
 
     def _get_relationship_types(self) -> List[str]:
         """Get all relationship types in the database."""
-        query = "CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType"
+        query = (
+            "CALL db.relationshipTypes() YIELD relationshipType RETURN relationshipType"
+        )
         result = self.db_connection.execute_query(query)
         return [record["relationshipType"] for record in result]
 
@@ -334,7 +335,9 @@ def main():
     # Get CSV directory and config path from command line arguments
     if len(sys.argv) < 3:
         print("Usage: python validate_neo4j_import.py <csv_directory> <config_path>")
-        print("Example: python validate_neo4j_import.py data/ config/integration_test_config.json")
+        print(
+            "Example: python validate_neo4j_import.py data/ config/integration_test_config.json"
+        )
         sys.exit(1)
 
     csv_directory = Path(sys.argv[1])
@@ -356,9 +359,7 @@ def main():
     print("=" * 50)
 
     result = validator.validate_csv_import(
-        csv_directory=csv_directory,
-        config_path=config_path,
-        clear_before_import=True
+        csv_directory=csv_directory, config_path=config_path, clear_before_import=True
     )
 
     # Print results

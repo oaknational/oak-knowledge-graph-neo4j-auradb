@@ -13,7 +13,7 @@ from typing import Any, Dict
 
 def safe_dict_parse(dict_str: str) -> Dict[str, Any]:
     """Safely parse Python dictionary string, return empty dict if parsing fails"""
-    if pd.isna(dict_str) or dict_str == '' or dict_str == '{}':
+    if pd.isna(dict_str) or dict_str == "" or dict_str == "{}":
         return {}
 
     try:
@@ -82,16 +82,20 @@ def create_expanded_csv(input_file: str, json_column: str, output_dir: str):
     print(f"  Saving expanded CSV to {output_file}...")
     expanded_df.to_csv(output_file, index=False)
 
-    print(f"  ✅ {json_column}: {len(expanded_df.columns)} columns, {len(expanded_df)} rows")
+    print(
+        f"  ✅ {json_column}: {len(expanded_df.columns)} columns, {len(expanded_df)} rows"
+    )
     return output_file
 
 
 def main():
     input_file = "/Users/markhodierne/projects/oak/oak-knowledge-graph-neo4j-auradb/data/consolidated_data.csv"
-    output_dir = "/Users/markhodierne/projects/oak/oak-knowledge-graph-neo4j-auradb/data"
+    output_dir = (
+        "/Users/markhodierne/projects/oak/oak-knowledge-graph-neo4j-auradb/data"
+    )
 
     # JSON columns to expand
-    json_columns = ['lesson_data', 'programme_fields', 'unit_data']
+    json_columns = ["lesson_data", "programme_fields", "unit_data"]
 
     print("Creating separate CSV files for each JSON column expansion...")
     print("=" * 60)

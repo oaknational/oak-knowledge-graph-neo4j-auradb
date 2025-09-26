@@ -20,7 +20,9 @@ class HasuraExtractor:
         self.logger = logging.getLogger(__name__)
 
         if not self.endpoint:
-            raise ValueError("HASURA_ENDPOINT environment variable or endpoint parameter required")
+            raise ValueError(
+                "HASURA_ENDPOINT environment variable or endpoint parameter required"
+            )
         if not self.api_key:
             raise ValueError("HASURA_API_KEY environment variable required")
         if not self.auth_type:
@@ -33,7 +35,7 @@ class HasuraExtractor:
         self,
         materialized_views: Dict[str, List[str]],
         join_strategy: Dict[str, Any],
-        test_limit: Optional[int] = None
+        test_limit: Optional[int] = None,
     ) -> str:
         """
         Extract data from specified materialized views and join according to strategy.
@@ -46,12 +48,16 @@ class HasuraExtractor:
         Returns:
             Path to the consolidated CSV file
         """
-        strategy_type = join_strategy.get('type')
+        strategy_type = join_strategy.get("type")
 
-        if strategy_type == 'single_source':
-            return self._extract_single_source(materialized_views, join_strategy, test_limit)
-        elif strategy_type == 'multi_source_join':
-            return self._extract_with_joins(materialized_views, join_strategy, test_limit)
+        if strategy_type == "single_source":
+            return self._extract_single_source(
+                materialized_views, join_strategy, test_limit
+            )
+        elif strategy_type == "multi_source_join":
+            return self._extract_with_joins(
+                materialized_views, join_strategy, test_limit
+            )
         else:
             raise ValueError(f"Unsupported join strategy type: {strategy_type}")
 
@@ -59,13 +65,15 @@ class HasuraExtractor:
         self,
         materialized_views: Dict[str, List[str]],
         join_strategy: Dict[str, Any],
-        test_limit: Optional[int] = None
+        test_limit: Optional[int] = None,
     ) -> str:
         """Extract data from a single primary materialized view."""
-        primary_mv = join_strategy.get('primary_mv')
+        primary_mv = join_strategy.get("primary_mv")
 
         if primary_mv not in materialized_views:
-            raise ValueError(f"Primary MV '{primary_mv}' not found in materialized_views")
+            raise ValueError(
+                f"Primary MV '{primary_mv}' not found in materialized_views"
+            )
 
         self.logger.info(f"Extracting data from single source: {primary_mv}")
 
@@ -76,7 +84,7 @@ class HasuraExtractor:
             raise ValueError(f"No data retrieved from {primary_mv}")
 
         consolidated_df = pd.DataFrame(data)
-        consolidated_df['_source_view'] = primary_mv
+        consolidated_df["_source_view"] = primary_mv
 
         # Save to CSV
         csv_filename = "consolidated_data.csv"
@@ -93,37 +101,45 @@ class HasuraExtractor:
         self,
         materialized_views: Dict[str, List[str]],
         join_strategy: Dict[str, Any],
-        test_limit: Optional[int] = None
+        test_limit: Optional[int] = None,
     ) -> str:
         """Extract data from multiple materialized views and join them."""
-        primary_mv = join_strategy.get('primary_mv')
-        joins = join_strategy.get('joins', [])
+        primary_mv = join_strategy.get("primary_mv")
+        joins = join_strategy.get("joins", [])
 
         if primary_mv not in materialized_views:
-            raise ValueError(f"Primary MV '{primary_mv}' not found in materialized_views")
+            raise ValueError(
+                f"Primary MV '{primary_mv}' not found in materialized_views"
+            )
 
-        self.logger.info(f"Extracting data with {len(joins)} joins, primary MV: {primary_mv}")
+        self.logger.info(
+            f"Extracting data with {len(joins)} joins, primary MV: {primary_mv}"
+        )
 
         # Extract primary dataset
         primary_fields = materialized_views[primary_mv]
-        primary_data = self._query_materialized_view(primary_mv, primary_fields, test_limit)
+        primary_data = self._query_materialized_view(
+            primary_mv, primary_fields, test_limit
+        )
 
         if not primary_data:
             raise ValueError(f"No data retrieved from primary MV {primary_mv}")
 
         result_df = pd.DataFrame(primary_data)
-        result_df['_primary_source'] = primary_mv
+        result_df["_primary_source"] = primary_mv
         self.logger.info(f"Primary dataset: {len(result_df)} records from {primary_mv}")
 
         # Perform joins
         for i, join_config in enumerate(joins):
-            join_mv = join_config['mv']
-            join_type = join_config.get('join_type', 'inner')
-            on_clause = join_config['on']
-            left_key = on_clause['left_key']
-            right_key = on_clause['right_key']
+            join_mv = join_config["mv"]
+            join_type = join_config.get("join_type", "inner")
+            on_clause = join_config["on"]
+            left_key = on_clause["left_key"]
+            right_key = on_clause["right_key"]
 
-            self.logger.info(f"Join {i+1}: {join_type} join with {join_mv} on {left_key}={right_key}")
+            self.logger.info(
+                f"Join {i+1}: {join_type} join with {join_mv} on {left_key}={right_key}"
+            )
 
             # Extract join dataset
             join_fields = materialized_views[join_mv]
@@ -134,16 +150,21 @@ class HasuraExtractor:
                 continue
 
             join_df = pd.DataFrame(join_data)
-            join_df[f'_source_{join_mv}'] = join_mv
+            join_df[f"_source_{join_mv}"] = join_mv
 
             # Perform pandas merge
-            how_mapping = {'inner': 'inner', 'left': 'left', 'right': 'right', 'outer': 'outer'}
+            how_mapping = {
+                "inner": "inner",
+                "left": "left",
+                "right": "right",
+                "outer": "outer",
+            }
             result_df = result_df.merge(
                 join_df,
                 left_on=left_key,
                 right_on=right_key,
                 how=how_mapping[join_type],
-                suffixes=('', f'_from_{join_mv}')
+                suffixes=("", f"_from_{join_mv}"),
             )
 
             self.logger.info(f"After join {i+1}: {len(result_df)} records")
@@ -161,7 +182,9 @@ class HasuraExtractor:
 
     def _introspect_schema_fields(self, view_name: str) -> List[str]:
         """Use GraphQL introspection to discover available fields for the materialized view."""
-        self.logger.info(f"Discovering fields for {view_name} via schema introspection...")
+        self.logger.info(
+            f"Discovering fields for {view_name} via schema introspection..."
+        )
 
         # Introspection query to get the specific field and its return type structure
         introspection_query = """
@@ -217,7 +240,12 @@ class HasuraExtractor:
                 return []
 
             # Find our specific view field in the query type
-            query_fields = result.get("data", {}).get("__schema", {}).get("queryType", {}).get("fields", [])
+            query_fields = (
+                result.get("data", {})
+                .get("__schema", {})
+                .get("queryType", {})
+                .get("fields", [])
+            )
 
             for field in query_fields:
                 if field["name"] == view_name:
@@ -241,12 +269,17 @@ class HasuraExtractor:
                             type_name = field_type_info.get("name", "")
 
                             # Include scalar types and simple types
-                            if (field_kind in ["SCALAR", "ENUM"] or
-                                type_name in ["String", "Int", "Float", "Boolean", "ID"] or
-                                field_kind == "NON_NULL"):  # NON_NULL can wrap scalars
+                            if (
+                                field_kind in ["SCALAR", "ENUM"]
+                                or type_name
+                                in ["String", "Int", "Float", "Boolean", "ID"]
+                                or field_kind == "NON_NULL"
+                            ):  # NON_NULL can wrap scalars
                                 available_fields.append(view_field["name"])
 
-                        self.logger.info(f"Discovered {len(available_fields)} fields for {view_name}")
+                        self.logger.info(
+                            f"Discovered {len(available_fields)} fields for {view_name}"
+                        )
                         return available_fields
 
             self.logger.warning(f"Could not find {view_name} in schema")
@@ -256,7 +289,9 @@ class HasuraExtractor:
             self.logger.warning(f"Schema introspection failed: {e}")
             return []
 
-    def _query_materialized_view(self, view_name: str, fields: List[str], limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def _query_materialized_view(
+        self, view_name: str, fields: List[str], limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """Query a single materialized view with specified fields."""
         self.logger.info(f"Querying {view_name} with {len(fields)} configured fields")
 
@@ -293,9 +328,13 @@ class HasuraExtractor:
         except Exception as e:
             raise RuntimeError(f"Query failed: {e}")
 
-    def _query_with_field_discovery(self, view_name: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def _query_with_field_discovery(
+        self, view_name: str, limit: Optional[int] = None
+    ) -> List[Dict[str, Any]]:
         """Query MV with field discovery by examining the first record to get all fields."""
-        self.logger.info(f"Discovering fields by querying {view_name} with minimal fields first")
+        self.logger.info(
+            f"Discovering fields by querying {view_name} with minimal fields first"
+        )
 
         # Make a test query with just a few records to discover the structure
         test_limit = min(limit or 1000, 5)  # Use small number for discovery
@@ -314,7 +353,9 @@ class HasuraExtractor:
         }
 
         try:
-            response = requests.post(self.endpoint, json={"query": test_query}, headers=headers)
+            response = requests.post(
+                self.endpoint, json={"query": test_query}, headers=headers
+            )
             response.raise_for_status()
             response_data = response.json()
 
@@ -324,12 +365,18 @@ class HasuraExtractor:
                 if data and len(data) > 0:
                     # Get all fields from the first record
                     available_fields = list(data[0].keys())
-                    self.logger.info(f"Discovered {len(available_fields)} fields from query response")
+                    self.logger.info(
+                        f"Discovered {len(available_fields)} fields from query response"
+                    )
 
                     # Now make the full query with the discovered fields and proper limit
                     if limit and limit > test_limit:
-                        full_query = self._build_graphql_query(view_name, available_fields, limit)
-                        full_response = requests.post(self.endpoint, json={"query": full_query}, headers=headers)
+                        full_query = self._build_graphql_query(
+                            view_name, available_fields, limit
+                        )
+                        full_response = requests.post(
+                            self.endpoint, json={"query": full_query}, headers=headers
+                        )
                         full_response.raise_for_status()
                         full_data = full_response.json()
                         return full_data["data"].get(view_name, [])
@@ -342,7 +389,9 @@ class HasuraExtractor:
 
         return []
 
-    def _build_graphql_query(self, view_name: str, fields: List[str], limit: Optional[int] = None) -> str:
+    def _build_graphql_query(
+        self, view_name: str, fields: List[str], limit: Optional[int] = None
+    ) -> str:
         """Build GraphQL query for a materialized view with specified fields."""
         limit_clause = f"(limit: {limit})" if limit else ""
 

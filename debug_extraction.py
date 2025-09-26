@@ -9,6 +9,7 @@ from pipeline.config_manager import ConfigManager
 
 load_dotenv()
 
+
 def main():
     # Initialize pipeline
     config_manager = ConfigManager()
@@ -36,6 +37,7 @@ def main():
         print(f"\n📋 All unique fields found ({len(all_fields)} total):")
         for field in sorted(all_fields):
             print(f"  - {field}")
+
 
 if __name__ == "__main__":
     main()
