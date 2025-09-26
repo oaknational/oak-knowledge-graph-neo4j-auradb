@@ -150,9 +150,11 @@ docs/         # Testing documentation
 - `id_field`: Must specify `hasura_col`, `type`, and `property_name`
 - **Neo4j Naming**: Use initial capital + lowercase (e.g., `Unitvariant`)
 - **Type Safety**: All fields require explicit type specification including `list` for arrays
-- **Collection Types**: `list` for native Neo4j arrays, `string` for JSON objects
+- **Collection Types**: `list` for native Neo4j arrays with JSON string elements for complex objects
 - **Relationship Fields**: `start_csv_field`/`end_csv_field` reference CSV column names (Hasura or synthetic)
 - **No Array Expansion**: Collections stored as native properties, not separate nodes
+- **Empty Value Handling**: Empty strings, arrays, and objects automatically omitted from Neo4j
+- **Unicode Support**: Escape sequences automatically decoded to proper characters
 
 ### Batch Job Interface
 - **Entry Point:** `main.py` in root with direct component usage
