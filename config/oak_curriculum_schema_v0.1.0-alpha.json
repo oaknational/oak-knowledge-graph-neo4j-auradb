@@ -457,7 +457,7 @@
           "hasura_col": "",
           "type": "string",
           "property_name": "unitVariantSlug",
-          "synthetic_value": "{unitvariant_id}-{unit_slug}"
+          "synthetic_value": "{unit_slug}-{unitvariant_id}"
         },
         "properties": {
           "unitVariantId": {
@@ -502,17 +502,32 @@
           },
           "keywords": {
             "hasura_col": "lesson_keywords",
-            "type": "string",
+            "type": "list",
+            "synthetic_value": ""
+          },
+          "lessonOutline": {
+            "hasura_col": "lesson_lesson_outline",
+            "type": "list",
+            "synthetic_value": ""
+          },
+          "quizStarterId": {
+            "hasura_col": "lesson_quiz_id_starter",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "quizExitId": {
+            "hasura_col": "lesson_quiz_id_exit",
+            "type": "int",
             "synthetic_value": ""
           },
           "contentGuidance": {
             "hasura_col": "lesson_content_guidance",
-            "type": "string",
+            "type": "list",
             "synthetic_value": ""
           },
           "misconceptionsMistakes": {
             "hasura_col": "lesson_misconceptions_and_common_mistakes",
-            "type": "string",
+            "type": "list",
             "synthetic_value": ""
           },
           "supervisionLevel": {
@@ -522,7 +537,7 @@
           },
           "equipmentResources": {
             "hasura_col": "lesson_equipment_and_resources",
-            "type": "string",
+            "type": "list",
             "synthetic_value": ""
           },
           "teacherTips": {

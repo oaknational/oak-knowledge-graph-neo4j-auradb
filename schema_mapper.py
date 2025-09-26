@@ -184,23 +184,25 @@ class SchemaMapper:
                                 and synthetic_prop_value != ""
                             ):
                                 # Use synthetic value
-                                node_row[f"{prop_name}:{prop_type}"] = (
-                                    self._clean_value(synthetic_prop_value, prop_type)
-                                )
+                                cleaned_synthetic = self._clean_value(synthetic_prop_value, prop_type)
+                                if cleaned_synthetic is not None:
+                                    node_row[f"{prop_name}:{prop_type}"] = cleaned_synthetic
                             elif hasura_col and hasura_col in row:
                                 # Use Hasura column value
                                 cleaned_value = self._clean_value(
                                     row[hasura_col], prop_type
                                 )
-                                # Convert lists to JSON string for CSV storage
-                                if prop_type == "list" and isinstance(
-                                    cleaned_value, list
-                                ):
-                                    node_row[f"{prop_name}:{prop_type}"] = json.dumps(
-                                        cleaned_value
-                                    )
-                                else:
-                                    node_row[f"{prop_name}:{prop_type}"] = cleaned_value
+                                # Skip properties with None values (empty values)
+                                if cleaned_value is not None:
+                                    # Convert lists to JSON string for CSV storage
+                                    if prop_type == "list" and isinstance(
+                                        cleaned_value, list
+                                    ):
+                                        node_row[f"{prop_name}:{prop_type}"] = json.dumps(
+                                            cleaned_value
+                                        )
+                                    else:
+                                        node_row[f"{prop_name}:{prop_type}"] = cleaned_value
                             elif hasura_col == "current_timestamp":
                                 # Special handling for current_timestamp
                                 from datetime import datetime
@@ -316,21 +318,52 @@ class SchemaMapper:
 
         return csv_files
 
+    def _is_empty_value(self, value: Any) -> bool:
+        """Check if a value is effectively empty and should be treated as null."""
+        if isinstance(value, str):
+            # Check for empty string, empty list string, or empty object string
+            stripped = value.strip()
+            if stripped == "" or stripped == "[]" or stripped == "{}":
+                return True
+            # Try to parse as JSON to check for empty structures
+            try:
+                import json
+                parsed = json.loads(stripped)
+                if isinstance(parsed, (list, dict)) and not parsed:
+                    return True
+            except (json.JSONDecodeError, ValueError):
+                pass
+        elif isinstance(value, (list, dict)) and not value:
+            # Direct empty list or dict
+            return True
+        return False
+
+    def _decode_unicode(self, text: str) -> str:
+        """Decode Unicode escape sequences to proper characters."""
+        try:
+            import re
+            # Find and replace Unicode escape sequences
+            def replace_unicode(match):
+                hex_code = match.group(1)
+                return chr(int(hex_code, 16))
+
+            # Handle different levels of escaping - try most common patterns
+            # Pattern for \uXXXX (single backslash)
+            text = re.sub(r'\\u([0-9a-fA-F]{4})', replace_unicode, text)
+            # Pattern for \\uXXXX (double backslash)
+            text = re.sub(r'\\\\u([0-9a-fA-F]{4})', replace_unicode, text)
+
+            return text
+        except (ValueError, OverflowError):
+            # If decoding fails, return original string
+            return text
+
     def _clean_value(self, value: Any, data_type: str = "string") -> Any:
         """Clean and convert values for CSV export with proper type preservation."""
-        if pd.isna(value):
-            if data_type == "string":
-                return ""
-            elif data_type == "int":
-                return 0
-            elif data_type == "float":
-                return 0.0
-            elif data_type == "boolean":
-                return False
-            elif data_type == "list":
-                return []
-            else:
-                return ""
+        # Check for empty values that should be treated as null
+        if pd.isna(value) or self._is_empty_value(value):
+            # Return None for empty values so they get skipped during CSV generation
+            return None
 
         try:
             if data_type == "int":
@@ -350,29 +383,13 @@ class SchemaMapper:
                     try:
                         parsed_array = json.loads(value)
                         if isinstance(parsed_array, list):
-                            # Extract values from dict structures like [{'key_learning_point': 'text'}, ...]
                             result = []
                             for item in parsed_array:
                                 if isinstance(item, dict):
-                                    # Look for common value keys
-                                    for key in [
-                                        "key_learning_point",
-                                        "keyword",
-                                        "tip",
-                                        "outline",
-                                        "content",
-                                        "value",
-                                        "text",
-                                    ]:
-                                        if key in item:
-                                            result.append(str(item[key]).strip())
-                                            break
-                                    else:
-                                        # If no common key found, use the first value
-                                        if item:
-                                            result.append(
-                                                str(next(iter(item.values()))).strip()
-                                            )
+                                    # Always preserve dictionary objects as JSON strings
+                                    json_str = json.dumps(item)
+                                    # Decode Unicode escapes in the JSON string
+                                    result.append(self._decode_unicode(json_str))
                                 else:
                                     # If array contains primitives, use directly
                                     result.append(str(item).strip())
@@ -387,26 +404,10 @@ class SchemaMapper:
                                 result = []
                                 for item in parsed_array:
                                     if isinstance(item, dict):
-                                        # Look for common value keys
-                                        for key in [
-                                            "key_learning_point",
-                                            "keyword",
-                                            "tip",
-                                            "outline",
-                                            "content",
-                                            "value",
-                                            "text",
-                                        ]:
-                                            if key in item:
-                                                result.append(str(item[key]).strip())
-                                                break
-                                        else:
-                                            if item:
-                                                result.append(
-                                                    str(
-                                                        next(iter(item.values()))
-                                                    ).strip()
-                                                )
+                                        # Always preserve dictionary objects as JSON strings
+                                        json_str = json.dumps(item)
+                                        # Decode Unicode escapes in the JSON string
+                                        result.append(self._decode_unicode(json_str))
                                     else:
                                         result.append(str(item).strip())
                                 return [r for r in result if r]
@@ -424,12 +425,12 @@ class SchemaMapper:
                 # Handle case where we have dict/list data but want string type (like JSON)
                 if isinstance(value, (dict, list)):
                     return json.dumps(value)
-                return str(value).strip()
+                return self._decode_unicode(str(value).strip())
         except (ValueError, TypeError):
             self.logger.warning(
                 f"Failed to convert value {value} to {data_type}, using string conversion"
             )
-            return str(value).strip()
+            return self._decode_unicode(str(value).strip())
 
     def _map_nodes(
         self, df: pd.DataFrame, node_mappings: Dict[str, Any]
