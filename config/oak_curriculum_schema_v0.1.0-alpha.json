@@ -13,7 +13,7 @@
   },
   
   "hasura_endpoint": "${HASURA_ENDPOINT}",
-  "export_from_hasura": false,
+  "export_from_hasura": true,
   "import_to_neo4j": true,
 
   "materialized_views": {
@@ -123,13 +123,27 @@
       "unit_why_this_why_now: unit_data(path: \"why_this_why_now\")",
       "unit_planned_number_of_lessons: unit_data(path: \"planned_number_of_lessons\")",
       "unitvariant_id"
+    ],
+    "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0": [
+      "unit_slug",
+      "unit_order: supplementary_data(path: \"unit_order\")",
+      "threads"
     ]
   },
 
   "join_strategy": {
-    "type": "single_source",
+    "type": "multi_source_join",
     "primary_mv": "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
-    "joins": []
+    "joins": [
+      {
+        "mv": "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0",
+        "join_type": "left",
+        "on": {
+          "left_key": "unit_slug",
+          "right_key": "unit_slug"
+        }
+      }
+    ]
   },
   "filters": {
     "is_legacy": false
@@ -561,6 +575,30 @@
             "synthetic_value": ""
           }
         }
+      },
+      "Thread": {
+        "id_field": {
+          "hasura_col": "threads",
+          "type": "string",
+          "expand_list": true,
+          "property_name": "thread_slug",
+          "synthetic_value": ""
+        },
+        "properties": {
+          "thread_id": {
+            "hasura_col": "thread_id",
+            "type": "int"
+          },
+          "thread_title": {
+            "hasura_col": "thread_title",
+            "type": "string"
+          },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime",
+            "synthetic_value": ""
+          }
+        }
       }
     },
 
@@ -672,7 +710,7 @@
         "end_csv_field": "unit_slug",
         "properties": {
           "unitOrder": {
-            "hasura_col": "order_in_unit",
+            "hasura_col": "unit_order",
             "type": "int"
           },
           "lastUpdated": {
@@ -704,7 +742,7 @@
         "end_csv_field": "unitvariant_id",
         "properties": {
           "unitVariantOrder": {
-            "hasura_col": "order_in_unit",
+            "hasura_col": "unit_order",
             "type": "int"
           },
           "isOptional": {
@@ -729,6 +767,20 @@
             "hasura_col": "order_in_unit",
             "type": "int"
           },
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "unit_has_thread": {
+        "relationship_type": "HAS_THREAD",
+        "start_node_type": "Unit",
+        "start_csv_field": "unit_slug",
+        "end_node_type": "Thread",
+        "end_csv_field": "threads",
+        "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime"

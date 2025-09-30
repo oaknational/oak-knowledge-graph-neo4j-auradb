@@ -60,8 +60,10 @@ main.py (Entry point - direct component usage)
 #### SchemaMapper
 - Maps CSV fields to Neo4j knowledge graph schema
 - Preserves JSON objects as string elements in native Neo4j lists
+- Optional array expansion: creates separate nodes from array fields with `expand_list: true`
 - Generates separate node and relationship CSV files
 - Handles synthetic field generation (e.g., unitVariantSlug)
+- Automatic relationship expansion when referencing expandable arrays
 - Processes empty value detection and Unicode escape sequence decoding
 
 #### AuraDBLoader

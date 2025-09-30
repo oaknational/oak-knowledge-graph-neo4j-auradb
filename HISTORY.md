@@ -548,3 +548,104 @@ Keywords (after): ["{'keyword': 'nostalgia', 'description': '...'}", "..."] (lis
 **Configuration**: Enhanced list processing and empty value handling
 **Data Format**: Native Neo4j lists with JSON string elements for complex objects
 **Quality**: Production-ready with enhanced data presentation
+
+## Session 5: Array Expansion & Multi-Source Joins (Sept 30, 2025)
+
+### Array Expansion Feature Implementation
+
+**Problem**: Need to create separate Thread nodes from `threads` array field, with each thread item becoming an individual node and relationship.
+
+**Solution**: Implemented selective array expansion with `expand_list` parameter.
+
+**Implementation Details**:
+
+**SchemaMapper Enhancements**:
+- Added `_expand_array_to_nodes()` method for node expansion from arrays
+- Added `_expand_array_relationships()` method for relationship expansion
+- Added `_extract_ids_from_array()` helper method
+- Automatic detection of expandable arrays in both node and relationship generation
+- Uses `property_name` as default `id_key` for extracting IDs from array objects
+
+**Configuration Pattern**:
+```json
+"Thread": {
+  "id_field": {
+    "hasura_col": "threads",
+    "type": "string",
+    "expand_list": true,
+    "property_name": "thread_slug"
+  },
+  "properties": {
+    "thread_id": {"hasura_col": "thread_id", "type": "int"},
+    "thread_title": {"hasura_col": "thread_title", "type": "string"}
+  }
+}
+```
+
+**Key Features**:
+- Selective expansion: only nodes with `expand_list: true` are expanded
+- Automatic relationship expansion when referencing expanded arrays
+- Deduplication across all expanded items
+- Extracts properties from each object in the array
+
+### Multi-Source Join Configuration
+
+**Enhancement**: Added support for joining second materialized view to extract additional fields.
+
+**Configuration Changes**:
+- Changed join strategy from `single_source` to `multi_source_join`
+- Added join on `unit_slug` field between primary and secondary MVs
+- Extracted `unit_order` from `supplementary_data` JSON field
+- Extracted `threads` array for Thread node expansion
+
+**Join Strategy**:
+```json
+"join_strategy": {
+  "type": "multi_source_join",
+  "primary_mv": "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
+  "joins": [{
+    "mv": "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0",
+    "join_type": "left",
+    "on": {"left_key": "unit_slug", "right_key": "unit_slug"}
+  }]
+}
+```
+
+**Field Extraction**:
+```json
+"published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0": [
+  "unit_slug",
+  "unit_order: supplementary_data(path: \"unit_order\")",
+  "threads"
+]
+```
+
+### Design Decisions
+
+**Array Expansion Approach**:
+- Rejected: Adding `threads` as list property (Session 4 pattern)
+- Chosen: Selective array expansion with explicit `expand_list` flag
+- Rationale: User requirement for separate Thread nodes with relationships
+
+**Property Name as ID Key**:
+- Uses `property_name` as default lookup key for array object IDs
+- Explicit `id_key` parameter optional for override
+- Consistent with existing node configuration patterns
+
+**Relationship Direction**:
+- Changed from `thread_has_unit` to `unit_has_thread`
+- Direction: Unit → Thread (semantically correct: "Unit has Thread")
+- Uses expandable array field reference: `"end_csv_field": "threads"`
+
+### Technical Achievements
+- Array expansion preserves all existing functionality (no breaking changes)
+- Automatic detection of expandable fields in relationships
+- Support for both single and array fields in relationship endpoints
+- Maintains deduplication and data quality standards
+
+### Current State (Sept 30, 2025)
+**Status**: Array expansion ready for testing
+**Active Config**: `oak_curriculum_schema_v0.1.0-alpha.json` with Thread expansion enabled
+**Join Strategy**: Multi-source join extracting from 2 materialized views
+**New Nodes**: Thread nodes from expanded arrays
+**New Relationships**: Unit → Thread (HAS_THREAD)

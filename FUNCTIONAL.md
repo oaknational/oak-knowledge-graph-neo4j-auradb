@@ -93,16 +93,20 @@ python main.py
 
 ### Minimum Viable Product
 - [x] Extract data from specified Hasura MVs and join into single CSV
+- [x] Multi-source joins with configurable join strategies
 - [x] Optional data cleaning/preprocessing area
 - [x] Map CSV fields to knowledge graph schema via JSON configuration
+- [x] Optional array expansion to create separate nodes from array fields
 - [x] Direct import into Neo4j knowledge graph
 - [x] Simple batch job execution
 
 ### Success Metrics
 - Single command executes selected phases via config flags without intervention
 - Data successfully exported from Hasura and/or imported into Neo4j knowledge graph (18,238+ records)
+- Multi-source MV joins with pandas merge strategies (left, inner, right, outer)
 - Phase execution controlled by simple boolean flags in single JSON config
 - Error messages provide actionable guidance
 - Simple, maintainable direct component usage architecture
 - Enhanced data quality with proper Unicode rendering and empty value omission
 - Native Neo4j list support with JSON string elements for complex objects
+- Selective array expansion for creating separate nodes with `expand_list` flag

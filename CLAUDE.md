@@ -109,13 +109,23 @@ docs/         # Testing documentation
   "materialized_views": {
     "view_name": ["field1", "field2", "field3"]
   },
+  "join_strategy": {
+    "type": "single_source|multi_source_join",
+    "primary_mv": "primary_view_name",
+    "joins": [{
+      "mv": "joined_view_name",
+      "join_type": "left|inner|right|outer",
+      "on": {"left_key": "column_name", "right_key": "column_name"}
+    }]
+  },
   "schema_mapping": {
     "nodes": {
       "NodeType": {
         "id_field": {
           "hasura_col": "column_name",
           "type": "string|int|float|boolean",
-          "property_name": "neo4j_property_name"
+          "property_name": "neo4j_property_name",
+          "expand_list": false
         },
         "properties": {
           "property_name": {
@@ -147,12 +157,13 @@ docs/         # Testing documentation
 **Critical Requirements:**
 - `export_from_hasura`/`import_to_neo4j`: Boolean flags for phase control
 - `materialized_views`: Dict format with explicit field lists
+- `join_strategy`: Optional multi-source joins with pandas merge strategies
 - `id_field`: Must specify `hasura_col`, `type`, and `property_name`
 - **Neo4j Naming**: Use initial capital + lowercase (e.g., `Unitvariant`)
 - **Type Safety**: All fields require explicit type specification including `list` for arrays
 - **Collection Types**: `list` for native Neo4j arrays with JSON string elements for complex objects
-- **Relationship Fields**: `start_csv_field`/`end_csv_field` reference CSV column names (Hasura or synthetic)
-- **No Array Expansion**: Collections stored as native properties, not separate nodes
+- **Array Expansion**: Optional `expand_list: true` creates separate nodes from array items
+- **Relationship Fields**: `start_csv_field`/`end_csv_field` reference CSV column names (supports expandable arrays)
 - **Empty Value Handling**: Empty strings, arrays, and objects automatically omitted from Neo4j
 - **Unicode Support**: Escape sequences automatically decoded to proper characters
 
@@ -161,6 +172,13 @@ docs/         # Testing documentation
 - **Configuration:** Single JSON file `oak_curriculum_schema_v0.1.0-alpha.json`
 - **Environment Loading:** Must call `load_dotenv()` to read `.env` file
 - **Execution:** `python main.py` runs phases based on boolean config flags
+
+### Array Expansion (Optional Feature)
+- **Purpose:** Create separate nodes from array fields instead of storing as lists
+- **Configuration:** Set `expand_list: true` in node `id_field` config
+- **Mechanism:** Uses `property_name` to extract ID from each array object
+- **Relationships:** Automatically expands when referencing expandable array fields
+- **Use Case:** Thread nodes from `threads` array with individual Unit → Thread relationships
 
 ## Quality Gates (Must Pass)
 1. `black --check .`
