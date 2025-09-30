@@ -340,9 +340,24 @@
             "type": "string",
             "synthetic_value": ""
           },
+          "plannedNumberLessons": {
+            "hasura_col": "unit_planned_number_of_lessons",
+            "type": "int",
+            "synthetic_value": ""
+          },
+          "priorKnowledge": {
+            "hasura_col": "unit_prior_knowledge_requirements",
+            "type": "list",
+            "synthetic_value": ""
+          },
           "whyThisWhyNow": {
             "hasura_col": "unit_why_this_why_now",
             "type": "string",
+            "synthetic_value": ""
+          },
+          "nullUnitVariantId": {
+            "hasura_col": "null_unitvariant_id",
+            "type": "int",
             "synthetic_value": ""
           },
           "lastUpdated": {
@@ -369,7 +384,7 @@
       },
       "Programme": {
         "id_field": {
-          "hasura_col": "programme_slug",
+          "hasura_col": "programme_slug_by_year",
           "type": "string",
           "property_name": "programmeSlug",
           "synthetic_value": ""
@@ -454,17 +469,12 @@
       },
       "Unitvariant": {
         "id_field": {
-          "hasura_col": "",
-          "type": "string",
-          "property_name": "unitVariantSlug",
-          "synthetic_value": "{unit_slug}-{unitvariant_id}"
+          "hasura_col": "unitvariant_id",
+          "type": "int",
+          "property_name": "unitVariantId",
+          "synthetic_value": ""
         },
         "properties": {
-          "unitVariantId": {
-            "hasura_col": "unitvariant_id",
-            "type": "int",
-            "synthetic_value": ""
-          },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime",
@@ -525,14 +535,14 @@
             "type": "list",
             "synthetic_value": ""
           },
-          "misconceptionsMistakes": {
-            "hasura_col": "lesson_misconceptions_and_common_mistakes",
+          "contentGuidanceDetails": {
+            "hasura_col": "lesson_content_guidance_details",
             "type": "list",
             "synthetic_value": ""
           },
-          "supervisionLevel": {
-            "hasura_col": "lesson_supervision_level",
-            "type": "string",
+          "misconceptionsMistakes": {
+            "hasura_col": "lesson_misconceptions_and_common_mistakes",
+            "type": "list",
             "synthetic_value": ""
           },
           "equipmentResources": {
@@ -617,7 +627,35 @@
         "start_node_type": "Unitoffering",
         "start_csv_field": "unitOfferingSlug",
         "end_node_type": "Programme",
-        "end_csv_field": "programme_slug",
+        "end_csv_field": "programme_slug_by_year",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "examboard_has_programme": {
+        "relationship_type": "HAS_PROGRAMME",
+        "start_node_type": "Examboard",
+        "start_csv_field": "programme_examboard_slug",
+        "end_node_type": "Programme",
+        "end_csv_field": "programme_slug_by_year",
+        "properties": {
+          "lastUpdated": {
+            "hasura_col": "current_timestamp",
+            "type": "datetime"
+          }
+        }
+      },
+
+      "tier_has_programme": {
+        "relationship_type": "HAS_PROGRAMME",
+        "start_node_type": "Tier",
+        "start_csv_field": "programme_tier_slug",
+        "end_node_type": "Programme",
+        "end_csv_field": "programme_slug_by_year",
         "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
@@ -649,7 +687,7 @@
         "start_node_type": "Unit",
         "start_csv_field": "unit_slug",
         "end_node_type": "Unitvariant",
-        "end_csv_field": "unitVariantSlug",
+        "end_csv_field": "unitvariant_id",
         "properties": {
           "lastUpdated": {
             "hasura_col": "current_timestamp",
@@ -661,10 +699,18 @@
       "programme_has_unitvariant": {
         "relationship_type": "HAS_UNITVARIANT",
         "start_node_type": "Programme",
-        "start_csv_field": "programme_slug",
+        "start_csv_field": "programme_slug_by_year",
         "end_node_type": "Unitvariant",
-        "end_csv_field": "unitVariantSlug",
+        "end_csv_field": "unitvariant_id",
         "properties": {
+          "unitVariantOrder": {
+            "hasura_col": "order_in_unit",
+            "type": "int"
+          },
+          "isOptional": {
+            "hasura_col": "programme_optionality",
+            "type": "boolean"
+          },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime"
@@ -675,10 +721,14 @@
       "unitvariant_has_lesson": {
         "relationship_type": "HAS_LESSON",
         "start_node_type": "Unitvariant",
-        "start_csv_field": "unitVariantSlug",
+        "start_csv_field": "unitvariant_id",
         "end_node_type": "Lesson",
         "end_csv_field": "lesson_slug",
         "properties": {
+          "lessonOrder": {
+            "hasura_col": "order_in_unit",
+            "type": "int"
+          },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime"
