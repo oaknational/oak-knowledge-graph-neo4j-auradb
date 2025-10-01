@@ -585,11 +585,11 @@
           "synthetic_value": ""
         },
         "properties": {
-          "thread_id": {
+          "threadId": {
             "hasura_col": "thread_id",
             "type": "int"
           },
-          "thread_title": {
+          "threadTitle": {
             "hasura_col": "thread_title",
             "type": "string"
           },
