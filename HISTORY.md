@@ -697,3 +697,29 @@ Keywords (after): ["{'keyword': 'nostalgia', 'description': '...'}", "..."] (lis
 **Configuration**: Enhanced join strategy with composite key support
 **Data Quality**: Eliminated cartesian product issues in joins
 **Backward Compatibility**: Existing single-key joins still supported
+
+### Array Explosion for Join Keys
+
+**Problem Discovered**: `programme_slug_by_year` is returned from Hasura as a list (e.g., `['prog-1', 'prog-2']`), not a string. When used as a join key, pandas cannot hash lists, causing "unhashable type: 'list'" error.
+
+**Data Analysis**:
+- 19,871 rows with single-element arrays: `["citizenship-secondary-year-11-gcse"]`
+- 359 rows with multi-element arrays: `["biology-secondary-year-11-l", "biology-secondary-year-10-l"]`
+- Maximum 4 elements found in some arrays
+- Lessons can belong to multiple programmes/years
+
+**Solution**: Targeted array explosion in HasuraExtractor
+- Explode ONLY `programme_slug_by_year` before join (not all list columns)
+- Prevents massive dataframe expansion
+- Converts: 22,385 records → 22,869 records (+484 rows from multi-values)
+- Each lesson-programme combination becomes a separate row for accurate joining
+
+**Implementation**:
+```python
+# In HasuraExtractor._extract_with_joins()
+if "programme_slug_by_year" in result_df.columns:
+    if result_df["programme_slug_by_year"].apply(lambda x: isinstance(x, list)).any():
+        result_df = result_df.explode("programme_slug_by_year", ignore_index=True)
+```
+
+**Result**: Composite key join now works correctly with string values instead of lists

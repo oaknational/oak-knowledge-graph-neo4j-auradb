@@ -161,6 +161,8 @@ docs/         # Testing documentation
 - `export_from_hasura`/`import_to_neo4j`: Boolean flags for phase control
 - `materialized_views`: Dict format with explicit field lists
 - `join_strategy`: Optional multi-source joins with pandas merge strategies
+  - Supports composite keys: `"left_key": ["col1", "col2"]` for multi-column joins
+  - Auto-explodes list-type join keys (e.g., `programme_slug_by_year`) before merging
 - `id_field`: Must specify `hasura_col`, `type`, and `property_name`
 - **Neo4j Naming**: Use initial capital + lowercase (e.g., `Unitvariant`)
 - **Type Safety**: All fields require explicit type specification including `list` for arrays
@@ -169,6 +171,7 @@ docs/         # Testing documentation
 - **Relationship Fields**: `start_csv_field`/`end_csv_field` reference CSV column names (supports expandable arrays)
 - **Empty Value Handling**: Empty strings, arrays, and objects automatically omitted from Neo4j
 - **Unicode Support**: Escape sequences automatically decoded to proper characters
+- **Hasura Array Fields**: Fields returned as arrays are automatically exploded if used as join keys
 
 ### Batch Job Interface
 - **Entry Point:** `main.py` in root with direct component usage
