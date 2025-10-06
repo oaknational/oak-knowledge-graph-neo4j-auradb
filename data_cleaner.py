@@ -133,6 +133,45 @@ class DataCleaner:
 
         return filtered_df
 
+    def _explode_join_key_arrays(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Explode columns containing JSON arrays (from Hasura)
+        that are used as join keys.
+
+        Converts: programme_slug_by_year = '["prog-1", "prog-2"]'
+        Into: Two rows, one with "prog-1", one with "prog-2"
+        (all other columns duplicated)
+        """
+        import json
+
+        df_exploded = df.copy()
+        original_rows = len(df_exploded)
+
+        # Check each column for JSON arrays
+        for col in df_exploded.columns:
+            # Check if column contains JSON array strings
+            if self._column_contains_json_arrays(df_exploded[col]):
+                self.logger.info(f"Exploding JSON array column: {col}")
+
+                # Parse JSON strings to actual lists
+                df_exploded[col] = df_exploded[col].apply(
+                    lambda x: (
+                        json.loads(x)
+                        if isinstance(x, str) and x.strip().startswith("[")
+                        else x
+                    )
+                )
+
+                # Explode the column (creates duplicate rows for multi-value entries)
+                df_exploded = df_exploded.explode(col, ignore_index=True)
+
+                self.logger.info(
+                    f"Exploded column '{col}': {original_rows} -> "
+                    f"{len(df_exploded)} rows"
+                )
+
+        return df_exploded
+
     def _unpack_json_arrays(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Automatically detect and unpack JSON arrays in any column.
@@ -140,9 +179,9 @@ class DataCleaner:
         For each column containing JSON arrays like:
         [{"key": "value1"}, {"key": "value2"}]
 
-        Creates new rows for each array item and flattens the JSON objects.
+        Creates new rows for each array item and flattens
+        the JSON objects.
         """
-        import json
 
         df_unpacked = df.copy()
         unpacked_any = False
@@ -156,7 +195,8 @@ class DataCleaner:
                     unpacked_any = True
                 else:
                     self.logger.info(
-                        f"Column {col} configured for expansion but contains no JSON arrays"
+                        f"Column {col} configured for expansion "
+                        "but contains no JSON arrays"
                     )
             elif self._column_contains_json_arrays(df_unpacked[col]):
                 self.logger.info(

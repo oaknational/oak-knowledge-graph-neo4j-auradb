@@ -649,3 +649,51 @@ Keywords (after): ["{'keyword': 'nostalgia', 'description': '...'}", "..."] (lis
 **Join Strategy**: Multi-source join extracting from 2 materialized views
 **New Nodes**: Thread nodes from expanded arrays
 **New Relationships**: Unit → Thread (HAS_THREAD)
+
+## Session 6: Composite Key Join Enhancement (Oct 6, 2025)
+
+### Composite Key Join Implementation
+
+**Problem**: The join between the two materialized views was too naive, using only `unit_slug` as the join key. This caused incorrect cartesian product results when a unit appears in multiple programmes/years.
+
+**Example Issue**:
+- Single key join on `unit_slug`: 5 rows (incorrect - includes cross matches)
+- Composite key join on `[unit_slug, programme_slug_by_year]`: 3 rows (correct - exact matches)
+
+**Solution**: Enhanced join strategy to support composite keys.
+
+**Implementation Details**:
+
+**HasuraExtractor Enhancements**:
+- Modified `_extract_with_joins()` to support both single and composite key joins
+- Auto-detects key format: string for single key, list for composite keys
+- Validates that left and right key counts match
+- Enhanced logging to show all join conditions (e.g., "unit_slug=unit_slug AND programme_slug_by_year=programme_slug_by_year")
+
+**Configuration Changes**:
+- Added `programme_slug_by_year` field to secondary MV extraction
+- Updated join strategy to use composite keys:
+  ```json
+  "on": {
+    "left_key": ["unit_slug", "programme_slug_by_year"],
+    "right_key": ["unit_slug", "programme_slug_by_year"]
+  }
+  ```
+
+**Key Features**:
+- Backward compatible: supports both single key (string) and composite key (array) formats
+- Proper validation ensures key count matches between left and right
+- Prevents cartesian product issues in multi-programme/year scenarios
+- Clear error messages for configuration issues
+
+### Technical Achievements
+- Eliminated incorrect row multiplication in joins
+- More precise data matching for curriculum records
+- Flexible join configuration supporting various use cases
+- Production-ready with enhanced data quality
+
+### Current Production Status (Oct 6, 2025)
+**Database**: Composite key joins ensure accurate data relationships
+**Configuration**: Enhanced join strategy with composite key support
+**Data Quality**: Eliminated cartesian product issues in joins
+**Backward Compatibility**: Existing single-key joins still supported

@@ -129,16 +129,47 @@ class HasuraExtractor:
         result_df["_primary_source"] = primary_mv
         self.logger.info(f"Primary dataset: {len(result_df)} records from {primary_mv}")
 
+        # Explode programme_slug_by_year if it's a list (needed for composite join)
+        if "programme_slug_by_year" in result_df.columns:
+            if (
+                result_df["programme_slug_by_year"]
+                .apply(lambda x: isinstance(x, list))
+                .any()
+            ):
+                self.logger.info("Exploding programme_slug_by_year column for join")
+                result_df = result_df.explode(
+                    "programme_slug_by_year", ignore_index=True
+                )
+                self.logger.info(f"After explosion: {len(result_df)} records")
+
         # Perform joins
         for i, join_config in enumerate(joins):
             join_mv = join_config["mv"]
             join_type = join_config.get("join_type", "inner")
             on_clause = join_config["on"]
+
+            # Support both single key and composite key joins
+            # Single key: {"left_key": "field", "right_key": "field"}
+            # Composite key: {"left_key": ["f1", "f2"],
+            #                 "right_key": ["f1", "f2"]}
             left_key = on_clause["left_key"]
             right_key = on_clause["right_key"]
 
+            # Normalize to list format for consistent handling
+            left_keys = left_key if isinstance(left_key, list) else [left_key]
+            right_keys = right_key if isinstance(right_key, list) else [right_key]
+
+            if len(left_keys) != len(right_keys):
+                raise ValueError(
+                    f"Join {i+1}: Number of left keys ({len(left_keys)}) "
+                    f"must match right keys ({len(right_keys)})"
+                )
+
+            join_desc = " AND ".join(
+                [f"{lk}={rk}" for lk, rk in zip(left_keys, right_keys)]
+            )
             self.logger.info(
-                f"Join {i+1}: {join_type} join with {join_mv} on {left_key}={right_key}"
+                f"Join {i+1}: {join_type} join with {join_mv} on {join_desc}"
             )
 
             # Extract join dataset
@@ -152,6 +183,18 @@ class HasuraExtractor:
             join_df = pd.DataFrame(join_data)
             join_df[f"_source_{join_mv}"] = join_mv
 
+            # Explode programme_slug_by_year if it's a list (needed for composite join)
+            if "programme_slug_by_year" in join_df.columns:
+                if (
+                    join_df["programme_slug_by_year"]
+                    .apply(lambda x: isinstance(x, list))
+                    .any()
+                ):
+                    self.logger.info("Exploding programme_slug_by_year in join dataset")
+                    join_df = join_df.explode(
+                        "programme_slug_by_year", ignore_index=True
+                    )
+
             # Perform pandas merge
             how_mapping = {
                 "inner": "inner",
@@ -159,13 +202,23 @@ class HasuraExtractor:
                 "right": "right",
                 "outer": "outer",
             }
-            result_df = result_df.merge(
-                join_df,
-                left_on=left_key,
-                right_on=right_key,
-                how=how_mapping[join_type],
-                suffixes=("", f"_from_{join_mv}"),
-            )
+
+            # Use 'on' parameter when keys are identical, otherwise use left_on/right_on
+            if left_keys == right_keys:
+                result_df = result_df.merge(
+                    join_df,
+                    on=left_keys,
+                    how=how_mapping[join_type],
+                    suffixes=("", f"_from_{join_mv}"),
+                )
+            else:
+                result_df = result_df.merge(
+                    join_df,
+                    left_on=left_keys,
+                    right_on=right_keys,
+                    how=how_mapping[join_type],
+                    suffixes=("", f"_from_{join_mv}"),
+                )
 
             self.logger.info(f"After join {i+1}: {len(result_df)} records")
 
@@ -181,7 +234,10 @@ class HasuraExtractor:
         return str(csv_path)
 
     def _introspect_schema_fields(self, view_name: str) -> List[str]:
-        """Use GraphQL introspection to discover available fields for the materialized view."""
+        """
+        Use GraphQL introspection to discover available fields
+        for the materialized view.
+        """
         self.logger.info(
             f"Discovering fields for {view_name} via schema introspection..."
         )
@@ -331,15 +387,19 @@ class HasuraExtractor:
     def _query_with_field_discovery(
         self, view_name: str, limit: Optional[int] = None
     ) -> List[Dict[str, Any]]:
-        """Query MV with field discovery by examining the first record to get all fields."""
+        """
+        Query MV with field discovery by examining the first record
+        to get all fields.
+        """
         self.logger.info(
-            f"Discovering fields by querying {view_name} with minimal fields first"
+            f"Discovering fields by querying {view_name} " "with minimal fields first"
         )
 
-        # Make a test query with just a few records to discover the structure
-        test_limit = min(limit or 1000, 5)  # Use small number for discovery
+        # Make a test query with just a few records to discover structure
+        test_limit = min(limit or 1000, 5)  # Use small number
 
-        # Start with basic query - Hasura should return an error showing available fields
+        # Start with basic query - Hasura should return error showing
+        # available fields
         test_query = f"""
         query {{
             {view_name}(limit: {test_limit})
@@ -359,17 +419,18 @@ class HasuraExtractor:
             response.raise_for_status()
             response_data = response.json()
 
-            # If the query succeeds without field specification, we got all fields
+            # If query succeeds without field specification, got all fields
             if "data" in response_data and view_name in response_data["data"]:
                 data = response_data["data"][view_name]
                 if data and len(data) > 0:
                     # Get all fields from the first record
                     available_fields = list(data[0].keys())
                     self.logger.info(
-                        f"Discovered {len(available_fields)} fields from query response"
+                        f"Discovered {len(available_fields)} fields "
+                        "from query response"
                     )
 
-                    # Now make the full query with the discovered fields and proper limit
+                    # Make full query with discovered fields and limit
                     if limit and limit > test_limit:
                         full_query = self._build_graphql_query(
                             view_name, available_fields, limit

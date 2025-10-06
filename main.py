@@ -204,7 +204,9 @@ def main():
         print("📊 Check the data/ directory for output files")
 
     except (ConfigurationError, Exception) as e:
+        import traceback
         logger.error(f"Batch job failed: {e}")
+        logger.error(traceback.format_exc())
         print(f"❌ Batch job failed: {e}")
         sys.exit(1)
     except KeyboardInterrupt:

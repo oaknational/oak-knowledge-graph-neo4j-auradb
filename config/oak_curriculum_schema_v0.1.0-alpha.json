@@ -126,6 +126,7 @@
     ],
     "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0": [
       "unit_slug",
+      "programme_slug_by_year",
       "unit_order: supplementary_data(path: \"unit_order\")",
       "threads"
     ]
@@ -139,8 +140,8 @@
         "mv": "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0",
         "join_type": "left",
         "on": {
-          "left_key": "unit_slug",
-          "right_key": "unit_slug"
+          "left_key": ["unit_slug", "programme_slug_by_year"],
+          "right_key": ["unit_slug", "programme_slug_by_year"]
         }
       }
     ]

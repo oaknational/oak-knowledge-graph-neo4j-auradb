@@ -115,7 +115,10 @@ docs/         # Testing documentation
     "joins": [{
       "mv": "joined_view_name",
       "join_type": "left|inner|right|outer",
-      "on": {"left_key": "column_name", "right_key": "column_name"}
+      "on": {
+        "left_key": "column_name|[\"col1\", \"col2\"]",
+        "right_key": "column_name|[\"col1\", \"col2\"]"
+      }
     }]
   },
   "schema_mapping": {
