@@ -367,6 +367,11 @@
             "type": "string",
             "synthetic_value": ""
           },
+          "subjectCategory": {
+            "hasura_col": "unit_subjectcategories",
+            "type": "list",
+            "synthetic_value": ""
+          },
           "nullUnitVariantId": {
             "hasura_col": "null_unitvariant_id",
             "type": "int",
