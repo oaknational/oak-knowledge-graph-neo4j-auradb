@@ -140,11 +140,7 @@ class SchemaMapper:
                 else:
                     # Data-driven nodes (including templated synthetic nodes)
                     # For templated synthetic nodes, use generated column
-                    if (
-                        synthetic_value
-                        and not id_hasura_col
-                        and "{" in synthetic_value
-                    ):
+                    if synthetic_value and not id_hasura_col and "{" in synthetic_value:
                         # Use the property name as the column name (same as DataCleaner)
                         property_name = id_field_config.get("property_name", "id")
                         id_hasura_col = property_name
@@ -243,7 +239,7 @@ class SchemaMapper:
                 csv_path = f"{output_dir}/{csv_filename}"
 
                 node_df = pd.DataFrame(node_data)
-                node_df.to_csv(csv_path, index=False, quoting=2)  # QUOTE_NONNUMERIC
+                node_df.to_csv(csv_path, index=False, quoting=1)  # QUOTE_MINIMAL
 
                 csv_files.append(csv_path)
                 self.logger.info(f"Generated {csv_path} with {len(node_data)} nodes")
@@ -380,7 +376,7 @@ class SchemaMapper:
                 csv_path = f"{output_dir}/{csv_filename}"
 
                 rel_df = pd.DataFrame(rel_data)
-                rel_df.to_csv(csv_path, index=False, quoting=2)  # QUOTE_NONNUMERIC
+                rel_df.to_csv(csv_path, index=False, quoting=1)  # QUOTE_MINIMAL
 
                 csv_files.append(csv_path)
                 self.logger.info(
@@ -595,6 +591,24 @@ class SchemaMapper:
             return True
         return False
 
+    def _strip_surrounding_quotes(self, text: str) -> str:
+        """
+        Strip surrounding single or double quotes from string values.
+        Only removes quotes that surround the entire string.
+        """
+        if not text:
+            return text
+
+        # Strip surrounding single quotes
+        if len(text) >= 2 and text[0] == "'" and text[-1] == "'":
+            return text[1:-1]
+
+        # Strip surrounding double quotes
+        if len(text) >= 2 and text[0] == '"' and text[-1] == '"':
+            return text[1:-1]
+
+        return text
+
     def _decode_unicode(self, text: str) -> str:
         """Decode Unicode escape sequences to proper characters."""
         try:
@@ -692,8 +706,7 @@ class SchemaMapper:
                     # Extract ID from the item
                     if id_key not in item:
                         self.logger.warning(
-                            f"ID key '{id_key}' not found in item: "
-                            f"{item}"
+                            f"ID key '{id_key}' not found in item: " f"{item}"
                         )
                         continue
 
@@ -823,9 +836,7 @@ class SchemaMapper:
                                         # Preserve dicts as JSON strings
                                         json_str = json.dumps(item)
                                         # Decode Unicode escapes
-                                        result.append(
-                                            self._decode_unicode(json_str)
-                                        )
+                                        result.append(self._decode_unicode(json_str))
                                     else:
                                         result.append(str(item).strip())
                                 return [r for r in result if r]
@@ -843,13 +854,18 @@ class SchemaMapper:
                 # Handle dict/list data as string type (JSON)
                 if isinstance(value, (dict, list)):
                     return json.dumps(value)
-                return self._decode_unicode(str(value).strip())
+                cleaned = str(value).strip()
+                # Strip surrounding single or double quotes from string values
+                cleaned = self._strip_surrounding_quotes(cleaned)
+                return self._decode_unicode(cleaned)
         except (ValueError, TypeError):
             self.logger.warning(
                 f"Failed to convert value {value} to {data_type}, "
                 f"using string conversion"
             )
-            return self._decode_unicode(str(value).strip())
+            cleaned = str(value).strip()
+            cleaned = self._strip_surrounding_quotes(cleaned)
+            return self._decode_unicode(cleaned)
 
     def _map_nodes(
         self, df: pd.DataFrame, node_mappings: Dict[str, Any]

@@ -788,3 +788,68 @@ if match:
 **Database**: All unit variants have correct `unitVariantOrder` on relationships
 **Computed Properties**: Production-ready for boolean derivations
 **Code Quality**: Clean codebase with only essential functionality
+
+## Session 8: CSV Quoting Fix (Oct 8, 2025)
+
+### CSV Quoting Strategy Correction
+
+**Problem**: String values in Neo4j nodes/relationships were being stored with unwanted quote characters (e.g., `"Science"` instead of `Science`).
+
+**Root Cause**: SchemaMapper used `quoting=2` (QUOTE_NONNUMERIC) which wraps ALL string values in quotes, causing Neo4j to treat quotes as part of the data.
+
+**Solution**: Changed to `quoting=1` (QUOTE_MINIMAL) in both node and relationship CSV generation.
+
+**Implementation**:
+```python
+# Before
+node_df.to_csv(csv_path, index=False, quoting=2)  # QUOTE_NONNUMERIC
+
+# After
+node_df.to_csv(csv_path, index=False, quoting=1)  # QUOTE_MINIMAL
+```
+
+**Behavior**:
+- Simple strings: `Science` → no quotes in CSV
+- Strings with commas: `Science, Technology` → quoted for CSV escaping only
+- Neo4j imports: quotes are CSV escape characters, not part of data values
+
+**Files Modified**: `schema_mapper.py` (lines 246, 383)
+
+**Quality Gates**: ✅ black, flake8 passed
+
+### Current Production Status (Oct 8, 2025)
+**CSV Generation**: QUOTE_MINIMAL strategy for clean Neo4j property values
+**Data Quality**: No unwanted quotes in imported string properties
+
+### String Quote Stripping Enhancement
+
+**Problem**: Source data from Hasura contained string values with surrounding quotes (e.g., `'Love and Relationships'`, `'Power and Conflict'`) that were being imported into Neo4j as part of the property values.
+
+**Root Cause**: Hasura data contains embedded single/double quotes in string fields like `programme_optionality`.
+
+**Solution**: Added `_strip_surrounding_quotes()` method in SchemaMapper to remove surrounding quotes from string values during cleaning.
+
+**Implementation**:
+```python
+def _strip_surrounding_quotes(self, text: str) -> str:
+    """Strip surrounding single or double quotes from string values."""
+    if len(text) >= 2 and text[0] == "'" and text[-1] == "'":
+        return text[1:-1]
+    if len(text) >= 2 and text[0] == '"' and text[-1] == '"':
+        return text[1:-1]
+    return text
+```
+
+**Behavior**:
+- `'Love and Relationships'` → `Love and Relationships`
+- `"Power and Conflict"` → `Power and Conflict`
+- `Don't strip this` → `Don't strip this` (internal quotes preserved)
+- `It's a 'test' value` → `It's a 'test' value` (internal quotes preserved)
+
+**Files Modified**: `schema_mapper.py` (added method at line 594, integrated at lines 841, 849)
+
+**Quality Gates**: ✅ black, flake8 passed, unit tested
+
+### Current Production Status (Oct 8, 2025)
+**CSV Generation**: QUOTE_MINIMAL strategy + quote stripping for clean Neo4j values
+**Data Quality**: No unwanted quotes in imported string properties (CSV or data-level)

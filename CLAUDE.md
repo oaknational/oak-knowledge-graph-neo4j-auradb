@@ -101,6 +101,7 @@ docs/         # Testing documentation
 - **Node files:** Use `property:ID(NodeType)` format (e.g., `slug:ID(Subject)`)
 - **Relationship files:** Use `:START_ID(NodeType)`, `:END_ID(NodeType)`, `:TYPE`
 - **Types:** Use `:string`, `:int`, `:float`, `:boolean` in headers based on config
+- **Quoting:** Use `quoting=1` (QUOTE_MINIMAL) - only quotes fields with commas/newlines/quotes
 - **No UUIDs:** Use actual Hasura field values as unique identifiers
 
 ### Configuration Structure (JSON with Type-Safe Field Specification)
@@ -172,6 +173,7 @@ docs/         # Testing documentation
 - **Relationship Fields**: `start_csv_field`/`end_csv_field` reference CSV column names (supports expandable arrays)
 - **Empty Value Handling**: Empty strings, arrays, and objects automatically omitted from Neo4j
 - **Unicode Support**: Escape sequences automatically decoded to proper characters
+- **Quote Stripping**: Surrounding single/double quotes removed from string values (preserves internal quotes)
 - **Hasura Array Fields**: Fields returned as arrays are automatically exploded if used as join keys
 - **Computed Properties**: Optional `computed` field derives boolean from null checks (`is_null`, `is_not_null`)
 - **Unit Slug Normalization**: Secondary MV unit_slug values auto-cleaned (strips `-{unitvariant_id}` suffix)
