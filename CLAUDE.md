@@ -148,7 +148,8 @@ docs/         # Testing documentation
         "properties": {
           "property_name": {
             "hasura_col": "column_name",
-            "type": "string|int|float|boolean"
+            "type": "string|int|float|boolean",
+            "computed": "is_null|is_not_null"  // Optional: derive boolean from null check
           }
         }
       }
@@ -172,6 +173,8 @@ docs/         # Testing documentation
 - **Empty Value Handling**: Empty strings, arrays, and objects automatically omitted from Neo4j
 - **Unicode Support**: Escape sequences automatically decoded to proper characters
 - **Hasura Array Fields**: Fields returned as arrays are automatically exploded if used as join keys
+- **Computed Properties**: Optional `computed` field derives boolean from null checks (`is_null`, `is_not_null`)
+- **Unit Slug Normalization**: Secondary MV unit_slug values auto-cleaned (strips `-{unitvariant_id}` suffix)
 
 ### Batch Job Interface
 - **Entry Point:** `main.py` in root with direct component usage

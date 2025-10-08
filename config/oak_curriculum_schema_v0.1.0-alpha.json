@@ -4,18 +4,19 @@
     "filters": "Filters applied during data cleaning",
     "filters_example": {
       "is_legacy": false,
-      "programme_subject": ["History", "Maths"],
+      "programme_subject": [
+        "History",
+        "Maths"
+      ],
       "programme_keystage": "Key Stage 2",
       "programme_year_description": "Year 5"
     },
     "schema_mapping": "Mapping from CSV columns to Neo4j nodes and relationships",
     "relationship_fields": "start_csv_field and end_csv_field reference CSV column names (Hasura columns or synthetic fields). AuraDBLoader automatically maps these to Neo4j property names for node matching."
   },
-  
   "hasura_endpoint": "${HASURA_ENDPOINT}",
   "export_from_hasura": true,
   "import_to_neo4j": true,
-
   "materialized_views": {
     "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0": [
       "features",
@@ -131,7 +132,6 @@
       "threads"
     ]
   },
-
   "join_strategy": {
     "type": "multi_source_join",
     "primary_mv": "published_mv_synthetic_unitvariant_lessons_by_keystage_18_0_0",
@@ -140,8 +140,14 @@
         "mv": "published_mv_synthetic_unitvariants_with_lesson_ids_by_keystage_18_0_0",
         "join_type": "left",
         "on": {
-          "left_key": ["unit_slug", "programme_slug_by_year"],
-          "right_key": ["unit_slug", "programme_slug_by_year"]
+          "left_key": [
+            "unit_slug",
+            "programme_slug_by_year"
+          ],
+          "right_key": [
+            "unit_slug",
+            "programme_slug_by_year"
+          ]
         }
       }
     ]
@@ -149,14 +155,10 @@
   "filters": {
     "is_legacy": false
   },
-
   "test_limit": null,
   "clear_database_before_import": true,
-
   "schema_mapping": {
-
     "nodes": {
-
       "Schemaversion": {
         "id_field": {
           "hasura_col": "",
@@ -355,11 +357,6 @@
             "type": "string",
             "synthetic_value": ""
           },
-          "plannedNumberLessons": {
-            "hasura_col": "unit_planned_number_of_lessons",
-            "type": "int",
-            "synthetic_value": ""
-          },
           "priorKnowledge": {
             "hasura_col": "unit_prior_knowledge_requirements",
             "type": "list",
@@ -490,6 +487,11 @@
           "synthetic_value": ""
         },
         "properties": {
+          "optionTitle": {
+            "hasura_col": "programme_optionality",
+            "type": "string",
+            "synthetic_value": ""
+          },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
             "type": "datetime",
@@ -602,9 +604,7 @@
         }
       }
     },
-
     "relationships": {
-
       "phase_has_keystage": {
         "relationship_type": "HAS_KEY_STAGE",
         "start_node_type": "Phase",
@@ -618,7 +618,6 @@
           }
         }
       },
-      
       "keystage_has_year": {
         "relationship_type": "HAS_YEAR",
         "start_node_type": "Keystage",
@@ -632,7 +631,6 @@
           }
         }
       },
-      
       "subject_has_offering": {
         "relationship_type": "HAS_UNIT_OFFERING",
         "start_node_type": "Subject",
@@ -646,7 +644,6 @@
           }
         }
       },
-
       "year_has_offering": {
         "relationship_type": "HAS_UNIT_OFFERING",
         "start_node_type": "Year",
@@ -660,7 +657,6 @@
           }
         }
       },
-
       "offering_has_programme": {
         "relationship_type": "HAS_PROGRAMME",
         "start_node_type": "Unitoffering",
@@ -674,7 +670,6 @@
           }
         }
       },
-
       "examboard_has_programme": {
         "relationship_type": "HAS_PROGRAMME",
         "start_node_type": "Examboard",
@@ -688,7 +683,6 @@
           }
         }
       },
-
       "tier_has_programme": {
         "relationship_type": "HAS_PROGRAMME",
         "start_node_type": "Tier",
@@ -702,7 +696,6 @@
           }
         }
       },
-      
       "offering_has_unit": {
         "relationship_type": "HAS_UNIT",
         "start_node_type": "Unitoffering",
@@ -720,7 +713,6 @@
           }
         }
       },
-
       "unit_has_unitvariant": {
         "relationship_type": "HAS_UNITVARIANT",
         "start_node_type": "Unit",
@@ -734,7 +726,6 @@
           }
         }
       },
-      
       "programme_has_unitvariant": {
         "relationship_type": "HAS_UNITVARIANT",
         "start_node_type": "Programme",
@@ -748,7 +739,8 @@
           },
           "isOptional": {
             "hasura_col": "programme_optionality",
-            "type": "boolean"
+            "type": "boolean",
+            "computed": "is_not_null"
           },
           "lastUpdated": {
             "hasura_col": "current_timestamp",
@@ -756,7 +748,6 @@
           }
         }
       },
-      
       "unitvariant_has_lesson": {
         "relationship_type": "HAS_LESSON",
         "start_node_type": "Unitvariant",
@@ -774,7 +765,6 @@
           }
         }
       },
-
       "unit_has_thread": {
         "relationship_type": "HAS_THREAD",
         "start_node_type": "Unit",

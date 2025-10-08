@@ -55,7 +55,10 @@ class SchemaMapper:
         # Generate relationship CSV files
         if "relationships" in schema_mapping:
             rel_files = self._generate_relationship_csvs(
-                df, schema_mapping["relationships"], schema_mapping.get("nodes", {}), output_dir
+                df,
+                schema_mapping["relationships"],
+                schema_mapping.get("nodes", {}),
+                output_dir,
             )
             csv_files["relationship_files"] = rel_files
 
@@ -122,8 +125,8 @@ class SchemaMapper:
                                 and synthetic_prop_value != ""
                             ):
                                 # Use synthetic value
-                                node_row[f"{prop_name}:{prop_type}"] = self._clean_value(
-                                    synthetic_prop_value, prop_type
+                                node_row[f"{prop_name}:{prop_type}"] = (
+                                    self._clean_value(synthetic_prop_value, prop_type)
                                 )
                             elif hasura_col == "current_timestamp":
                                 # Special handling for current_timestamp
@@ -136,8 +139,12 @@ class SchemaMapper:
                     node_data.append(node_row)
                 else:
                     # Data-driven nodes (including templated synthetic nodes)
-                    # For templated synthetic nodes, use the generated column from DataCleaner
-                    if synthetic_value and not id_hasura_col and "{" in synthetic_value:
+                    # For templated synthetic nodes, use generated column
+                    if (
+                        synthetic_value
+                        and not id_hasura_col
+                        and "{" in synthetic_value
+                    ):
                         # Use the property name as the column name (same as DataCleaner)
                         property_name = id_field_config.get("property_name", "id")
                         id_hasura_col = property_name
@@ -186,16 +193,22 @@ class SchemaMapper:
                             if isinstance(prop_config, dict):
                                 hasura_col = prop_config.get("hasura_col")
                                 prop_type = prop_config.get("type", "string")
-                                synthetic_prop_value = prop_config.get("synthetic_value")
+                                synthetic_prop_value = prop_config.get(
+                                    "synthetic_value"
+                                )
 
                                 if (
                                     synthetic_prop_value is not None
                                     and synthetic_prop_value != ""
                                 ):
                                     # Use synthetic value
-                                    cleaned_synthetic = self._clean_value(synthetic_prop_value, prop_type)
+                                    cleaned_synthetic = self._clean_value(
+                                        synthetic_prop_value, prop_type
+                                    )
                                     if cleaned_synthetic is not None:
-                                        node_row[f"{prop_name}:{prop_type}"] = cleaned_synthetic
+                                        node_row[f"{prop_name}:{prop_type}"] = (
+                                            cleaned_synthetic
+                                        )
                                 elif hasura_col and hasura_col in row:
                                     # Use Hasura column value
                                     cleaned_value = self._clean_value(
@@ -207,11 +220,13 @@ class SchemaMapper:
                                         if prop_type == "list" and isinstance(
                                             cleaned_value, list
                                         ):
-                                            node_row[f"{prop_name}:{prop_type}"] = json.dumps(
-                                                cleaned_value
+                                            node_row[f"{prop_name}:{prop_type}"] = (
+                                                json.dumps(cleaned_value)
                                             )
                                         else:
-                                            node_row[f"{prop_name}:{prop_type}"] = cleaned_value
+                                            node_row[f"{prop_name}:{prop_type}"] = (
+                                                cleaned_value
+                                            )
                                 elif hasura_col == "current_timestamp":
                                     # Special handling for current_timestamp
                                     from datetime import datetime
@@ -236,9 +251,16 @@ class SchemaMapper:
         return csv_files
 
     def _generate_relationship_csvs(
-        self, df: pd.DataFrame, rel_mappings: Dict[str, Any], node_mappings: Dict[str, Any], output_dir: str
+        self,
+        df: pd.DataFrame,
+        rel_mappings: Dict[str, Any],
+        node_mappings: Dict[str, Any],
+        output_dir: str,
     ) -> List[str]:
-        """Generate Neo4j-compatible relationship CSV files with array expansion support."""
+        """
+        Generate Neo4j-compatible relationship CSV files with array
+        expansion support.
+        """
         csv_files = []
 
         # Build a lookup of which fields are expandable arrays
@@ -251,7 +273,7 @@ class SchemaMapper:
                 expandable_fields[hasura_col] = {
                     "node_type": node_label,
                     "property_name": property_name,
-                    "id_key": id_field_config.get("id_key", property_name)
+                    "id_key": id_field_config.get("id_key", property_name),
                 }
 
         for config_key, mapping in rel_mappings.items():
@@ -274,9 +296,16 @@ class SchemaMapper:
             if start_is_array or end_is_array:
                 # Use array expansion for relationships
                 rel_data = self._expand_array_relationships(
-                    df, start_field, end_field, start_node_type, end_node_type,
-                    actual_rel_type, properties, expandable_fields,
-                    start_is_array, end_is_array
+                    df,
+                    start_field,
+                    end_field,
+                    start_node_type,
+                    end_node_type,
+                    actual_rel_type,
+                    properties,
+                    expandable_fields,
+                    start_is_array,
+                    end_is_array,
                 )
             else:
                 # Use normal relationship generation
@@ -324,7 +353,16 @@ class SchemaMapper:
                         if isinstance(prop_config, dict):
                             hasura_col = prop_config.get("hasura_col")
                             prop_type = prop_config.get("type", "string")
-                            if hasura_col and hasura_col in row:
+                            computed = prop_config.get("computed")
+
+                            if computed and hasura_col and hasura_col in row:
+                                # Handle computed properties
+                                computed_value = self._compute_value(
+                                    row[hasura_col], computed, prop_type
+                                )
+                                if computed_value is not None:
+                                    rel_row[f"{prop_name}:{prop_type}"] = computed_value
+                            elif hasura_col and hasura_col in row:
                                 rel_row[f"{prop_name}:{prop_type}"] = self._clean_value(
                                     row[hasura_col], prop_type
                                 )
@@ -426,12 +464,22 @@ class SchemaMapper:
                         if isinstance(prop_config, dict):
                             hasura_col = prop_config.get("hasura_col")
                             prop_type = prop_config.get("type", "string")
-                            if hasura_col and hasura_col in row:
+                            computed = prop_config.get("computed")
+
+                            if computed and hasura_col and hasura_col in row:
+                                # Handle computed properties
+                                computed_value = self._compute_value(
+                                    row[hasura_col], computed, prop_type
+                                )
+                                if computed_value is not None:
+                                    rel_row[f"{prop_name}:{prop_type}"] = computed_value
+                            elif hasura_col and hasura_col in row:
                                 cleaned = self._clean_value(row[hasura_col], prop_type)
                                 if cleaned is not None:
                                     rel_row[f"{prop_name}:{prop_type}"] = cleaned
                             elif hasura_col == "current_timestamp":
                                 from datetime import datetime
+
                                 rel_row[f"{prop_name}:{prop_type}"] = (
                                     datetime.now().isoformat()
                                 )
@@ -493,6 +541,39 @@ class SchemaMapper:
 
         return ids
 
+    def _compute_value(
+        self, value: Any, computation: str, data_type: str = "string"
+    ) -> Any:
+        """
+        Compute a value based on the specified computation rule.
+
+        Args:
+            value: The source value to compute from
+            computation: The computation rule
+            data_type: The expected output data type
+
+        Returns:
+            The computed value
+
+        Computation rules:
+            - "is_null": Returns True if value is null/nan/empty, False otherwise
+            - "is_not_null": Returns True if value has data, False if null/nan/empty
+        """
+        if computation == "is_not_null":
+            # Return False if value IS null/nan/empty, True if value has data
+            # For isOptional: we want the OPPOSITE - True when null, False when not null
+            # So this computation actually returns: True when NOT null (has data)
+            # Therefore use "is_null" for isOptional instead
+            is_empty = pd.isna(value) or self._is_empty_value(value)
+            return not is_empty
+        elif computation == "is_null":
+            # Return True if value is null/nan/empty, False otherwise
+            # For isOptional: True when programme_optionality is null
+            return pd.isna(value) or self._is_empty_value(value)
+        else:
+            self.logger.warning(f"Unknown computation rule: {computation}")
+            return None
+
     def _is_empty_value(self, value: Any) -> bool:
         """Check if a value is effectively empty and should be treated as null."""
         if isinstance(value, str):
@@ -503,6 +584,7 @@ class SchemaMapper:
             # Try to parse as JSON to check for empty structures
             try:
                 import json
+
                 parsed = json.loads(stripped)
                 if isinstance(parsed, (list, dict)) and not parsed:
                     return True
@@ -517,6 +599,7 @@ class SchemaMapper:
         """Decode Unicode escape sequences to proper characters."""
         try:
             import re
+
             # Find and replace Unicode escape sequences
             def replace_unicode(match):
                 hex_code = match.group(1)
@@ -524,9 +607,9 @@ class SchemaMapper:
 
             # Handle different levels of escaping - try most common patterns
             # Pattern for \uXXXX (single backslash)
-            text = re.sub(r'\\u([0-9a-fA-F]{4})', replace_unicode, text)
+            text = re.sub(r"\\u([0-9a-fA-F]{4})", replace_unicode, text)
             # Pattern for \\uXXXX (double backslash)
-            text = re.sub(r'\\\\u([0-9a-fA-F]{4})', replace_unicode, text)
+            text = re.sub(r"\\\\u([0-9a-fA-F]{4})", replace_unicode, text)
 
             return text
         except (ValueError, OverflowError):
@@ -557,7 +640,7 @@ class SchemaMapper:
         node_data = []
         hasura_col = id_field_config.get("hasura_col")
         id_property_name = id_field_config.get("property_name", "id")
-        # Use property_name as the key to look up in each object (since that's what the ID is called)
+        # Use property_name as key to look up in each object
         id_key = id_field_config.get("id_key", id_property_name)
         id_type = id_field_config.get("type", "string")
 
@@ -601,14 +684,16 @@ class SchemaMapper:
                 for item in parsed_array:
                     if not isinstance(item, dict):
                         self.logger.warning(
-                            f"Array item is not a dict in {hasura_col}, skipping: {item}"
+                            f"Array item is not a dict in "
+                            f"{hasura_col}, skipping: {item}"
                         )
                         continue
 
                     # Extract ID from the item
                     if id_key not in item:
                         self.logger.warning(
-                            f"ID key '{id_key}' not found in item: {item}"
+                            f"ID key '{id_key}' not found in item: "
+                            f"{item}"
                         )
                         continue
 
@@ -723,7 +808,8 @@ class SchemaMapper:
                                 else:
                                     # If array contains primitives, use directly
                                     result.append(str(item).strip())
-                            return [r for r in result if r]  # Filter out empty strings
+                            # Filter out empty strings
+                            return [r for r in result if r]
                         else:
                             return [str(parsed_array)]
                     except json.JSONDecodeError:
@@ -734,10 +820,12 @@ class SchemaMapper:
                                 result = []
                                 for item in parsed_array:
                                     if isinstance(item, dict):
-                                        # Always preserve dictionary objects as JSON strings
+                                        # Preserve dicts as JSON strings
                                         json_str = json.dumps(item)
-                                        # Decode Unicode escapes in the JSON string
-                                        result.append(self._decode_unicode(json_str))
+                                        # Decode Unicode escapes
+                                        result.append(
+                                            self._decode_unicode(json_str)
+                                        )
                                     else:
                                         result.append(str(item).strip())
                                 return [r for r in result if r]
@@ -752,13 +840,14 @@ class SchemaMapper:
                 else:
                     return [str(value).strip()]
             else:  # string
-                # Handle case where we have dict/list data but want string type (like JSON)
+                # Handle dict/list data as string type (JSON)
                 if isinstance(value, (dict, list)):
                     return json.dumps(value)
                 return self._decode_unicode(str(value).strip())
         except (ValueError, TypeError):
             self.logger.warning(
-                f"Failed to convert value {value} to {data_type}, using string conversion"
+                f"Failed to convert value {value} to {data_type}, "
+                f"using string conversion"
             )
             return self._decode_unicode(str(value).strip())
 
@@ -814,7 +903,7 @@ class SchemaMapper:
         mapped_relationships = {}
 
         for config_key, mapping in rel_mappings.items():
-            # Support optional relationship_type field, default to config key
+            # Support optional relationship_type field
             actual_rel_type = mapping.get("relationship_type", config_key)
             self.logger.info(
                 f"Mapping relationships for config: {config_key} "

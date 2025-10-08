@@ -183,6 +183,30 @@ class HasuraExtractor:
             join_df = pd.DataFrame(join_data)
             join_df[f"_source_{join_mv}"] = join_mv
 
+            # Clean unit_slug - strip unitvariant_id suffix
+            # Optional variants have unit_slug like "unit-name-1234"
+            if "unit_slug" in join_df.columns:
+
+                def strip_unitvariant_suffix(slug):
+                    if pd.isna(slug):
+                        return slug
+                    # Check if slug ends with -[digits]
+                    import re
+
+                    match = re.match(r"^(.+)-(\d+)$", str(slug))
+                    if match:
+                        # Return slug without numeric suffix
+                        return match.group(1)
+                    return slug
+
+                join_df["unit_slug"] = join_df["unit_slug"].apply(
+                    strip_unitvariant_suffix
+                )
+                self.logger.info(
+                    "Cleaned unit_slug values in join dataset "
+                    "(stripped unitvariant_id suffixes)"
+                )
+
             # Explode programme_slug_by_year if it's a list (needed for composite join)
             if "programme_slug_by_year" in join_df.columns:
                 if (

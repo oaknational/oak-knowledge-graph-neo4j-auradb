@@ -723,3 +723,68 @@ if "programme_slug_by_year" in result_df.columns:
 ```
 
 **Result**: Composite key join now works correctly with string values instead of lists
+
+## Session 7: Computed Properties & Unit Order Fix (Oct 8, 2025)
+
+### Computed Property Support
+
+**Enhancement**: Added support for computed properties in relationship mappings to derive boolean values from column presence/absence.
+
+**Implementation**:
+- Added `_compute_value()` method in SchemaMapper supporting `is_null` and `is_not_null` computations
+- Enhanced relationship property mapping to check for `computed` field
+- Applied to both regular and array-expansion relationship generation
+
+**Configuration Pattern**:
+```json
+"isOptional": {
+  "hasura_col": "programme_optionality",
+  "type": "boolean",
+  "computed": "is_not_null"
+}
+```
+
+**Logic**: `isOptional = True` when `programme_optionality` has a value, `False` when null/nan
+
+### Unit Order Fix for Optional Variants
+
+**Problem**: Optional unit variants were not getting `unit_order` values from the secondary MV join, resulting in missing `unitVariantOrder` property on `Programme-HAS_UNITVARIANT-Unitvariant` relationships.
+
+**Root Cause Analysis**:
+- Secondary MV stores optional variants with modified `unit_slug` containing unitvariant_id suffix
+- Primary MV: `significant-explorers-how-has-seafaring-changed-over-time`
+- Secondary MV: `significant-explorers-how-has-seafaring-changed-over-time-1705`
+- Join on `[unit_slug, programme_slug_by_year]` failed for all optional variants due to slug mismatch
+
+**Solution**: Strip unitvariant_id suffix from secondary MV unit_slug before joining
+```python
+# In HasuraExtractor
+match = re.match(r"^(.+)-(\d+)$", str(slug))
+if match:
+    return match.group(1)  # Return slug without numeric suffix
+```
+
+**Results**:
+- Before: 0/80 optional variants had unit_order (history-primary-year-1 example)
+- After: 80/80 optional variants have unit_order
+- All unit variants (optional and non-optional) now correctly populate `unitVariantOrder` on relationships
+
+**Technical Achievement**: Eliminated need for propagation logic by fixing join at source
+
+### Code Cleanup
+
+**Removed**:
+- All debug logging code from HasuraExtractor
+- `_propagate_unit_order()` method from DataCleaner (67 lines - unused)
+- Debug CSV file generation
+- Temporary test files
+
+**Preserved**:
+- Core fix: unit_slug suffix stripping in HasuraExtractor
+- Computed property support in SchemaMapper
+- All production code passes black/flake8
+
+### Current Production Status (Oct 8, 2025)
+**Database**: All unit variants have correct `unitVariantOrder` on relationships
+**Computed Properties**: Production-ready for boolean derivations
+**Code Quality**: Clean codebase with only essential functionality
