@@ -1,0 +1,1953 @@
+Received notification from DBMS server: {severity: WARNING} {code: Neo.ClientNotification.Statement.FeatureDeprecationWarning} {category: DEPRECATION} {title: This feature is deprecated and will be removed in future versions.} {description: CALL subquery without a variable scope clause is now deprecated. Use CALL (label) { ... }} {position: line: 3, column: 9, offset: 46} for query: '\n        CALL db.labels() YIELD label\n        CALL {\n            WITH label\n            MATCH (n) WHERE label IN labels(n)\n            RETURN count(n) as count\n        }\n        RETURN label, count\n        ORDER BY label\n        '
+Received notification from DBMS server: {severity: WARNING} {code: Neo.ClientNotification.Statement.FeatureDeprecationWarning} {category: DEPRECATION} {title: This feature is deprecated and will be removed in future versions.} {description: CALL subquery without a variable scope clause is now deprecated. Use CALL (relationshipType) { ... }} {position: line: 3, column: 9, offset: 68} for query: '\n        CALL db.relationshipTypes() YIELD relationshipType\n        CALL {\n            WITH relationshipType\n            MATCH ()-[r]->() WHERE type(r) = relationshipType\n            RETURN count(r) as count\n        }\n        RETURN relationshipType, count\n        ORDER BY relationshipType\n        '
+Received notification from DBMS server: {severity: WARNING} {code: Neo.ClientNotification.Statement.FeatureDeprecationWarning} {category: DEPRECATION} {title: This feature is deprecated and will be removed in future versions.} {description: CALL subquery without a variable scope clause is now deprecated. Use CALL (label) { ... }} {position: line: 3, column: 9, offset: 46} for query: '\n        CALL db.labels() YIELD label\n        CALL {\n            WITH label\n            MATCH (n) WHERE label IN labels(n)\n            RETURN count(n) as count\n        }\n        RETURN label, count\n        ORDER BY label\n        '
+
+================================================================================
+NEO4J SCHEMA INTROSPECTION
+================================================================================
+
+================================================================================
+QUERY: Node Labels and Counts
+================================================================================
+
+        CALL db.labels() YIELD label
+        CALL {
+            WITH label
+            MATCH (n) WHERE label IN labels(n)
+            RETURN count(n) as count
+        }
+        RETURN label, count
+        ORDER BY label
+        
+
+Results (13 records):
+[
+  {
+    "label": "Examboard",
+    "count": 5
+  },
+  {
+    "label": "Keystage",
+    "count": 4
+  },
+  {
+    "label": "Lesson",
+    "count": 12631
+  },
+  {
+    "label": "Phase",
+    "count": 2
+  },
+  {
+    "label": "Programme",
+    "count": 258
+  },
+  {
+    "label": "Schemaversion",
+    "count": 1
+  },
+  {
+    "label": "Subject",
+    "count": 22
+  },
+  {
+    "label": "Thread",
+    "count": 165
+  },
+  {
+    "label": "Tier",
+    "count": 2
+  },
+  {
+    "label": "Unit",
+    "count": 1564
+  },
+  {
+    "label": "Unitoffering",
+    "count": 183
+  },
+  {
+    "label": "Unitvariant",
+    "count": 2064
+  },
+  {
+    "label": "Year",
+    "count": 11
+  }
+]
+
+================================================================================
+QUERY: Relationship Types and Counts
+================================================================================
+
+        CALL db.relationshipTypes() YIELD relationshipType
+        CALL {
+            WITH relationshipType
+            MATCH ()-[r]->() WHERE type(r) = relationshipType
+            RETURN count(r) as count
+        }
+        RETURN relationshipType, count
+        ORDER BY relationshipType
+        
+
+Results (8 records):
+[
+  {
+    "relationshipType": "HAS_KEY_STAGE",
+    "count": 4
+  },
+  {
+    "relationshipType": "HAS_LESSON",
+    "count": 15409
+  },
+  {
+    "relationshipType": "HAS_PROGRAMME",
+    "count": 405
+  },
+  {
+    "relationshipType": "HAS_THREAD",
+    "count": 3322
+  },
+  {
+    "relationshipType": "HAS_UNIT",
+    "count": 1614
+  },
+  {
+    "relationshipType": "HAS_UNITVARIANT",
+    "count": 4553
+  },
+  {
+    "relationshipType": "HAS_UNIT_OFFERING",
+    "count": 366
+  },
+  {
+    "relationshipType": "HAS_YEAR",
+    "count": 11
+  }
+]
+
+================================================================================
+QUERY: Relationship Patterns
+================================================================================
+
+        MATCH (a)-[r]->(b)
+        WITH labels(a)[0] as from, type(r) as rel, labels(b)[0] as to, count(*) as count
+        RETURN from, rel, to, count
+        ORDER BY count DESC
+        
+
+Results (12 records):
+[
+  {
+    "from": "Unitvariant",
+    "rel": "HAS_LESSON",
+    "to": "Lesson",
+    "count": 15409
+  },
+  {
+    "from": "Unit",
+    "rel": "HAS_THREAD",
+    "to": "Thread",
+    "count": 3322
+  },
+  {
+    "from": "Programme",
+    "rel": "HAS_UNITVARIANT",
+    "to": "Unitvariant",
+    "count": 2489
+  },
+  {
+    "from": "Unit",
+    "rel": "HAS_UNITVARIANT",
+    "to": "Unitvariant",
+    "count": 2064
+  },
+  {
+    "from": "Unitoffering",
+    "rel": "HAS_UNIT",
+    "to": "Unit",
+    "count": 1614
+  },
+  {
+    "from": "Unitoffering",
+    "rel": "HAS_PROGRAMME",
+    "to": "Programme",
+    "count": 258
+  },
+  {
+    "from": "Subject",
+    "rel": "HAS_UNIT_OFFERING",
+    "to": "Unitoffering",
+    "count": 183
+  },
+  {
+    "from": "Year",
+    "rel": "HAS_UNIT_OFFERING",
+    "to": "Unitoffering",
+    "count": 183
+  },
+  {
+    "from": "Examboard",
+    "rel": "HAS_PROGRAMME",
+    "to": "Programme",
+    "count": 95
+  },
+  {
+    "from": "Tier",
+    "rel": "HAS_PROGRAMME",
+    "to": "Programme",
+    "count": 52
+  },
+  {
+    "from": "Keystage",
+    "rel": "HAS_YEAR",
+    "to": "Year",
+    "count": 11
+  },
+  {
+    "from": "Phase",
+    "rel": "HAS_KEY_STAGE",
+    "to": "Keystage",
+    "count": 4
+  }
+]
+
+================================================================================
+SAMPLE NODES
+================================================================================
+
+================================================================================
+QUERY: Node Labels and Counts
+================================================================================
+
+        CALL db.labels() YIELD label
+        CALL {
+            WITH label
+            MATCH (n) WHERE label IN labels(n)
+            RETURN count(n) as count
+        }
+        RETURN label, count
+        ORDER BY label
+        
+
+Results (13 records):
+[
+  {
+    "label": "Examboard",
+    "count": 5
+  },
+  {
+    "label": "Keystage",
+    "count": 4
+  },
+  {
+    "label": "Lesson",
+    "count": 12631
+  },
+  {
+    "label": "Phase",
+    "count": 2
+  },
+  {
+    "label": "Programme",
+    "count": 258
+  },
+  {
+    "label": "Schemaversion",
+    "count": 1
+  },
+  {
+    "label": "Subject",
+    "count": 22
+  },
+  {
+    "label": "Thread",
+    "count": 165
+  },
+  {
+    "label": "Tier",
+    "count": 2
+  },
+  {
+    "label": "Unit",
+    "count": 1564
+  },
+  {
+    "label": "Unitoffering",
+    "count": 183
+  },
+  {
+    "label": "Unitvariant",
+    "count": 2064
+  },
+  {
+    "label": "Year",
+    "count": 11
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Examboard
+================================================================================
+
+        MATCH (n:`Examboard`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "examBoardDescription": "Eduqas",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "examBoardTitle": "Eduqas",
+      "examBoardId": 5,
+      "displayOrder": 5,
+      "examBoardSlug": "eduqas"
+    }
+  },
+  {
+    "n": {
+      "examBoardDescription": "Edexcel",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "examBoardTitle": "Edexcel",
+      "examBoardId": 2,
+      "displayOrder": 2,
+      "examBoardSlug": "edexcel"
+    }
+  },
+  {
+    "n": {
+      "examBoardDescription": "Assessment and Qualifications Alliance",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "examBoardTitle": "AQA",
+      "examBoardId": 1,
+      "displayOrder": 1,
+      "examBoardSlug": "aqa"
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Keystage
+================================================================================
+
+        MATCH (n:`Keystage`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "keyStageDescription": "Key Stage 4",
+      "keyStageId": 4,
+      "keyStageSlug": "ks4",
+      "displayOrder": 5,
+      "keyStageTitle": "KS4"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "keyStageDescription": "Key Stage 3",
+      "keyStageId": 3,
+      "keyStageSlug": "ks3",
+      "displayOrder": 4,
+      "keyStageTitle": "KS3"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "keyStageDescription": "Key Stage 1",
+      "keyStageId": 1,
+      "keyStageSlug": "ks1",
+      "displayOrder": 2,
+      "keyStageTitle": "KS1"
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Lesson
+================================================================================
+
+        MATCH (n:`Lesson`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "keywords": [
+        "{\"keyword\": \"to compare\", \"description\": \"to note the similarities and/or dissimilarities between two or more things\"}",
+        "{\"keyword\": \"context\", \"description\": \"the circumstances in which a text was produced\"}",
+        "{\"keyword\": \"thematically\", \"description\": \"a way that relates to the subjects or themes of something\"}",
+        "{\"keyword\": \"misconception\", \"description\": \"a view or opinion that is incorrect because it is based on faulty thinking or understanding\"}"
+      ],
+      "keyLearningPoints": [
+        "{\"key_learning_point\": \"Analysing model answers allows us to explore how we might frame ideas and how to avoid misconceptions.\"}",
+        "{\"key_learning_point\": \"An effective introduction should clearly set out the argument of the essay in relation to the question.\"}",
+        "{\"key_learning_point\": \"One misconception is to interweave quotations from both poems but not effectively analyse them.\"}",
+        "{\"key_learning_point\": \"Another misconception is to point out differences between the poems but not effectively analyse them.\"}"
+      ],
+      "lessonOutline": [
+        "{\"lesson_outline\": \"Exploring model introductions\"}",
+        "{\"lesson_outline\": \"Exploring model comparative analysis\"}"
+      ],
+      "lessonId": 29077,
+      "lessonSlug": "analysing-extended-responses-to-the-eduqas-poetry-anthology",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "equipmentResources": [
+        "{\"equipment\": \"You will need a copy of the Eduqas 2025 Anthology for this lesson.\"}"
+      ],
+      "pupilLessonOutcome": "I can recognise excellent writing practice in a model response.",
+      "lessonTitle": "Analysing extended responses to the Eduqas poetry anthology",
+      "teacherTips": [
+        "{\"teacher_tip\": \"If pupils have already written their own paragraphs or essays, Task A and Task B can be adapted to help them review and improve their own work.\"}"
+      ],
+      "quizStarterId": 39436,
+      "misconceptionsMistakes": [
+        "{\"response\": \"Without analysis, the response does not explain how or why the poets present their ideas, or what effects those choices have. This limits the depth and quality of the comparison.\", \"misconception\": \"As long as I include quotations from both poems and mention some similarities or differences, I\u2019m doing a good comparative analysis.\"}"
+      ],
+      "quizExitId": 39437
+    }
+  },
+  {
+    "n": {
+      "keywords": [
+        "{\"keyword\": \"nostalgia\", \"description\": \"a feeling of pleasure and also slight sadness when you think about things that happened in the past\"}",
+        "{\"keyword\": \"melancholic\", \"description\": \"expressing feelings of sadness\"}",
+        "{\"keyword\": \"reclusive\", \"description\": \"avoiding the company of other people; solitary\"}",
+        "{\"keyword\": \"Romanticism\", \"description\": \"an artistic movement from the late 18th and early 19th century, focused on emotions and nature\"}",
+        "{\"keyword\": \"bleak\", \"description\": \"devoid of cheer or comfort\"}"
+      ],
+      "keyLearningPoints": [
+        "{\"key_learning_point\": \"Like other Romantic poets, Bront\u00eb uses natural imagery to present human emotions.\"}",
+        "{\"key_learning_point\": \"Bront\u00eb lived a quiet and reclusive life in the Yorkshire countryside.\"}",
+        "{\"key_learning_point\": \"Some may argue Bront\u00eb's poem is about the sense of security and belonging her nostalgic memories bring.\"}",
+        "{\"key_learning_point\": \"Others may claim there is a melancholic tone to the poem.\"}"
+      ],
+      "lessonOutline": [
+        "{\"lesson_outline\": \"Approaching the poem\"}",
+        "{\"lesson_outline\": \"Understanding the poem\"}"
+      ],
+      "lessonId": 2537,
+      "contentGuidanceDetails": [
+        "{\"details\": \"This lesson contains references to grief and sadness.\"}"
+      ],
+      "lessonSlug": "understanding-the-poem-mild-the-mist-upon-the-hill",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "equipmentResources": [
+        "{\"equipment\": \"You will need access to a copy of the Edexcel Belonging anthology for this lesson.\"}"
+      ],
+      "pupilLessonOutcome": "I can explain how Bront\u00eb creates tone in \u2018Mild the Mist Upon the Hill\u2019.",
+      "contentGuidance": [
+        "4"
+      ],
+      "lessonTitle": "Understanding the tone of Bront\u00eb's 'Mild the Mist Upon the Hill'",
+      "teacherTips": [
+        "{\"teacher_tip\": \"It would be helpful to recap Romanticism at the start of the lesson if this is a concept the pupils aren't too familiar with.\"}"
+      ],
+      "quizStarterId": 25435,
+      "misconceptionsMistakes": [
+        "{\"response\": \"Sometimes Romantic poets may show the devastation that humanity has caused nature or talk about nature in a grieving way.\", \"misconception\": \"That Romantic poems always present nature in a positive light.\"}"
+      ],
+      "quizExitId": 25436
+    }
+  },
+  {
+    "n": {
+      "keywords": [
+        "{\"keyword\": \"summarise\", \"description\": \"describe the key points or ideas from a text succinctly and accurately\"}",
+        "{\"keyword\": \"thesis\", \"description\": \"the primary argument or central idea presented in a piece of academic writing\"}",
+        "{\"keyword\": \"topic sentence\", \"description\": \"a sentence that introduces the main idea or theme of a paragraph, guiding its content\"}",
+        "{\"keyword\": \"embedded\", \"description\": \"information or objects that are firmly and deeply fixed within something else\"}",
+        "{\"keyword\": \"tentative language\", \"description\": \"words or phrases that express a lack of certainty when presenting ideas\"}"
+      ],
+      "keyLearningPoints": [
+        "{\"key_learning_point\": \"Summarising each poem individually in relation to the question helps to begin building a thesis statement.\"}",
+        "{\"key_learning_point\": \"Topic sentences should be specific, precise and express duality.\"}",
+        "{\"key_learning_point\": \"Evidence should be embedded into analytical paragraphs.\"}",
+        "{\"key_learning_point\": \"Tentative language should be used to explore interpretations within analysis.\"}"
+      ],
+      "lessonOutline": [
+        "{\"lesson_outline\": \"Planning a comparative analysis\"}",
+        "{\"lesson_outline\": \"Writing a comparative analysis\"}"
+      ],
+      "lessonId": 6248,
+      "contentGuidanceDetails": [
+        "{\"details\": \"All three poems reflect on how parental relationships can become more detached and distanced as children grow older.\"}"
+      ],
+      "lessonSlug": "analysing-how-poets-present-relationships-that-change-over-time",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "equipmentResources": [
+        "{\"equipment\": \"You will need access to 'Mother, any distance' (Armitage), 'Walking Away' (Day-Lewis) and 'Follower' (Heaney). They can be found in the AQA Love and Relationships Poetry Anthology.\"}"
+      ],
+      "pupilLessonOutcome": "I can write a comparative analysis of \u2018Walking Away\u2019 and one other poem.",
+      "contentGuidance": [
+        "4"
+      ],
+      "lessonTitle": "Analysing how poets present relationships that change over time",
+      "teacherTips": [
+        "{\"teacher_tip\": \"Consider printing off Jun's response for learning cycle 2 and encouraging students to 'mark' it before going through how to improve each part.\"}"
+      ],
+      "quizStarterId": 22591,
+      "misconceptionsMistakes": [
+        "{\"response\": \"Although it is important to include links to wider context in your overall response, it isn't necessary to include a contextual link in every analytical paragraph. In fact, 'bolt-on' contextual links should be avoided.\", \"misconception\": \"It's important to include a contextual link in every analytical paragraph.\"}"
+      ],
+      "quizExitId": 22592
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Phase
+================================================================================
+
+        MATCH (n:`Phase`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (2 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "displayOrder": 3,
+      "phaseId": 3,
+      "phaseTitle": "secondary",
+      "phaseSlug": "secondary",
+      "phaseDescription": "Secondary"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "displayOrder": 2,
+      "phaseId": 2,
+      "phaseTitle": "primary",
+      "phaseSlug": "primary",
+      "phaseDescription": "Primary"
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Programme
+================================================================================
+
+        MATCH (n:`Programme`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "programmeSlug": "english-secondary-year-10-eduqas"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "programmeSlug": "english-secondary-year-10-edexcel"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "programmeSlug": "english-secondary-year-10-aqa"
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Schemaversion
+================================================================================
+
+        MATCH (n:`Schemaversion`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (1 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:24.364749",
+      "schemaVersion": "v0.1.0-alpha",
+      "schemaDescription": "Schema design and experimentation.",
+      "isActive": true
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Subject
+================================================================================
+
+        MATCH (n:`Subject`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "subjectTitle": "English",
+      "displayOrder": 11,
+      "subjectSlug": "english",
+      "subjectId": 1
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "subjectTitle": "Art and design",
+      "displayOrder": 1,
+      "subjectSlug": "art",
+      "subjectId": 11
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "subjectParentTitle": "Science",
+      "subjectTitle": "Chemistry",
+      "subjectDescription": "KS4",
+      "displayOrder": 35,
+      "subjectSlug": "chemistry",
+      "subjectId": 9,
+      "subjectParentId": 6
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Thread
+================================================================================
+
+        MATCH (n:`Thread`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "threadId": 120,
+      "lastUpdated": "2025-10-08T22:27:55.085753",
+      "threadTitle": "Modern literature strand 1: identity, belonging and community",
+      "thread_slug": "modern-literature-strand-1-identity-belonging-and-community"
+    }
+  },
+  {
+    "n": {
+      "threadId": 80,
+      "lastUpdated": "2025-10-08T22:27:55.085805",
+      "threadTitle": "Modern literature strand 2: power, control and oppressive regimes",
+      "thread_slug": "modern-literature-strand-2-power-control-and-oppressive-regimes"
+    }
+  },
+  {
+    "n": {
+      "threadId": 127,
+      "lastUpdated": "2025-10-08T22:27:55.085841",
+      "threadTitle": "Appreciation of poetry",
+      "thread_slug": "appreciation-of-poetry"
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Tier
+================================================================================
+
+        MATCH (n:`Tier`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (2 records):
+[
+  {
+    "n": {
+      "tierSlug": "foundation",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "tierId": 1,
+      "displayOrder": 1,
+      "tierTitle": "foundation",
+      "tierDescription": "Foundation"
+    }
+  },
+  {
+    "n": {
+      "tierSlug": "higher",
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "tierId": 3,
+      "displayOrder": 3,
+      "tierTitle": "higher",
+      "tierDescription": "Higher"
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Unit
+================================================================================
+
+        MATCH (n:`Unit`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+Received notification from DBMS server: {severity: WARNING} {code: Neo.ClientNotification.Statement.FeatureDeprecationWarning} {category: DEPRECATION} {title: This feature is deprecated and will be removed in future versions.} {description: CALL subquery without a variable scope clause is now deprecated. Use CALL (label) { ... }} {position: line: 3, column: 9, offset: 46} for query: '\n        CALL db.labels() YIELD label\n        CALL {\n            WITH label\n            MATCH (n) WHERE label IN labels(n)\n            RETURN count(n) as count\n        }\n        RETURN label, count\n        ORDER BY label\n        '
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "unitSlug": "poetry-anthology-first-study",
+      "nullUnitVariantId": 927,
+      "whyThisWhyNow": "This unit uses and builds on pupils' understanding of comparative poetry analysis from 'Comparing poetry from the first world war'. In this unit, pupils look at conflict from a greater range of perspectives. They complete more sustained and nuanced comparisons, and generate their own comparative points. They also read poetry that explores relationships, building on their understanding of relationship poetry from Maya Angelou. This unit prepares pupils for the anthology's 'continued study' unit, where they will look at the most complex poems and make comparisons across all poems.",
+      "unitDescription": "In this unit, pupis explore 11 of the 15 poems from the Eduqas poetry anthology. Pupils complete two lessons about each poem: one on understanding and one on analysis. Pupils study the poems in a thematically linked order so they can complete comparative and thematic lessons during the unit.",
+      "unitId": 153,
+      "priorKnowledge": [
+        "Pupils can use reading skills to decode texts.",
+        "Pupils can make clear inferences about texts.",
+        "Pupils can comment on the language choices of a poet.",
+        "Pupils can recognise and comment on some structural devices of poetry such as rhyme, rhythm, stanza and line length.",
+        "Pupils understand that the social and historical context of texts impacts our interpretation of them.",
+        "Pupils can write clear topic sentences.",
+        "Pupils can select evidence from a text to support their analysis.",
+        "Pupils can structure their arguments using single paragraph outlines.",
+        "Pupils have an understanding that power corrupts.",
+        "Pupils can use comparative conjunctions and correlative conjunctions to compare texts."
+      ],
+      "unitTitle": "Poetry anthology: first study",
+      "subjectCategory": [
+        "Literature"
+      ]
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "unitSlug": "foundation-workshops-revisiting-elements-of-art-and-principles-of-art",
+      "nullUnitVariantId": 4940,
+      "whyThisWhyNow": "This unit is important for pupils at the beginning of the GCSE course to build on their understanding of the building blocks for making art. They will have explored what defines art and examined its role across various contexts, pupils have developed critical thinking and analytical skills. This unit encourages students to make the necessary links between the underyling elements and principles and the work that they, and other artists are making.",
+      "unitDescription": "This unit revisits and reframes the key principles and elements of art. Pupils will study how artists use these elements with greater sophistication. They will carefully examine and analyse the elements and principles, applying them to their chosen art forms and endorsements.",
+      "unitId": 3748,
+      "unitTitle": "Foundation workshops: revisiting elements of art and principles of art"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "unitSlug": "states-of-matter",
+      "nullUnitVariantId": 1662,
+      "whyThisWhyNow": "This unit builds on pupils\u2019 prior learning from Solid, liquid, gas states and changes of state, where they explored the behaviour of particles in different states and how substances transition between these states. It deepens their understanding by examining the properties of states of matter and the conditions that affect these changes. This prepares pupils for the next unit, Separating substances, where they will apply this knowledge to explore methods of separating mixtures based on physical properties, reinforcing the understanding of matter\u2019s behaviour and interactions.",
+      "unitDescription": "This unit covers the particle model, states of matter, and changes between them, distinguishing physical from chemical changes. It explains the concept of purity in scientific terms, using melting point data to identify pure and impure substances, and explores the limitations of the particle model.",
+      "unitId": 1148,
+      "priorKnowledge": [
+        "There are three states of matter: solid, liquid and gas",
+        "Changes of state can be achieved by heating or cooling",
+        "Solids, liquids and gases have different properties",
+        "Only gases can be compressed, so gases can have different pressures",
+        "Fluids fill the container they\u2019re in",
+        "Fluids can be poured (they can flow)",
+        "The particle model shows how solids, liquids and gases are organised together"
+      ],
+      "unitTitle": "States of matter",
+      "subjectCategory": [
+        "Chemistry"
+      ]
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Unitoffering
+================================================================================
+
+        MATCH (n:`Unitoffering`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "unitOfferingSlug": "year-10-english"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "unitOfferingSlug": "year-10-art"
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "unitOfferingSlug": "year-10-chemistry"
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Unitvariant
+================================================================================
+
+        MATCH (n:`Unitvariant`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "optionTitle": "Poetry anthology (Assessment from summer 2027)",
+      "unitVariantId": 5071
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "optionTitle": "Belonging",
+      "unitVariantId": 203
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "optionTitle": "Love and Relationships",
+      "unitVariantId": 201
+    }
+  }
+]
+
+================================================================================
+QUERY: Sample Nodes for Label: Year
+================================================================================
+
+        MATCH (n:`Year`)
+        RETURN n
+        LIMIT 3
+        
+
+Results (3 records):
+[
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "displayOrder": 11,
+      "yearDescription": "Year 10",
+      "yearTitle": "10",
+      "yearSlug": "year-10",
+      "yearId": 10
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "displayOrder": 10,
+      "yearDescription": "Year 9",
+      "yearTitle": "9",
+      "yearSlug": "year-9",
+      "yearId": 9
+    }
+  },
+  {
+    "n": {
+      "lastUpdated": "2025-10-08T22:27:04.079946",
+      "displayOrder": 9,
+      "yearDescription": "Year 8",
+      "yearTitle": "8",
+      "yearSlug": "year-8",
+      "yearId": 8
+    }
+  }
+]
+
+================================================================================
+PROPERTIES BY LABEL
+================================================================================
+
+================================================================================
+QUERY: Node Labels and Counts
+================================================================================
+
+        CALL db.labels() YIELD label
+        CALL {
+            WITH label
+            MATCH (n) WHERE label IN labels(n)
+            RETURN count(n) as count
+        }
+        RETURN label, count
+        ORDER BY label
+        
+
+Results (13 records):
+[
+  {
+    "label": "Examboard",
+    "count": 5
+  },
+  {
+    "label": "Keystage",
+    "count": 4
+  },
+  {
+    "label": "Lesson",
+    "count": 12631
+  },
+  {
+    "label": "Phase",
+    "count": 2
+  },
+  {
+    "label": "Programme",
+    "count": 258
+  },
+  {
+    "label": "Schemaversion",
+    "count": 1
+  },
+  {
+    "label": "Subject",
+    "count": 22
+  },
+  {
+    "label": "Thread",
+    "count": 165
+  },
+  {
+    "label": "Tier",
+    "count": 2
+  },
+  {
+    "label": "Unit",
+    "count": 1564
+  },
+  {
+    "label": "Unitoffering",
+    "count": 183
+  },
+  {
+    "label": "Unitvariant",
+    "count": 2064
+  },
+  {
+    "label": "Year",
+    "count": 11
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Examboard
+================================================================================
+
+        MATCH (n:`Examboard`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (6 records):
+[
+  {
+    "key": "displayOrder",
+    "type": "INTEGER",
+    "sampleValues": [
+      5,
+      2,
+      1
+    ]
+  },
+  {
+    "key": "examBoardDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "Eduqas",
+      "Edexcel",
+      "Assessment and Qualifications Alliance"
+    ]
+  },
+  {
+    "key": "examBoardId",
+    "type": "INTEGER",
+    "sampleValues": [
+      5,
+      2,
+      1
+    ]
+  },
+  {
+    "key": "examBoardSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "eduqas",
+      "edexcel",
+      "aqa"
+    ]
+  },
+  {
+    "key": "examBoardTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "Eduqas",
+      "Edexcel",
+      "AQA"
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Keystage
+================================================================================
+
+        MATCH (n:`Keystage`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (6 records):
+[
+  {
+    "key": "displayOrder",
+    "type": "INTEGER",
+    "sampleValues": [
+      5,
+      4,
+      2
+    ]
+  },
+  {
+    "key": "keyStageDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "Key Stage 4",
+      "Key Stage 3",
+      "Key Stage 1"
+    ]
+  },
+  {
+    "key": "keyStageId",
+    "type": "INTEGER",
+    "sampleValues": [
+      4,
+      3,
+      1
+    ]
+  },
+  {
+    "key": "keyStageSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "ks4",
+      "ks3",
+      "ks1"
+    ]
+  },
+  {
+    "key": "keyStageTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "KS4",
+      "KS3",
+      "KS1"
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Lesson
+================================================================================
+
+        MATCH (n:`Lesson`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (15 records):
+[
+  {
+    "key": "contentGuidance",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "4"
+      ],
+      [
+        "2",
+        "9"
+      ],
+      [
+        "4",
+        "10",
+        "14"
+      ]
+    ]
+  },
+  {
+    "key": "contentGuidanceDetails",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "{\"details\": \"This lesson contains references to grief and sadness.\"}"
+      ],
+      [
+        "{\"details\": \"All three poems reflect on how parental relationships can become more detached and distanced as children grow older.\"}"
+      ],
+      [
+        "{\"details\": \"Contains implications of prejudice based on someone's accent and implied violence during elocution lessons. Implied death of a relative.\"}"
+      ]
+    ]
+  },
+  {
+    "key": "equipmentResources",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "{\"equipment\": \"You will need a copy of the Eduqas 2025 Anthology for this lesson.\"}"
+      ],
+      [
+        "{\"equipment\": \"You will need access to a copy of the Edexcel Belonging anthology for this lesson.\"}"
+      ],
+      [
+        "{\"equipment\": \"You will need access to 'Mother, any distance' (Armitage), 'Walking Away' (Day-Lewis) and 'Follower' (Heaney). They can be found in the AQA Love and Relationships Poetry Anthology.\"}"
+      ]
+    ]
+  },
+  {
+    "key": "keyLearningPoints",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "{\"key_learning_point\": \"Analysing model answers allows us to explore how we might frame ideas and how to avoid misconceptions.\"}",
+        "{\"key_learning_point\": \"An effective introduction should clearly set out the argument of the essay in relation to the question.\"}",
+        "{\"key_learning_point\": \"One misconception is to interweave quotations from both poems but not effectively analyse them.\"}",
+        "{\"key_learning_point\": \"Another misconception is to point out differences between the poems but not effectively analyse them.\"}"
+      ],
+      [
+        "{\"key_learning_point\": \"Like other Romantic poets, Bront\u00eb uses natural imagery to present human emotions.\"}",
+        "{\"key_learning_point\": \"Bront\u00eb lived a quiet and reclusive life in the Yorkshire countryside.\"}",
+        "{\"key_learning_point\": \"Some may argue Bront\u00eb's poem is about the sense of security and belonging her nostalgic memories bring.\"}",
+        "{\"key_learning_point\": \"Others may claim there is a melancholic tone to the poem.\"}"
+      ],
+      [
+        "{\"key_learning_point\": \"Summarising each poem individually in relation to the question helps to begin building a thesis statement.\"}",
+        "{\"key_learning_point\": \"Topic sentences should be specific, precise and express duality.\"}",
+        "{\"key_learning_point\": \"Evidence should be embedded into analytical paragraphs.\"}",
+        "{\"key_learning_point\": \"Tentative language should be used to explore interpretations within analysis.\"}"
+      ]
+    ]
+  },
+  {
+    "key": "keywords",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "{\"keyword\": \"to compare\", \"description\": \"to note the similarities and/or dissimilarities between two or more things\"}",
+        "{\"keyword\": \"context\", \"description\": \"the circumstances in which a text was produced\"}",
+        "{\"keyword\": \"thematically\", \"description\": \"a way that relates to the subjects or themes of something\"}",
+        "{\"keyword\": \"misconception\", \"description\": \"a view or opinion that is incorrect because it is based on faulty thinking or understanding\"}"
+      ],
+      [
+        "{\"keyword\": \"nostalgia\", \"description\": \"a feeling of pleasure and also slight sadness when you think about things that happened in the past\"}",
+        "{\"keyword\": \"melancholic\", \"description\": \"expressing feelings of sadness\"}",
+        "{\"keyword\": \"reclusive\", \"description\": \"avoiding the company of other people; solitary\"}",
+        "{\"keyword\": \"Romanticism\", \"description\": \"an artistic movement from the late 18th and early 19th century, focused on emotions and nature\"}",
+        "{\"keyword\": \"bleak\", \"description\": \"devoid of cheer or comfort\"}"
+      ],
+      [
+        "{\"keyword\": \"summarise\", \"description\": \"describe the key points or ideas from a text succinctly and accurately\"}",
+        "{\"keyword\": \"thesis\", \"description\": \"the primary argument or central idea presented in a piece of academic writing\"}",
+        "{\"keyword\": \"topic sentence\", \"description\": \"a sentence that introduces the main idea or theme of a paragraph, guiding its content\"}",
+        "{\"keyword\": \"embedded\", \"description\": \"information or objects that are firmly and deeply fixed within something else\"}",
+        "{\"keyword\": \"tentative language\", \"description\": \"words or phrases that express a lack of certainty when presenting ideas\"}"
+      ]
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "lessonId",
+    "type": "INTEGER",
+    "sampleValues": [
+      29077,
+      2537,
+      6248
+    ]
+  },
+  {
+    "key": "lessonOutline",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "{\"lesson_outline\": \"Exploring model introductions\"}",
+        "{\"lesson_outline\": \"Exploring model comparative analysis\"}"
+      ],
+      [
+        "{\"lesson_outline\": \"Approaching the poem\"}",
+        "{\"lesson_outline\": \"Understanding the poem\"}"
+      ],
+      [
+        "{\"lesson_outline\": \"Planning a comparative analysis\"}",
+        "{\"lesson_outline\": \"Writing a comparative analysis\"}"
+      ]
+    ]
+  },
+  {
+    "key": "lessonSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "analysing-extended-responses-to-the-eduqas-poetry-anthology",
+      "understanding-the-poem-mild-the-mist-upon-the-hill",
+      "analysing-how-poets-present-relationships-that-change-over-time"
+    ]
+  },
+  {
+    "key": "lessonTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "Analysing extended responses to the Eduqas poetry anthology",
+      "Understanding the tone of Bront\u00eb's 'Mild the Mist Upon the Hill'",
+      "Analysing how poets present relationships that change over time"
+    ]
+  },
+  {
+    "key": "misconceptionsMistakes",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "{\"response\": \"Without analysis, the response does not explain how or why the poets present their ideas, or what effects those choices have. This limits the depth and quality of the comparison.\", \"misconception\": \"As long as I include quotations from both poems and mention some similarities or differences, I\u2019m doing a good comparative analysis.\"}"
+      ],
+      [
+        "{\"response\": \"Sometimes Romantic poets may show the devastation that humanity has caused nature or talk about nature in a grieving way.\", \"misconception\": \"That Romantic poems always present nature in a positive light.\"}"
+      ],
+      [
+        "{\"response\": \"Although it is important to include links to wider context in your overall response, it isn't necessary to include a contextual link in every analytical paragraph. In fact, 'bolt-on' contextual links should be avoided.\", \"misconception\": \"It's important to include a contextual link in every analytical paragraph.\"}"
+      ]
+    ]
+  },
+  {
+    "key": "pupilLessonOutcome",
+    "type": "STRING",
+    "sampleValues": [
+      "I can recognise excellent writing practice in a model response.",
+      "I can explain how Bront\u00eb creates tone in \u2018Mild the Mist Upon the Hill\u2019.",
+      "I can write a comparative analysis of \u2018Walking Away\u2019 and one other poem."
+    ]
+  },
+  {
+    "key": "quizExitId",
+    "type": "INTEGER",
+    "sampleValues": [
+      39437,
+      25436,
+      22592
+    ]
+  },
+  {
+    "key": "quizStarterId",
+    "type": "INTEGER",
+    "sampleValues": [
+      39436,
+      25435,
+      22591
+    ]
+  },
+  {
+    "key": "teacherTips",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "{\"teacher_tip\": \"If pupils have already written their own paragraphs or essays, Task A and Task B can be adapted to help them review and improve their own work.\"}"
+      ],
+      [
+        "{\"teacher_tip\": \"It would be helpful to recap Romanticism at the start of the lesson if this is a concept the pupils aren't too familiar with.\"}"
+      ],
+      [
+        "{\"teacher_tip\": \"Consider printing off Jun's response for learning cycle 2 and encouraging students to 'mark' it before going through how to improve each part.\"}"
+      ]
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Phase
+================================================================================
+
+        MATCH (n:`Phase`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (6 records):
+[
+  {
+    "key": "displayOrder",
+    "type": "INTEGER",
+    "sampleValues": [
+      3,
+      2
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "phaseDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "Secondary",
+      "Primary"
+    ]
+  },
+  {
+    "key": "phaseId",
+    "type": "INTEGER",
+    "sampleValues": [
+      3,
+      2
+    ]
+  },
+  {
+    "key": "phaseSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "secondary",
+      "primary"
+    ]
+  },
+  {
+    "key": "phaseTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "secondary",
+      "primary"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Programme
+================================================================================
+
+        MATCH (n:`Programme`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (2 records):
+[
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "programmeSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "english-secondary-year-10-eduqas",
+      "english-secondary-year-10-edexcel",
+      "english-secondary-year-10-aqa"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Schemaversion
+================================================================================
+
+        MATCH (n:`Schemaversion`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (4 records):
+[
+  {
+    "key": "isActive",
+    "type": "BOOLEAN",
+    "sampleValues": [
+      true
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:24.364749"
+    ]
+  },
+  {
+    "key": "schemaDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "Schema design and experimentation."
+    ]
+  },
+  {
+    "key": "schemaVersion",
+    "type": "STRING",
+    "sampleValues": [
+      "v0.1.0-alpha"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Subject
+================================================================================
+
+        MATCH (n:`Subject`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (8 records):
+[
+  {
+    "key": "displayOrder",
+    "type": "INTEGER",
+    "sampleValues": [
+      11,
+      1,
+      35
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "subjectDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "KS4",
+      "EYFS, KS1, KS2, KS3",
+      "pseudo-subject"
+    ]
+  },
+  {
+    "key": "subjectId",
+    "type": "INTEGER",
+    "sampleValues": [
+      1,
+      11,
+      9
+    ]
+  },
+  {
+    "key": "subjectParentId",
+    "type": "INTEGER",
+    "sampleValues": [
+      6
+    ]
+  },
+  {
+    "key": "subjectParentTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "Science"
+    ]
+  },
+  {
+    "key": "subjectSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "english",
+      "art",
+      "chemistry"
+    ]
+  },
+  {
+    "key": "subjectTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "English",
+      "Art and design",
+      "Chemistry"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Thread
+================================================================================
+
+        MATCH (n:`Thread`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (4 records):
+[
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:55.085753",
+      "2025-10-08T22:27:55.085805",
+      "2025-10-08T22:27:55.085841"
+    ]
+  },
+  {
+    "key": "threadId",
+    "type": "INTEGER",
+    "sampleValues": [
+      120,
+      80,
+      127
+    ]
+  },
+  {
+    "key": "threadTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "Modern literature strand 1: identity, belonging and community",
+      "Modern literature strand 2: power, control and oppressive regimes",
+      "Appreciation of poetry"
+    ]
+  },
+  {
+    "key": "thread_slug",
+    "type": "STRING",
+    "sampleValues": [
+      "modern-literature-strand-1-identity-belonging-and-community",
+      "modern-literature-strand-2-power-control-and-oppressive-regimes",
+      "appreciation-of-poetry"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Tier
+================================================================================
+
+        MATCH (n:`Tier`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (6 records):
+[
+  {
+    "key": "displayOrder",
+    "type": "INTEGER",
+    "sampleValues": [
+      1,
+      3
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "tierDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "Foundation",
+      "Higher"
+    ]
+  },
+  {
+    "key": "tierId",
+    "type": "INTEGER",
+    "sampleValues": [
+      1,
+      3
+    ]
+  },
+  {
+    "key": "tierSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "foundation",
+      "higher"
+    ]
+  },
+  {
+    "key": "tierTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "foundation",
+      "higher"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Unit
+================================================================================
+
+        MATCH (n:`Unit`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (9 records):
+[
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "nullUnitVariantId",
+    "type": "INTEGER",
+    "sampleValues": [
+      927,
+      4940,
+      1662
+    ]
+  },
+  {
+    "key": "priorKnowledge",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "Pupils can use reading skills to decode texts.",
+        "Pupils can make clear inferences about texts.",
+        "Pupils can comment on the language choices of a poet.",
+        "Pupils can recognise and comment on some structural devices of poetry such as rhyme, rhythm, stanza and line length.",
+        "Pupils understand that the social and historical context of texts impacts our interpretation of them.",
+        "Pupils can write clear topic sentences.",
+        "Pupils can select evidence from a text to support their analysis.",
+        "Pupils can structure their arguments using single paragraph outlines.",
+        "Pupils have an understanding that power corrupts.",
+        "Pupils can use comparative conjunctions and correlative conjunctions to compare texts."
+      ],
+      [
+        "There are three states of matter: solid, liquid and gas",
+        "Changes of state can be achieved by heating or cooling",
+        "Solids, liquids and gases have different properties",
+        "Only gases can be compressed, so gases can have different pressures",
+        "Fluids fill the container they\u2019re in",
+        "Fluids can be poured (they can flow)",
+        "The particle model shows how solids, liquids and gases are organised together"
+      ],
+      [
+        "Pupils know how to find natural and sharp notes on the treble clef and play them on the keyboard",
+        "Pupils know the sound and feel of dotted rhythms",
+        "Pupils know that melodies can be major or minor",
+        "Pupils have experience play a melody with hand position changes kept in time"
+      ]
+    ]
+  },
+  {
+    "key": "subjectCategory",
+    "type": "LIST OF STRING",
+    "sampleValues": [
+      [
+        "Literature"
+      ],
+      [
+        "Chemistry"
+      ],
+      [
+        "Reading, writing & oracy"
+      ]
+    ]
+  },
+  {
+    "key": "unitDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "In this unit, pupis explore 11 of the 15 poems from the Eduqas poetry anthology. Pupils complete two lessons about each poem: one on understanding and one on analysis. Pupils study the poems in a thematically linked order so they can complete comparative and thematic lessons during the unit.",
+      "This unit revisits and reframes the key principles and elements of art. Pupils will study how artists use these elements with greater sophistication. They will carefully examine and analyse the elements and principles, applying them to their chosen art forms and endorsements.",
+      "This unit covers the particle model, states of matter, and changes between them, distinguishing physical from chemical changes. It explains the concept of purity in scientific terms, using melting point data to identify pure and impure substances, and explores the limitations of the particle model."
+    ]
+  },
+  {
+    "key": "unitId",
+    "type": "INTEGER",
+    "sampleValues": [
+      153,
+      3748,
+      1148
+    ]
+  },
+  {
+    "key": "unitSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "poetry-anthology-first-study",
+      "foundation-workshops-revisiting-elements-of-art-and-principles-of-art",
+      "states-of-matter"
+    ]
+  },
+  {
+    "key": "unitTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "Poetry anthology: first study",
+      "Foundation workshops: revisiting elements of art and principles of art",
+      "States of matter"
+    ]
+  },
+  {
+    "key": "whyThisWhyNow",
+    "type": "STRING",
+    "sampleValues": [
+      "This unit uses and builds on pupils' understanding of comparative poetry analysis from 'Comparing poetry from the first world war'. In this unit, pupils look at conflict from a greater range of perspectives. They complete more sustained and nuanced comparisons, and generate their own comparative points. They also read poetry that explores relationships, building on their understanding of relationship poetry from Maya Angelou. This unit prepares pupils for the anthology's 'continued study' unit, where they will look at the most complex poems and make comparisons across all poems.",
+      "This unit is important for pupils at the beginning of the GCSE course to build on their understanding of the building blocks for making art. They will have explored what defines art and examined its role across various contexts, pupils have developed critical thinking and analytical skills. This unit encourages students to make the necessary links between the underyling elements and principles and the work that they, and other artists are making.",
+      "This unit builds on pupils\u2019 prior learning from Solid, liquid, gas states and changes of state, where they explored the behaviour of particles in different states and how substances transition between these states. It deepens their understanding by examining the properties of states of matter and the conditions that affect these changes. This prepares pupils for the next unit, Separating substances, where they will apply this knowledge to explore methods of separating mixtures based on physical properties, reinforcing the understanding of matter\u2019s behaviour and interactions."
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Unitoffering
+================================================================================
+
+        MATCH (n:`Unitoffering`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (2 records):
+[
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "unitOfferingSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "year-10-english",
+      "year-10-art",
+      "year-10-chemistry"
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Unitvariant
+================================================================================
+
+        MATCH (n:`Unitvariant`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (3 records):
+[
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "optionTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "Poetry anthology (Assessment from summer 2027)",
+      "Belonging",
+      "Love and Relationships"
+    ]
+  },
+  {
+    "key": "unitVariantId",
+    "type": "INTEGER",
+    "sampleValues": [
+      5071,
+      203,
+      201
+    ]
+  }
+]
+
+================================================================================
+QUERY: Properties for Label: Year
+================================================================================
+
+        MATCH (n:`Year`)
+        WITH n LIMIT 100
+        UNWIND keys(n) as key
+        WITH key, n[key] as value
+        RETURN DISTINCT key,
+               apoc.meta.cypher.type(value) as type,
+               collect(DISTINCT value)[0..3] as sampleValues
+        ORDER BY key
+        
+
+Results (6 records):
+[
+  {
+    "key": "displayOrder",
+    "type": "INTEGER",
+    "sampleValues": [
+      11,
+      10,
+      9
+    ]
+  },
+  {
+    "key": "lastUpdated",
+    "type": "STRING",
+    "sampleValues": [
+      "2025-10-08T22:27:04.079946"
+    ]
+  },
+  {
+    "key": "yearDescription",
+    "type": "STRING",
+    "sampleValues": [
+      "Year 10",
+      "Year 9",
+      "Year 8"
+    ]
+  },
+  {
+    "key": "yearId",
+    "type": "INTEGER",
+    "sampleValues": [
+      10,
+      9,
+      8
+    ]
+  },
+  {
+    "key": "yearSlug",
+    "type": "STRING",
+    "sampleValues": [
+      "year-10",
+      "year-9",
+      "year-8"
+    ]
+  },
+  {
+    "key": "yearTitle",
+    "type": "STRING",
+    "sampleValues": [
+      "10",
+      "9",
+      "8"
+    ]
+  }
+]
+
+================================================================================
+INTROSPECTION COMPLETE
+================================================================================
