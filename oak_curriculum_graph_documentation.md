@@ -1,7 +1,7 @@
-# UK School Curriculum Knowledge Graph
+# Oak Curriculum Knowledge Graph
 ## Documentation & User Guide
 
-**Version:** v0.1.0-alpha
+** Schema Version:** v0.1.0-alpha
 **Last Updated:** October 2025
 **Schema:** Oak National Academy Curriculum Graph
 
