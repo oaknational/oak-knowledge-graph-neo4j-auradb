@@ -1,9 +1,9 @@
 # Oak Curriculum Knowledge Graph
 ## Documentation & User Guide
 
-**Schema Version:** v0.1.0-alpha 
-**Last Updated:** October 2025 
-**Schema:** Oak National Academy Curriculum Graph 
+**Schema Version:** v0.1.0-alpha  
+**Last Updated:** October 2025  
+**Schema:** Oak National Academy Curriculum Graph  
 
 ---
 
