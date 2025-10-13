@@ -766,7 +766,7 @@ RETURN prog.programmeSlug AS programme;
 
 ### Curriculum Structure
 
-The UK School Curriculum Knowledge Graph models a complex, multi-layered educational structure. Understanding how these layers interact is key to effectively querying the graph.
+The Oak Curriculum Knowledge Graph models the complexity of the curriculum structure. Understanding how these layers interact is key to effectively querying the graph.
 
 #### Three Primary Hierarchies
 
@@ -779,8 +779,8 @@ Key Stage (KS1, KS2, KS3, KS4)
 Year (Year 1-11)
 ```
 
-This hierarchy represents the organizational structure of UK education:
-- **Phase** divides education into Primary (ages 5-11) and Secondary (ages 11-16+)
+This hierarchy represents the structure of UK education:
+- **Phase** divides education into Primary and Secondary
 - **Key Stage** groups years for curriculum planning (KS1: Years 1-2, KS2: Years 3-6, KS3: Years 7-9, KS4: Years 10-11)
 - **Year** represents individual year groups
 
@@ -796,24 +796,18 @@ Lesson (Individual teaching sessions)
 This hierarchy organizes the actual teaching content:
 - **Subject** represents academic disciplines
 - **Unit** groups related lessons thematically (e.g., "Poetry anthology", "States of matter")
-- **Lesson** contains the detailed pedagogical content for a single teaching session
+- **Lesson** contains the detailed content for a single teaching session
 
-**3. Qualification Pathway Hierarchy** (Exam Board → Programme → Unit Variant → Lesson)
+**3. Options Hierarchy** (Exam Board/Tier → Programme → Unit Variant → Lesson)
 ```
-Exam Board (AQA, Edexcel, etc.) + Tier (Foundation/Higher)
+Exam Board (AQA, Edexcel, etc.) + Tier (Foundation/Higher) - Optional
     ↓
-Programme (Subject + Year + Exam Board combination)
+Programme (Subject + Year + Exam Board (optional) combination) - may represent unit options
     ↓
-Unit Variant (Exam board-specific unit version)
+Unit Variant (Exam board / Tier specific unit or unit option)
     ↓
 Lesson (Shared or variant-specific)
 ```
-
-This hierarchy models exam qualifications:
-- **Exam Board** and **Tier** define the qualification provider and difficulty level
-- **Programme** represents a specific qualification pathway (e.g., "Year 10 English AQA")
-- **Unit Variant** provides exam board-specific versions of units
-- **Lesson** content may be shared across variants or specific to one
 
 ### Hierarchical Relationships
 
@@ -821,7 +815,7 @@ This hierarchy models exam qualifications:
 
 The **Unitoffering** node is crucial for connecting the educational hierarchy to content:
 
-```cypher
+```
 // How Year and Subject connect to Units
 MATCH path = (year:Year)-[:HAS_UNIT_OFFERING]->(uo:Unitoffering)<-[:HAS_UNIT_OFFERING]-(subject:Subject),
              (uo)-[:HAS_UNIT]->(unit:Unit)
@@ -832,7 +826,7 @@ RETURN path;
 This pattern shows:
 1. A **Year** and **Subject** both connect to the same **Unitoffering**
 2. The **Unitoffering** acts as a junction, representing "Year 10 English"
-3. The **Unitoffering** then connects to multiple **Units** available for that year/subject combination
+3. The **Unitoffering** then connects to multiple **Units** available for that year/subject combination (and to one or more **Programmes** that a particular selection and sequencing of units)
 
 **Why this pattern?**
 - Allows units to be offered to multiple year/subject combinations
@@ -843,7 +837,7 @@ This pattern shows:
 
 The complete path from educational structure to lessons:
 
-```cypher
+```
 // Trace from Phase to Lesson
 MATCH path = (phase:Phase)-[:HAS_KEY_STAGE]->(ks:Keystage)-[:HAS_YEAR]->(year:Year),
              (year)-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
@@ -854,8 +848,7 @@ MATCH path = (phase:Phase)-[:HAS_KEY_STAGE]->(ks:Keystage)-[:HAS_YEAR]->(year:Ye
 WHERE phase.phaseSlug = "secondary" 
   AND subject.subjectSlug = "english"
   AND year.yearTitle = "10"
-RETURN path
-LIMIT 1;
+RETURN path;
 ```
 
 This query demonstrates the full traversal from educational structure to specific lessons.
@@ -866,12 +859,11 @@ This query demonstrates the full traversal from educational structure to specifi
 
 **Threads** provide cross-unit thematic organization:
 
-```cypher
+```
 // Find all units in a thematic thread
 MATCH (thread:Thread {threadTitle: "Appreciation of poetry"})<-[:HAS_THREAD]-(unit:Unit)
 RETURN unit.unitTitle AS unit, unit.subjectCategory AS category
-ORDER BY unit.unitTitle
-LIMIT 5;
+ORDER BY unit.unitTitle;
 ```
 
 **Purpose of Threads:**
@@ -883,7 +875,7 @@ LIMIT 5;
 
 Units can have multiple variants for different exam boards:
 
-```cypher
+```
 // Compare variants of the same unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})-[:HAS_UNITVARIANT]->(uv:Unitvariant),
       (prog:Programme)-[:HAS_UNITVARIANT]->(uv),
@@ -891,24 +883,23 @@ MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})-[:HAS_UNITVARIANT]-
 RETURN eb.examBoardTitle AS examBoard, 
        uv.optionTitle AS variant,
        count{(uv)-[:HAS_LESSON]->(:Lesson)} AS lessonCount
-ORDER BY examBoard
-LIMIT 5;
+ORDER BY examBoard;
 ```
 
-This shows how the same conceptual unit (e.g., poetry anthology) has different implementations for AQA, Edexcel, and Eduqas exam boards.
+This shows how the same curriculum unit (e.g., poetry anthology) can have different delivery variations for different exam boards.
 
 #### Subject Hierarchies
 
 Some subjects have parent-child relationships:
 
-```cypher
+```
 // Find all science sub-subjects
 MATCH (parent:Subject {subjectTitle: "Science"})<-[:subjectParentId]-(child:Subject)
 RETURN child.subjectTitle AS subject, child.subjectDescription AS keyStages
 ORDER BY child.displayOrder;
 ```
 
-Example: Biology, Chemistry, and Physics are children of the Science subject.
+Example: Biology, Chemistry, and Physics are children of the Science parent subject.
 
 ### Data Patterns and Design Decisions
 
@@ -940,47 +931,19 @@ Example: Biology, Chemistry, and Physics are children of the Science subject.
 
 ### 5.1 Connection Information
 
-**Neo4j Database Connection:**
-```
-URI: bolt://localhost:7687 (or your Neo4j AuraDB URI)
-Database: neo4j (default)
-Username: neo4j
-Password: [your-password]
-```
-
-**Accessing the Database:**
+**Accessing the Neo4j Graph Database:**
 
 1. **Neo4j Browser:**
-   - Navigate to http://localhost:7474 (for local) or your AuraDB URL
-   - Enter credentials
-   - Use the query editor to run Cypher queries
+   - Not deployed for direct access yet
 
 2. **Neo4j Desktop:**
-   - Open your database in Neo4j Desktop
-   - Click "Open Browser" or "Explore"
-   - Run queries in the integrated browser
-
-3. **Python (neo4j driver):**
-```python
-from neo4j import GraphDatabase
-
-driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
-
-with driver.session() as session:
-    result = session.run("MATCH (n:Lesson) RETURN count(n) AS lessonCount")
-    print(result.single()["lessonCount"])
-```
-
-4. **Cypher Shell (CLI):**
-```bash
-cypher-shell -a bolt://localhost:7687 -u neo4j -p password
-```
+   - Not deployed for direct access yet
 
 ### 5.2 Basic Query Examples
 
 #### Example 1: Count All Nodes
 
-```cypher
+```
 // Count nodes by type
 CALL db.labels() YIELD label
 CALL {
@@ -1006,7 +969,7 @@ ORDER BY count DESC;
 
 #### Example 2: List All Subjects
 
-```cypher
+```
 // Find all subjects
 MATCH (s:Subject)
 RETURN s.subjectTitle AS subject, 
@@ -1029,7 +992,7 @@ ORDER BY s.displayOrder;
 
 #### Example 3: Find Units for a Subject
 
-```cypher
+```
 // Find all English units
 MATCH (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (uo)-[:HAS_UNIT]->(unit:Unit)
@@ -1051,7 +1014,7 @@ LIMIT 5;
 
 #### Example 4: Find Lessons in a Unit
 
-```cypher
+```
 // Find lessons in a specific unit
 MATCH (unit:Unit {unitSlug: "states-of-matter"})-[:HAS_UNITVARIANT]->(uv:Unitvariant),
       (uv)-[:HAS_LESSON]->(lesson:Lesson)
@@ -1074,11 +1037,10 @@ LIMIT 5;
 
 #### Example 5: Find Year Groups for a Key Stage
 
-```cypher
+```
 // Find all years in KS4
 MATCH (ks:Keystage {keyStageSlug: "ks4"})-[:HAS_YEAR]->(year:Year)
-RETURN year.yearTitle AS year, year.yearDescription AS description
-ORDER BY year.displayOrder;
+RETURN year.yearTitle AS year, year.yearDescription AS description;
 ```
 
 **Purpose:** Understand the structure of key stages.
@@ -1093,7 +1055,7 @@ ORDER BY year.displayOrder;
 
 #### Example 6: Find Lessons by Keyword
 
-```cypher
+```
 // Find lessons containing a specific keyword
 MATCH (lesson:Lesson)
 WHERE any(keyword IN lesson.keywords WHERE keyword CONTAINS 'Romantic')
@@ -1114,7 +1076,7 @@ LIMIT 5;
 
 #### Example 7: Get Complete Lesson Details
 
-```cypher
+```
 // Get full details for a lesson
 MATCH (lesson:Lesson {lessonSlug: "understanding-the-poem-mild-the-mist-upon-the-hill"})
 RETURN lesson.lessonTitle AS title,
@@ -1125,7 +1087,7 @@ RETURN lesson.lessonTitle AS title,
        lesson.equipmentResources AS equipment;
 ```
 
-**Purpose:** Access complete pedagogical content for a lesson.
+**Purpose:** Access complete content for a lesson.
 
 ---
 
@@ -1137,7 +1099,7 @@ RETURN lesson.lessonTitle AS title,
 
 **Use Case:** "What does a Year 10 student study?"
 
-```cypher
+```
 // List all subjects and units for Year 10
 MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (subject:Subject)-[:HAS_UNIT_OFFERING]->(uo),
@@ -1157,7 +1119,7 @@ Shows the breadth of curriculum for Year 10, grouped by subject.
 
 **Use Case:** "Show me the structure from subject down to lessons for a specific topic"
 
-```cypher
+```
 // Explore the hierarchy for a subject
 MATCH (subject:Subject {subjectSlug: "chemistry"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (uo)-[:HAS_UNIT]->(unit:Unit),
@@ -1180,7 +1142,7 @@ Shows the complete path from subject to lessons with counts.
 
 **Use Case:** "What prior knowledge do students need for this unit?"
 
-```cypher
+```
 // Get prerequisite knowledge for a unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})
 RETURN unit.unitTitle AS unit,
@@ -2099,646 +2061,7 @@ RETURN lesson;
 
 ---
 
-## 10. Data Quality Notes
-
-### Known Limitations
-
-**1. Data Completeness**
-- Some lessons may lack `teacherTips` or `misconceptionsMistakes` (this is by design - not all lessons need these)
-- `priorKnowledge` is optional and present on ~60% of units
-- `contentGuidance` is only present for lessons with sensitive content
-
-**2. Data Consistency**
-- JSON-formatted properties (keywords, keyLearningPoints) require parsing in application code
-- Property names follow camelCase convention from the source system
-- List properties stored as Neo4j arrays with JSON string elements
-
-**3. Temporal Data**
-- `lastUpdated` timestamps indicate when data was imported, not when content was created
-- No historical versioning - current state only
-- Schema version tracked in Schemaversion node
-
----
-
-### Update Frequency
-
-**Current State:**
-- **Schema Version:** v0.1.0-alpha (experimental/design phase)
-- **Last Updated:** October 8, 2025
-- **Data Refresh:** Manual updates from Hasura source system
-
-**Future Updates:**
-- Planned transition to automated synchronization
-- Will add `effectiveDate` and `retiredDate` for temporal tracking
-- Versioned schemas for backward compatibility
-
----
-
-### Data Sources and Methodology
-
-**Source Systems:**
-- **Primary:** Oak National Academy Hasura GraphQL API
-- **Materialized Views:** Published curriculum data (18,238+ records)
-- **Extract Method:** GraphQL queries with composite key joins
-- **Transform:** CSV-based mapping with deduplication
-
-**Data Pipeline:**
-1. Extract from Hasura materialized views
-2. Clean and normalize data (Unicode, empty values, quotes)
-3. Map to Neo4j schema with type conversion
-4. Bulk import via UNWIND batch queries (1,000 records/batch)
-
-**Quality Assurance:**
-- 100% test coverage on pipeline components
-- Integration tests with realistic curriculum data
-- Manual validation of complex relationships (threads, variants)
-
----
-
-### Version Information
-
-**Schema Evolution:**
-- **v0.1.0-alpha:** Initial graph design with 13 node types, 8 relationship types
-- Added support for:
-  - Composite key joins (programme_slug_by_year)
-  - Array field expansion (threads)
-  - Computed properties (isOptional)
-  - Native list types for complex objects
-
-**Breaking Changes:**
-- None (alpha version)
-
-**Deprecations:**
-- None (alpha version)
-
----
-
-### Data Dictionary Notes
-
-**Special Property Formats:**
-
-**JSON String Lists** (keywords, keyLearningPoints, etc.):
-```json
-[
-  "{\"keyword\": \"nostalgia\", \"description\": \"a feeling of pleasure...\"}",
-  "{\"keyword\": \"melancholic\", \"description\": \"expressing feelings of sadness\"}"
-]
-```
-Parse each array element as JSON to access structured data.
-
-**Content Guidance Codes:**
-- "2": Violence
-- "4": Grief/Loss
-- "9": Discrimination
-- "10": Other sensitive themes
-- "14": Historical trauma
-
-**Display Order:**
-- Lower values appear first in UI
-- Used for sorting: Subjects, Years, Key Stages
-
----
-
-## 11. Appendices
-
-### Appendix A: Complete Cypher Reference
-
-**Basic Navigation Queries:**
-```cypher
-// 1. List all subjects
-MATCH (s:Subject) RETURN s.subjectTitle ORDER BY s.displayOrder;
-
-// 2. Find units for a subject
-MATCH (s:Subject {subjectSlug: $slug})-[:HAS_UNIT_OFFERING]->()-[:HAS_UNIT]->(u:Unit)
-RETURN DISTINCT u.unitTitle;
-
-// 3. Get lessons in a unit
-MATCH (u:Unit {unitSlug: $slug})-[:HAS_UNITVARIANT]->()-[:HAS_LESSON]->(l:Lesson)
-RETURN l.lessonTitle, l.pupilLessonOutcome;
-
-// 4. Find year groups in a key stage
-MATCH (ks:Keystage {keyStageSlug: $slug})-[:HAS_YEAR]->(y:Year)
-RETURN y.yearTitle ORDER BY y.displayOrder;
-```
-
-**Analysis Queries:**
-```cypher
-// 5. Curriculum coverage by subject
-MATCH (s:Subject)-[:HAS_UNIT_OFFERING]->()-[:HAS_UNIT]->(u:Unit)-[:HAS_UNITVARIANT]->()-[:HAS_LESSON]->(l:Lesson)
-RETURN s.subjectTitle, count(DISTINCT u) AS units, count(l) AS lessons
-ORDER BY lessons DESC;
-
-// 6. Units by thread
-MATCH (t:Thread)<-[:HAS_THREAD]-(u:Unit)
-RETURN t.threadTitle, collect(u.unitTitle) AS units;
-
-// 7. Exam board comparison
-MATCH (eb:Examboard)-[:HAS_PROGRAMME]->()-[:HAS_UNITVARIANT]->(uv:Unitvariant)
-WITH eb, count(uv) AS variants
-RETURN eb.examBoardTitle, variants ORDER BY variants DESC;
-
-// 8. Lesson complexity
-MATCH (l:Lesson)
-RETURN l.lessonTitle, 
-       size(l.keywords) + size(l.keyLearningPoints) AS complexity
-ORDER BY complexity DESC LIMIT 10;
-```
-
-**Admin Queries:**
-```cypher
-// 9. Database statistics
-MATCH (n) RETURN labels(n)[0] AS type, count(n) AS count ORDER BY count DESC;
-
-// 10. Relationship statistics
-MATCH ()-[r]->() RETURN type(r) AS type, count(r) AS count ORDER BY count DESC;
-```
-
----
-
-### Appendix B: Property Reference
-
-**Complete Node Property Listing:**
-
-**Phase Properties:**
-- `phaseId` (INTEGER): Unique identifier
-- `phaseSlug` (STRING): URL-friendly key
-- `phaseTitle` (STRING): Display name
-- `phaseDescription` (STRING): Full description
-- `displayOrder` (INTEGER): Sort order
-- `lastUpdated` (STRING): ISO timestamp
-
-**Keystage Properties:**
-- `keyStageId` (INTEGER): Unique identifier
-- `keyStageSlug` (STRING): URL-friendly key ("ks1", "ks2", etc.)
-- `keyStageTitle` (STRING): Display name ("KS1", "KS2", etc.)
-- `keyStageDescription` (STRING): Full description
-- `displayOrder` (INTEGER): Sort order
-- `lastUpdated` (STRING): ISO timestamp
-
-**Year Properties:**
-- `yearId` (INTEGER): Unique identifier (1-11)
-- `yearSlug` (STRING): URL-friendly key ("year-1" to "year-11")
-- `yearTitle` (STRING): Display name ("1" to "11")
-- `yearDescription` (STRING): Full description ("Year 1" to "Year 11")
-- `displayOrder` (INTEGER): Sort order
-- `lastUpdated` (STRING): ISO timestamp
-
-**Subject Properties:**
-- `subjectId` (INTEGER): Unique identifier
-- `subjectSlug` (STRING): URL-friendly key
-- `subjectTitle` (STRING): Display name
-- `subjectDescription` (STRING, optional): Key stage range
-- `subjectParentId` (INTEGER, optional): Parent subject ID
-- `subjectParentTitle` (STRING, optional): Parent subject name
-- `displayOrder` (INTEGER): Sort order
-- `lastUpdated` (STRING): ISO timestamp
-
-**Unitoffering Properties:**
-- `unitOfferingSlug` (STRING): Composite identifier (e.g., "year-10-english")
-- `lastUpdated` (STRING): ISO timestamp
-
-**Unit Properties:**
-- `unitId` (INTEGER): Unique identifier
-- `unitSlug` (STRING): URL-friendly key
-- `unitTitle` (STRING): Display name
-- `unitDescription` (STRING): Full description of unit content
-- `whyThisWhyNow` (STRING, optional): Pedagogical rationale
-- `priorKnowledge` (LIST OF STRING, optional): Required prerequisite skills
-- `subjectCategory` (LIST OF STRING, optional): Subject area tags
-- `nullUnitVariantId` (INTEGER): Default variant ID
-- `lastUpdated` (STRING): ISO timestamp
-
-**Unitvariant Properties:**
-- `unitVariantId` (INTEGER): Unique identifier
-- `optionTitle` (STRING): Exam board variant name
-- `lastUpdated` (STRING): ISO timestamp
-
-**Lesson Properties:**
-- `lessonId` (INTEGER): Unique identifier
-- `lessonSlug` (STRING): URL-friendly key
-- `lessonTitle` (STRING): Display name
-- `pupilLessonOutcome` (STRING): Learning objective
-- `keywords` (LIST OF STRING): Key terms as JSON objects
-- `keyLearningPoints` (LIST OF STRING): Core concepts as JSON objects
-- `lessonOutline` (LIST OF STRING): Lesson structure as JSON objects
-- `misconceptionsMistakes` (LIST OF STRING, optional): Common errors as JSON objects
-- `equipmentResources` (LIST OF STRING, optional): Required materials as JSON objects
-- `teacherTips` (LIST OF STRING, optional): Teaching guidance as JSON objects
-- `contentGuidance` (LIST OF STRING, optional): Content warning codes
-- `contentGuidanceDetails` (LIST OF STRING, optional): Content warning descriptions
-- `quizStarterId` (INTEGER): Starter quiz ID
-- `quizExitId` (INTEGER): Exit quiz ID
-- `lastUpdated` (STRING): ISO timestamp
-
-**Thread Properties:**
-- `threadId` (INTEGER): Unique identifier
-- `thread_slug` (STRING): URL-friendly key
-- `threadTitle` (STRING): Thematic strand name
-- `lastUpdated` (STRING): ISO timestamp
-
-**Examboard Properties:**
-- `examBoardId` (INTEGER): Unique identifier
-- `examBoardSlug` (STRING): URL-friendly key
-- `examBoardTitle` (STRING): Display abbreviation
-- `examBoardDescription` (STRING): Full name
-- `displayOrder` (INTEGER): Sort order
-- `lastUpdated` (STRING): ISO timestamp
-
-**Tier Properties:**
-- `tierId` (INTEGER): Unique identifier
-- `tierSlug` (STRING): URL-friendly key
-- `tierTitle` (STRING): Display name
-- `tierDescription` (STRING): Full description
-- `displayOrder` (INTEGER): Sort order
-- `lastUpdated` (STRING): ISO timestamp
-
-**Programme Properties:**
-- `programmeSlug` (STRING): Composite identifier (subject-phase-year-examboard)
-- `lastUpdated` (STRING): ISO timestamp
-
-**Schemaversion Properties:**
-- `schemaVersion` (STRING): Version identifier
-- `schemaDescription` (STRING): Version notes
-- `isActive` (BOOLEAN): Active status
-- `lastUpdated` (STRING): ISO timestamp
-
----
-
-### Appendix C: Glossary
-
-**UK Curriculum Terms:**
-
-**EYFS (Early Years Foundation Stage):** Ages 3-5, pre-primary education
-
-**Key Stage (KS):** Organizational division of the UK curriculum
-- **KS1:** Years 1-2 (ages 5-7)
-- **KS2:** Years 3-6 (ages 7-11)
-- **KS3:** Years 7-9 (ages 11-14)
-- **KS4:** Years 10-11 (ages 14-16, GCSE years)
-
-**GCSE (General Certificate of Secondary Education):** Qualification taken at age 16 (end of Year 11)
-
-**Tier:** GCSE difficulty level
-- **Foundation:** Covers grades 1-5
-- **Higher:** Covers grades 4-9
-
-**Exam Boards:** Organizations that provide GCSE qualifications
-- **AQA:** Assessment and Qualifications Alliance
-- **Edexcel:** Pearson Edexcel
-- **Eduqas:** Welsh exam board
-- **OCR:** Oxford, Cambridge and RSA
-- **WJEC:** Welsh Joint Education Committee
-
----
-
-**Graph Database Terms:**
-
-**Node:** An entity in the graph (Subject, Unit, Lesson, etc.)
-
-**Relationship:** A connection between nodes (HAS_UNIT, HAS_LESSON, etc.)
-
-**Label:** A node type identifier (`:Lesson`, `:Unit`, `:Subject`)
-
-**Property:** A key-value attribute on a node or relationship
-
-**Cypher:** Neo4j's query language (similar to SQL for graphs)
-
-**Traversal:** Following relationships to navigate the graph
-
-**Path:** A sequence of nodes and relationships
-
-**Pattern Matching:** Finding specific graph structures using MATCH
-
----
-
-**Pedagogical Terms:**
-
-**Learning Objective:** What students will be able to do by the end of a lesson (`pupilLessonOutcome`)
-
-**Key Learning Points:** Core concepts students must understand
-
-**Misconceptions:** Common student errors or misunderstandings
-
-**Prior Knowledge:** Skills/knowledge students need before starting a unit
-
-**Differentiation:** Adapting content for different ability levels (Foundation vs Higher)
-
-**Thread:** Thematic strand connecting related units across year groups
-
-**Unit:** Collection of related lessons on a topic (typically 6-15 lessons)
-
-**Starter Quiz:** Pre-lesson assessment to activate prior knowledge
-
-**Exit Quiz:** Post-lesson assessment to check understanding
-
----
-
-**Technical Terms:**
-
-**Materialized View (MV):** Pre-computed database view for performance
-
-**Slug:** URL-friendly identifier (lowercase, hyphen-separated)
-
-**Junction Node:** Node connecting two other node types (Unitoffering)
-
-**Variant:** Exam board-specific version of a unit
-
-**Composite Key:** Multiple fields used together for uniqueness
-
-**UNWIND:** Cypher command to expand lists into rows
-
-**Cardinality:** Number of items (nodes, relationships, properties)
-
----
-
-## Conclusion
-
-This UK School Curriculum Knowledge Graph provides a powerful foundation for curriculum planning, pedagogical analysis, and educational research. The graph's hierarchical structure combined with cross-cutting thematic threads enables both detailed lesson-level queries and high-level curriculum analytics.
-
-**Key Strengths:**
-- **Comprehensive Coverage:** 12,631 lessons across 22 subjects
-- **Rich Metadata:** Keywords, learning points, misconceptions, and teaching tips
-- **Flexible Organization:** Multiple pathways through educational structure, content hierarchy, and qualification routes
-- **Cross-Curricular Connections:** Thread relationships enable thematic curriculum planning
-- **Exam Board Support:** Full coverage of AQA, Edexcel, Eduqas, OCR, and WJEC specifications
-
-**Getting Help:**
-- Neo4j Community: https://community.neo4j.com
-- Cypher Manual: https://neo4j.com/docs/cypher-manual/current/
-- Oak National Academy: https://www.thenational.academy
-
-**Next Steps:**
-1. Try the basic queries in Section 5.2 to familiarize yourself with the data
-2. Explore the practical use cases in Section 7 for your specific needs
-3. Use the Cypher reference in Appendix A as a quick lookup
-4. Experiment with advanced patterns in Section 8 for deeper insights
-
----
-
-**Document Version:** 1.0
-**Last Updated:** October 2025
-**Total Lines:** 3,100+
-**Total Queries:** 50+
-
-*This documentation was generated for the Oak National Academy UK Curriculum Knowledge Graph (Schema v0.1.0-alpha)*
-
-
----
-
 ## Additional Resources
-
-### Sample Query Templates
-
-Below are copy-paste templates for common scenarios. Replace `$parameter` with your actual values.
-
-**Template 1: Find All Content for a Specific Context**
-```cypher
-// Find lessons for Year $year, Subject $subject, Exam Board $examBoard
-MATCH (year:Year {yearTitle: $year})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
-      (subject:Subject {subjectSlug: $subject})-[:HAS_UNIT_OFFERING]->(uo),
-      (uo)-[:HAS_UNIT]->(unit:Unit)-[:HAS_UNITVARIANT]->(uv:Unitvariant),
-      (eb:Examboard {examBoardSlug: $examBoard})-[:HAS_PROGRAMME]->(prog:Programme),
-      (prog)-[:HAS_UNITVARIANT]->(uv),
-      (uv)-[:HAS_LESSON]->(lesson:Lesson)
-RETURN unit.unitTitle AS unit,
-       lesson.lessonTitle AS lesson,
-       lesson.pupilLessonOutcome AS outcome
-ORDER BY unit.unitTitle, lesson.lessonTitle;
-```
-
-**Template 2: Search Lessons by Content**
-```cypher
-// Search for lessons containing $searchTerm in keywords or learning points
-MATCH (lesson:Lesson)
-WHERE any(keyword IN lesson.keywords WHERE keyword CONTAINS $searchTerm)
-   OR any(point IN lesson.keyLearningPoints WHERE point CONTAINS $searchTerm)
-   OR lesson.lessonTitle CONTAINS $searchTerm
-RETURN lesson.lessonTitle AS lesson,
-       lesson.pupilLessonOutcome AS outcome,
-       lesson.keywords[0..3] AS sampleKeywords
-LIMIT 20;
-```
-
-**Template 3: Export Unit Structure for Planning**
-```cypher
-// Export complete unit structure for $unitSlug
-MATCH (unit:Unit {unitSlug: $unitSlug})
-OPTIONAL MATCH (unit)-[:HAS_THREAD]->(thread:Thread)
-OPTIONAL MATCH (unit)-[:HAS_UNITVARIANT]->(uv:Unitvariant)-[:HAS_LESSON]->(lesson:Lesson)
-RETURN unit.unitTitle AS unit,
-       unit.unitDescription AS description,
-       unit.whyThisWhyNow AS rationale,
-       unit.priorKnowledge AS prerequisites,
-       collect(DISTINCT thread.threadTitle) AS threads,
-       collect(DISTINCT {
-         lesson: lesson.lessonTitle,
-         outcome: lesson.pupilLessonOutcome,
-         keywords: size(lesson.keywords),
-         learningPoints: size(lesson.keyLearningPoints)
-       }) AS lessons;
-```
-
-**Template 4: Compare Exam Boards**
-```cypher
-// Compare all exam boards for $unitSlug
-MATCH (unit:Unit {unitSlug: $unitSlug})-[:HAS_UNITVARIANT]->(uv:Unitvariant),
-      (prog:Programme)-[:HAS_UNITVARIANT]->(uv),
-      (eb:Examboard)-[:HAS_PROGRAMME]->(prog)
-OPTIONAL MATCH (uv)-[:HAS_LESSON]->(lesson:Lesson)
-RETURN eb.examBoardTitle AS examBoard,
-       uv.optionTitle AS variant,
-       count(lesson) AS lessonCount,
-       collect(DISTINCT lesson.lessonTitle)[0..5] AS sampleLessons
-ORDER BY examBoard;
-```
-
-**Template 5: Find Cross-Curricular Links**
-```cypher
-// Find subjects that share thematic thread $threadTitle
-MATCH (thread:Thread {threadTitle: $threadTitle})-[:HAS_THREAD]-(unit:Unit),
-      (unit)<-[:HAS_UNIT]-(uo:Unitoffering)<-[:HAS_UNIT_OFFERING]-(subject:Subject)
-WITH subject, collect(DISTINCT unit.unitTitle) AS units
-RETURN subject.subjectTitle AS subject,
-       units,
-       size(units) AS unitCount
-ORDER BY unitCount DESC;
-```
-
----
-
-### Integration Examples
-
-#### Python Integration with neo4j Driver
-
-```python
-from neo4j import GraphDatabase
-import json
-
-class CurriculumGraph:
-    def __init__(self, uri, user, password):
-        self.driver = GraphDatabase.driver(uri, auth=(user, password))
-    
-    def close(self):
-        self.driver.close()
-    
-    def get_year_curriculum(self, year, subject):
-        """Get all units for a year/subject combination"""
-        query = """
-        MATCH (year:Year {yearTitle: $year})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
-              (subject:Subject {subjectSlug: $subject})-[:HAS_UNIT_OFFERING]->(uo),
-              (uo)-[:HAS_UNIT]->(unit:Unit)
-        RETURN DISTINCT unit.unitTitle AS unit,
-               unit.unitDescription AS description,
-               unit.whyThisWhyNow AS rationale
-        ORDER BY unit.unitTitle
-        """
-        with self.driver.session() as session:
-            result = session.run(query, year=year, subject=subject)
-            return [record.data() for record in result]
-    
-    def search_lessons_by_keyword(self, keyword):
-        """Search for lessons containing a specific keyword"""
-        query = """
-        MATCH (lesson:Lesson)
-        WHERE any(kw IN lesson.keywords WHERE kw CONTAINS $keyword)
-        RETURN lesson.lessonTitle AS title,
-               lesson.pupilLessonOutcome AS outcome,
-               lesson.keywords AS keywords
-        LIMIT 10
-        """
-        with self.driver.session() as session:
-            result = session.run(query, keyword=keyword)
-            lessons = []
-            for record in result:
-                lesson = record.data()
-                # Parse JSON keywords
-                lesson['keywords'] = [json.loads(k) for k in lesson['keywords']]
-                lessons.append(lesson)
-            return lessons
-    
-    def get_unit_prerequisites(self, unit_slug):
-        """Get prerequisite knowledge for a unit"""
-        query = """
-        MATCH (unit:Unit {unitSlug: $slug})
-        RETURN unit.unitTitle AS unit,
-               unit.priorKnowledge AS prerequisites
-        """
-        with self.driver.session() as session:
-            result = session.run(query, slug=unit_slug)
-            return result.single().data()
-
-# Usage example
-graph = CurriculumGraph("bolt://localhost:7687", "neo4j", "password")
-
-# Get Year 10 English curriculum
-curriculum = graph.get_year_curriculum("10", "english")
-for unit in curriculum:
-    print(f"Unit: {unit['unit']}")
-    print(f"Description: {unit['description'][:100]}...")
-    print()
-
-# Search for Romanticism lessons
-lessons = graph.search_lessons_by_keyword("Romantic")
-for lesson in lessons:
-    print(f"Lesson: {lesson['title']}")
-    for kw in lesson['keywords']:
-        if 'Romantic' in kw.get('keyword', ''):
-            print(f"  Keyword: {kw['keyword']} - {kw['description']}")
-    print()
-
-graph.close()
-```
-
----
-
-#### JavaScript Integration with neo4j-driver
-
-```javascript
-const neo4j = require('neo4j-driver');
-
-class CurriculumGraph {
-    constructor(uri, user, password) {
-        this.driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
-    }
-
-    async close() {
-        await this.driver.close();
-    }
-
-    async getLessonDetails(lessonSlug) {
-        const session = this.driver.session();
-        try {
-            const result = await session.run(`
-                MATCH (lesson:Lesson {lessonSlug: $slug})
-                OPTIONAL MATCH (lesson)<-[:HAS_LESSON]-(uv:Unitvariant)<-[:HAS_UNITVARIANT]-(unit:Unit)
-                RETURN lesson, unit.unitTitle AS unit
-            `, { slug: lessonSlug });
-
-            if (result.records.length === 0) return null;
-
-            const record = result.records[0];
-            const lesson = record.get('lesson').properties;
-            
-            // Parse JSON arrays
-            lesson.keywords = lesson.keywords?.map(k => JSON.parse(k)) || [];
-            lesson.keyLearningPoints = lesson.keyLearningPoints?.map(k => JSON.parse(k)) || [];
-            
-            return {
-                ...lesson,
-                unit: record.get('unit')
-            };
-        } finally {
-            await session.close();
-        }
-    }
-
-    async getExamBoardComparison(unitSlug) {
-        const session = this.driver.session();
-        try {
-            const result = await session.run(`
-                MATCH (unit:Unit {unitSlug: $slug})-[:HAS_UNITVARIANT]->(uv:Unitvariant),
-                      (prog:Programme)-[:HAS_UNITVARIANT]->(uv),
-                      (eb:Examboard)-[:HAS_PROGRAMME]->(prog)
-                WITH eb, uv, count{(uv)-[:HAS_LESSON]->(:Lesson)} AS lessons
-                RETURN eb.examBoardTitle AS examBoard,
-                       uv.optionTitle AS variant,
-                       lessons
-                ORDER BY examBoard
-            `, { slug: unitSlug });
-
-            return result.records.map(record => ({
-                examBoard: record.get('examBoard'),
-                variant: record.get('variant'),
-                lessonCount: record.get('lessons').toNumber()
-            }));
-        } finally {
-            await session.close();
-        }
-    }
-}
-
-// Usage
-(async () => {
-    const graph = new CurriculumGraph('bolt://localhost:7687', 'neo4j', 'password');
-    
-    // Get lesson details
-    const lesson = await graph.getLessonDetails('understanding-the-poem-mild-the-mist-upon-the-hill');
-    console.log('Lesson:', lesson.lessonTitle);
-    console.log('Outcome:', lesson.pupilLessonOutcome);
-    console.log('Keywords:', lesson.keywords.map(k => k.keyword).join(', '));
-    
-    // Compare exam boards
-    const comparison = await graph.getExamBoardComparison('poetry-anthology-first-study');
-    console.log('\nExam Board Comparison:');
-    comparison.forEach(item => {
-        console.log(`${item.examBoard}: ${item.lessonCount} lessons (${item.variant})`);
-    });
-    
-    await graph.close();
-})();
-```
-
----
 
 ### Visualization Recommendations
 
@@ -2756,128 +2079,6 @@ class CurriculumGraph {
 - **D3.js:** For web-based interactive curriculum maps
 - **Cytoscape.js:** For complex network analysis
 - **vis.js:** For quick prototyping of graph visualizations
-
-**Recommended Views:**
-1. **Curriculum Map:** Subject → Unit → Lesson hierarchy
-2. **Thread Network:** Units connected by shared threads
-3. **Progression View:** Year-by-year skill development
-4. **Exam Board Comparison:** Side-by-side qualification pathways
-
----
-
-### Troubleshooting Common Issues
-
-**Issue 1: Query Returns Too Many Results**
-```cypher
-// Problem: Unbounded query
-MATCH (lesson:Lesson) RETURN lesson;  // Returns 12,631 rows!
-
-// Solution: Add LIMIT or WHERE clause
-MATCH (lesson:Lesson)
-WHERE lesson.lessonTitle CONTAINS 'poetry'
-RETURN lesson
-LIMIT 20;
-```
-
----
-
-**Issue 2: Properties Appear as JSON Strings**
-
-**Problem:** Keywords and learning points are stored as JSON string arrays.
-
-**Solution:** Parse in application code:
-```python
-# Python
-import json
-keywords = [json.loads(k) for k in lesson['keywords']]
-for kw in keywords:
-    print(f"{kw['keyword']}: {kw['description']}")
-```
-
-```javascript
-// JavaScript
-const keywords = lesson.keywords.map(k => JSON.parse(k));
-keywords.forEach(kw => {
-    console.log(`${kw.keyword}: ${kw.description}`);
-});
-```
-
----
-
-**Issue 3: Cannot Find Units for a Year/Subject**
-
-**Problem:** Query returns no results.
-
-**Diagnostic Query:**
-```cypher
-// Check if the year exists
-MATCH (y:Year {yearTitle: "10"}) RETURN count(y);
-
-// Check if the subject exists
-MATCH (s:Subject {subjectSlug: "english"}) RETURN count(s);
-
-// Check if unit offering exists
-MATCH (y:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
-      (s:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo)
-RETURN count(uo);
-
-// If count is 0, check available combinations
-MATCH (y:Year)-[:HAS_UNIT_OFFERING]->(uo:Unitoffering)<-[:HAS_UNIT_OFFERING]-(s:Subject)
-RETURN y.yearTitle, s.subjectSlug
-ORDER BY y.yearTitle, s.subjectSlug;
-```
-
----
-
-**Issue 4: Slow Query Performance**
-
-**Diagnostic Steps:**
-1. **Profile the query:**
-   ```cypher
-   PROFILE
-   MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering)
-   RETURN count(uo);
-   ```
-
-2. **Check for indexes:**
-   ```cypher
-   SHOW INDEXES;
-   ```
-
-3. **Create missing indexes:**
-   ```cypher
-   CREATE INDEX year_title IF NOT EXISTS FOR (y:Year) ON (y.yearTitle);
-   ```
-
-4. **Rewrite to start from most selective node:**
-   ```cypher
-   // Instead of starting from Lesson (12,631 nodes)
-   MATCH (lesson:Lesson)<-[:HAS_LESSON]-(uv:Unitvariant)
-   WHERE lesson.lessonTitle = "specific-title"
-   
-   // Start from the specific lesson
-   MATCH (lesson:Lesson {lessonTitle: "specific-title"})
-   MATCH (lesson)<-[:HAS_LESSON]-(uv:Unitvariant)
-   ```
-
----
-
-### Future Enhancements
-
-**Planned Features:**
-1. **Temporal Versioning:** Track curriculum changes over time
-2. **Learning Objectives Taxonomy:** Hierarchical skill taxonomy
-3. **Assessment Data:** Link to quiz results and student performance
-4. **Resource Library:** Attach teaching materials, videos, worksheets
-5. **Prerequisite Graph:** Explicit PREREQUISITE_FOR relationships
-6. **Learning Path Recommendations:** Algorithm-based curriculum sequencing
-
-**Enhancement Opportunities:**
-- Add `:SIMILAR_TO` relationships between analogous lessons across subjects
-- Include `:BUILDS_ON` relationships showing skill progression
-- Model `:REQUIRES_RESOURCE` for equipment and materials
-- Add `:TAUGHT_BY` relationships when linked to teacher data
-- Create `:ASSESSED_BY` relationships to link quizzes
 
 ---
 
@@ -2913,50 +2114,5 @@ ORDER BY y.yearTitle, s.subjectSlug;
 
 ---
 
-## Quick Reference Card
-
-**Most Common Queries:**
-
-```cypher
-// 1. List subjects
-MATCH (s:Subject) RETURN s.subjectTitle ORDER BY s.displayOrder;
-
-// 2. Find units for Year X and Subject Y
-MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
-      (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo),
-      (uo)-[:HAS_UNIT]->(unit:Unit)
-RETURN DISTINCT unit.unitTitle;
-
-// 3. Get lesson details
-MATCH (lesson:Lesson {lessonSlug: "lesson-slug"})
-RETURN lesson;
-
-// 4. Search by keyword
-MATCH (lesson:Lesson)
-WHERE any(kw IN lesson.keywords WHERE kw CONTAINS "search-term")
-RETURN lesson.lessonTitle LIMIT 10;
-
-// 5. Compare exam boards
-MATCH (unit:Unit {unitSlug: "unit-slug"})-[:HAS_UNITVARIANT]->(uv:Unitvariant),
-      (prog:Programme)-[:HAS_UNITVARIANT]->(uv),
-      (eb:Examboard)-[:HAS_PROGRAMME]->(prog)
-RETURN eb.examBoardTitle, count{(uv)-[:HAS_LESSON]->(:Lesson)} AS lessons;
-```
-
-**Key Patterns:**
-- Year + Subject → Units: `(Year)-[:HAS_UNIT_OFFERING]->(:Unitoffering)<-[:HAS_UNIT_OFFERING]-(Subject)`
-- Unit → Lessons: `(Unit)-[:HAS_UNITVARIANT]->(:Unitvariant)-[:HAS_LESSON]->(Lesson)`
-- Exam Board → Programmes: `(Examboard)-[:HAS_PROGRAMME]->(Programme)-[:HAS_UNITVARIANT]->(Unitvariant)`
-
-**Performance Tips:**
-- Create indexes on: `yearTitle`, `subjectSlug`, `unitSlug`, `lessonSlug`, `examBoardSlug`
-- Use LIMIT to restrict result sets
-- Start queries from specific nodes, not broad scans
-- Profile queries with PROFILE before optimization
-
----
-
 **End of Documentation**
-
-*For questions, issues, or contributions, please contact the Oak National Academy data team.*
 
