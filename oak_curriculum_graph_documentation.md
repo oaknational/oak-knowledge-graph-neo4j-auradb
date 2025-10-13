@@ -252,7 +252,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 // Secondary phase
 {
   "phaseId": 3,
@@ -277,7 +277,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 // Key Stage 3
 {
   "keyStageId": 3,
@@ -302,7 +302,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 // Year 10
 {
   "yearId": 10,
@@ -329,7 +329,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Examples:**
-```
+```cypher
 // English
 {
   "subjectId": 1,
@@ -360,7 +360,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 // Year 10 English offering
 {
   "unitOfferingSlug": "year-10-english"
@@ -384,7 +384,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 {
   "unitId": 153,
   "unitSlug": "poetry-anthology-first-study",
@@ -412,7 +412,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Examples:**
-```
+```cypher
 // AQA Non-fiction: crime and punishment variant
 {
   "unitVariantId": 141
@@ -448,7 +448,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example (abbreviated):**
-```
+```cypher
 {
   "lessonId": 2537,
   "lessonSlug": "understanding-the-poem-mild-the-mist-upon-the-hill",
@@ -479,7 +479,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:55.085753"` |
 
 **Example:**
-```
+```cypher
 // Identity
 {
   "threadId": 120,
@@ -502,7 +502,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 // AQA
 {
   "examBoardId": 1,
@@ -527,7 +527,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 // Foundation tier
 {
   "tierId": 1,
@@ -548,7 +548,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
 **Example:**
-```
+```cypher
 // Year 10 English AQA
 {
   "programmeSlug": "english-secondary-year-10-aqa"
@@ -567,7 +567,7 @@ This single query traverses multiple relationships to answer a complex question 
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:24.364749"` |
 
 **Example:**
-```
+```cypher
 {
   "schemaVersion": "v0.1.0-alpha",
   "schemaDescription": "Schema design and experimentation.",
@@ -587,7 +587,7 @@ This single query traverses multiple relationships to answer a complex question 
 **Semantics:** Indicates that a Phase (Primary or Secondary) contains specific Key Stages. For example, Primary phase contains KS1 and KS2, while Secondary contains KS3 and KS4.
 
 **Example Query:**
-```
+```cypher
 // Find all key stages in the secondary phase
 MATCH (p:Phase {phaseSlug: "secondary"})-[:HAS_KEY_STAGE]->(ks:Keystage)
 RETURN ks.keyStageTitle AS keyStage, ks.keyStageDescription AS description
@@ -609,7 +609,7 @@ ORDER BY ks.displayOrder;
 **Semantics:** Indicates that a Key Stage contains specific Year groups. For example, KS4 contains Years 10 and 11.
 
 **Example Query:**
-```
+```cypher
 // Find all years in Key Stage 4
 MATCH (ks:Keystage {keyStageSlug: "ks4"})-[:HAS_YEAR]->(y:Year)
 RETURN y.yearTitle AS year, y.yearDescription AS description
@@ -635,7 +635,7 @@ ORDER BY y.displayOrder;
 **Semantics:** Creates the connection between a specific Year group and Subject to available curriculum Units. A Unitoffering represents "Year X studying Subject Y".
 
 **Example Query:**
-```
+```cypher
 // Find unit offerings for Year 10 English
 MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo)
@@ -656,7 +656,7 @@ RETURN uo.unitOfferingSlug AS offering;
 **Semantics:** Indicates that a Unit Offering (Year + Subject combination) provides access to specific curriculum Units.
 
 **Example Query:**
-```
+```cypher
 // Find all units available for Year 10 English
 MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo),
@@ -682,7 +682,7 @@ RETURN DISTINCT unit.unitTitle AS unit;
 **Semantics:** Indicates that a Unit or Programme has specific exam board variants. Different exam boards may have different versions of the same conceptual unit.
 
 **Example Query:**
-```
+```cypher
 // Find all variants of a specific unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})-[:HAS_UNITVARIANT]->(uv:Unitvariant)
 RETURN uv.optionTitle AS variant;
@@ -704,7 +704,7 @@ RETURN uv.optionTitle AS variant;
 **Semantics:** Indicates that a Unit Variant contains specific lessons. This is the primary relationship for accessing teaching content.
 
 **Example Query:**
-```
+```cypher
 // Find lessons in a specific unit variant
 MATCH (uv:Unitvariant {optionTitle: "Love and Relationships"})-[:HAS_LESSON]->(lesson:Lesson)
 RETURN lesson.lessonTitle AS lesson, lesson.pupilLessonOutcome AS outcome;
@@ -724,7 +724,7 @@ RETURN lesson.lessonTitle AS lesson, lesson.pupilLessonOutcome AS outcome;
 **Semantics:** Indicates that a Unit belongs to one or more thematic learning threads. Threads provide cross-unit thematic organization.
 
 **Example Query:**
-```
+```cypher
 // Find all threads for a unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})-[:HAS_THREAD]->(thread:Thread)
 RETURN thread.threadTitle AS theme;
@@ -747,7 +747,7 @@ RETURN thread.threadTitle AS theme;
 **Semantics:** Indicates that an Exam Board and/or Tier provides specific qualification programmes.
 
 **Example Query:**
-```
+```cypher
 // Find all AQA programmes
 MATCH (eb:Examboard {examBoardSlug: "aqa"})-[:HAS_PROGRAMME]->(prog:Programme)
 RETURN prog.programmeSlug AS programme;
@@ -815,7 +815,7 @@ Lesson (Shared or variant-specific)
 
 The **Unitoffering** node is crucial for connecting the educational hierarchy to content:
 
-```
+```cypher
 // How Year and Subject connect to Units
 MATCH path = (year:Year)-[:HAS_UNIT_OFFERING]->(uo:Unitoffering)<-[:HAS_UNIT_OFFERING]-(subject:Subject),
              (uo)-[:HAS_UNIT]->(unit:Unit)
@@ -837,7 +837,7 @@ This pattern shows:
 
 The complete path from educational structure to lessons:
 
-```
+```cypher
 // Trace from Phase to Lesson
 MATCH path = (phase:Phase)-[:HAS_KEY_STAGE]->(ks:Keystage)-[:HAS_YEAR]->(year:Year),
              (year)-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
@@ -859,7 +859,7 @@ This query demonstrates the full traversal from educational structure to specifi
 
 **Threads** provide cross-unit thematic organization:
 
-```
+```cypher
 // Find all units in a thematic thread
 MATCH (thread:Thread {threadTitle: "Appreciation of poetry"})<-[:HAS_THREAD]-(unit:Unit)
 RETURN unit.unitTitle AS unit, unit.subjectCategory AS category
@@ -875,7 +875,7 @@ ORDER BY unit.unitTitle;
 
 Units can have multiple variants for different exam boards:
 
-```
+```cypher
 // Compare variants of the same unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})-[:HAS_UNITVARIANT]->(uv:Unitvariant),
       (prog:Programme)-[:HAS_UNITVARIANT]->(uv),
@@ -892,7 +892,7 @@ This shows how the same curriculum unit (e.g., poetry anthology) can have differ
 
 Some subjects have parent-child relationships:
 
-```
+```cypher
 // Find all science sub-subjects
 MATCH (parent:Subject {subjectTitle: "Science"})<-[:subjectParentId]-(child:Subject)
 RETURN child.subjectTitle AS subject, child.subjectDescription AS keyStages
@@ -943,7 +943,7 @@ Example: Biology, Chemistry, and Physics are children of the Science parent subj
 
 #### Example 1: Count All Nodes
 
-```
+```cypher
 // Count nodes by type
 CALL db.labels() YIELD label
 CALL {
@@ -969,7 +969,7 @@ ORDER BY count DESC;
 
 #### Example 2: List All Subjects
 
-```
+```cypher
 // Find all subjects
 MATCH (s:Subject)
 RETURN s.subjectTitle AS subject, 
@@ -992,7 +992,7 @@ ORDER BY s.displayOrder;
 
 #### Example 3: Find Units for a Subject
 
-```
+```cypher
 // Find all English units
 MATCH (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (uo)-[:HAS_UNIT]->(unit:Unit)
@@ -1014,7 +1014,7 @@ LIMIT 5;
 
 #### Example 4: Find Lessons in a Unit
 
-```
+```cypher
 // Find lessons in a specific unit
 MATCH (unit:Unit {unitSlug: "states-of-matter"})-[:HAS_UNITVARIANT]->(uv:Unitvariant),
       (uv)-[:HAS_LESSON]->(lesson:Lesson)
@@ -1037,7 +1037,7 @@ LIMIT 5;
 
 #### Example 5: Find Year Groups for a Key Stage
 
-```
+```cypher
 // Find all years in KS4
 MATCH (ks:Keystage {keyStageSlug: "ks4"})-[:HAS_YEAR]->(year:Year)
 RETURN year.yearTitle AS year, year.yearDescription AS description;
@@ -1055,7 +1055,7 @@ RETURN year.yearTitle AS year, year.yearDescription AS description;
 
 #### Example 6: Find Lessons by Keyword
 
-```
+```cypher
 // Find lessons containing a specific keyword
 MATCH (lesson:Lesson)
 WHERE any(keyword IN lesson.keywords WHERE keyword CONTAINS 'Romantic')
@@ -1076,7 +1076,7 @@ LIMIT 5;
 
 #### Example 7: Get Complete Lesson Details
 
-```
+```cypher
 // Get full details for a lesson
 MATCH (lesson:Lesson {lessonSlug: "understanding-the-poem-mild-the-mist-upon-the-hill"})
 RETURN lesson.lessonTitle AS title,
@@ -1099,7 +1099,7 @@ RETURN lesson.lessonTitle AS title,
 
 **Use Case:** "What does a Year 10 student study?"
 
-```
+```cypher
 // List all subjects and units for Year 10
 MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (subject:Subject)-[:HAS_UNIT_OFFERING]->(uo),
@@ -1119,7 +1119,7 @@ Shows the breadth of curriculum for Year 10, grouped by subject.
 
 **Use Case:** "Show me the structure from subject down to lessons for a specific topic"
 
-```
+```cypher
 // Explore the hierarchy for a subject
 MATCH (subject:Subject {subjectSlug: "chemistry"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (uo)-[:HAS_UNIT]->(unit:Unit),
@@ -1142,7 +1142,7 @@ Shows the complete path from subject to lessons with counts.
 
 **Use Case:** "What prior knowledge do students need for this unit?"
 
-```
+```cypher
 // Get prerequisite knowledge for a unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})
 RETURN unit.unitTitle AS unit,
