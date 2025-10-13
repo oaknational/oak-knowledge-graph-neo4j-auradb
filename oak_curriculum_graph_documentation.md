@@ -29,6 +29,7 @@
    - [Curriculum Structure](#curriculum-structure)
    - [Hierarchical Relationships](#hierarchical-relationships)
    - [Cross-Cutting Relationships](#cross-cutting-relationships)
+   - [Data Patterns and Design Decisions](#data-patterns-and-design-decisions)
 
 5. [Getting Started](#5-getting-started)
    - [Connection Information](#51-connection-information)
