@@ -40,22 +40,13 @@
    - [Relationship Traversal](#62-relationship-traversal)
    - [Analysis Queries](#63-analysis-queries)
 
-7. [Practical Use Cases](#7-practical-use-cases)
+7. [Query Optimization Tips](#7-query-optimization-tips)
+    - [Indexing recommendations](#indexing-recommendations)
+    - [Query Performance Best Practices](#query-performance-best-practices)
 
-8. [Advanced Queries](#8-advanced-queries)
-   - [Multi-hop Traversals](#81-multi-hop-traversals)
-   - [Pattern Matching](#82-pattern-matching)
-   - [Aggregations and Analytics](#83-aggregations-and-analytics)
-   - [Graph Algorithms](#84-graph-algorithms)
-
-9. [Query Optimization Tips](#9-query-optimization-tips)
-
-10. [Data Quality Notes](#10-data-quality-notes)
-
-11. [Appendices](#11-appendices)
-    - [Appendix A: Complete Cypher Reference](#appendix-a-complete-cypher-reference)
-    - [Appendix B: Property Reference](#appendix-b-property-reference)
-    - [Appendix C: Glossary](#appendix-c-glossary)
+8. [Additional Resources](#8-additional-resources)
+    - [Visualization Recommendations](#visualization-recommendations)
+    - [Best Practices Summary](#best-practices-summary)
 
 ---
 
@@ -1284,7 +1275,7 @@ Reveals opportunities for cross-curricular teaching.
 
 ---
 
-## 9. Query Optimization Tips
+## 7. Query Optimization Tips
 
 ### Indexing Recommendations
 
@@ -1425,7 +1416,7 @@ RETURN lesson;
 ---
 
 
-## 10. Additional Resources
+## 8. Additional Resources
 
 ### Visualization Recommendations
 
