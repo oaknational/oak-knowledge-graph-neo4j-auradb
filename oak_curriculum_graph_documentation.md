@@ -1,4 +1,4 @@
-# Oak Curriculum Knowledge Graph
+# Oak Curriculum Knowledge Graph MVP
 ## Documentation & User Guide
 
 **Schema:** Oak National Academy Curriculum Graph  
@@ -62,13 +62,15 @@
 
 ### Purpose
 
-The UK School Curriculum Knowledge Graph is a comprehensive Neo4j database that models the entire structure of the UK school curriculum from the Oak National Academy. This graph database captures the relationships between educational levels (phases, key stages, years), subjects, curriculum units, and individual lessons, along with rich metadata including learning objectives, keywords, teaching resources, and assessment information.
+The Oak Curriculum Knowledge Graph is a comprehensive Neo4j database that models the entire structure of the UK school curriculum. This graph database captures the relationships between educational levels (phases, key stages, years), subjects, curriculum units, and individual lessons, along with lesson-related content including learning objectives, keywords, and other teaching resources.
 
-**What this graph represents:**
-- Complete UK curriculum structure from primary through secondary education
-- 12,631 individual lessons with detailed pedagogical content
-- Curriculum organization across 22 subjects and 1,564 units
-- Exam board specifications and tiered qualifications
+The work builds on the knowledge graph that was created for the Proof of Concept project, where the scope of the schema was the science curriculum for key stages 1-4. The scope of the MVP covers all subjects in the curriculum for key stages 1-4. The purpose of the MVP graph is to get the graph schema right, before adding in all available content and resources.
+
+**Currently, the graph represents:**
+- Complete Oak curriculum structure for key stages 1-4
+- 12,631 individual lessons with related content: pupil lesson outcomes, key learning points, keywords, lesson outlines, content guidance, misconceptions and mistakes, equipment and resources, and teacher tips 
+- 1,564 curriculum units across 22 subjects
+- Exam board specifications and tiers
 - Thematic learning threads that span across units
 
 **Key use cases:**
@@ -76,7 +78,7 @@ The UK School Curriculum Knowledge Graph is a comprehensive Neo4j database that 
 - **Pedagogical Analysis:** Explore learning progressions and prerequisite knowledge
 - **Cross-Curricular Connections:** Identify topics that link multiple subjects
 - **Assessment Preparation:** Navigate exam board-specific content and tiered qualifications
-- **Resource Discovery:** Find lessons by keyword, learning objective, or educational level
+- **Resource Discovery:** Find lessons by keyword, learning objective, and thread
 - **Data-Driven Insights:** Analyze curriculum coverage, complexity, and relationships
 
 ### Benefits of Graph Modeling
@@ -90,18 +92,18 @@ Traditional relational databases struggle to represent the complex, interconnect
 
 **🚀 Powerful Traversals**
 - Answer questions like "What are all lessons a Year 10 student studies?" with a single query
-- Navigate from a lesson back to its subject, year group, and key stage effortlessly
+- Navigate from a lesson back to its subject, year group, and key stage
 - Discover learning pathways and prerequisite chains through relationship traversal
 
 **🔄 Flexibility and Evolution**
-- Easy to add new relationship types (e.g., "PREREQUISITE_FOR", "RELATES_TO")
+- Easy to add new relationship types (e.g. "PREREQUISITE_FOR", "RELATES_TO")
 - Schema can evolve without breaking existing queries
 - Complex questions become simple queries (no complex JOINs needed)
 
 **📊 Pattern Discovery**
 - Identify curriculum gaps by analyzing relationship patterns
 - Find central topics using graph algorithms (centrality measures)
-- Discover natural groupings through community detection
+- Discover natural groupings (community detection)
 
 ### Target Audience
 
@@ -133,7 +135,7 @@ This documentation serves multiple audiences:
 
 ### Graph Overview
 
-The UK School Curriculum Knowledge Graph contains **16,891 nodes** and **25,684 relationships** representing the complete structure of the Oak National Academy curriculum. The graph models three interconnected hierarchies:
+The Oak Curriculum Knowledge Graph contains **16,891 nodes** and **25,684 relationships** representing the complete structure of the Oak National Academy curriculum. The graph models three interconnected hierarchies:
 
 1. **Educational Structure:** Phase → Key Stage → Year
 2. **Content Organization:** Subject → Unit → Lesson
@@ -145,15 +147,15 @@ These hierarchies intersect through "Unit Offerings" that connect specific year 
 
 | Node Type | Count | Description |
 |-----------|-------|-------------|
-| **Lesson** | 12,631 | Individual teaching sessions with full pedagogical content |
+| **Lesson** | 12,631 | Individual teaching sessions (full content not yet ingested) |
 | **Unitvariant** | 2,064 | Exam board-specific variants of curriculum units |
-| **Unit** | 1,564 | Thematic collections of lessons (e.g., "Poetry anthology") |
-| **Programme** | 258 | Exam board and year-specific qualification pathways |
-| **Unitoffering** | 183 | Links between subjects, years, and units |
+| **Unit** | 1,564 | Thematic collections of lessons |
+| **Programme** | 258 | Exam board and tier specific options for each subject/year |
+| **Unitoffering** | 183 | Sequences of units for each subject/year |
 | **Thread** | 165 | Thematic learning strands across units |
 | **Subject** | 22 | Core subjects (English, Maths, Science, etc.) |
 | **Year** | 11 | Year groups from Year 1 to Year 11 |
-| **Examboard** | 5 | AQA, Edexcel, Eduqas, OCR, WJEC |
+| **Examboard** | 5 | Exam boards (AQA, Edexcel, Eduqas, OCR etc.) |
 | **Keystage** | 4 | KS1, KS2, KS3, KS4 |
 | **Phase** | 2 | Primary and Secondary |
 | **Tier** | 2 | Foundation and Higher |
@@ -163,14 +165,14 @@ These hierarchies intersect through "Unit Offerings" that connect specific year 
 
 | Relationship | Count | Pattern | Meaning |
 |--------------|-------|---------|---------|
-| **HAS_LESSON** | 15,409 | `Unitvariant-[:HAS_LESSON]->Lesson` | Unit variants contain lessons |
-| **HAS_UNITVARIANT** | 4,553 | `Programme/Unit-[:HAS_UNITVARIANT]->Unitvariant` | Units and programmes have variants |
-| **HAS_THREAD** | 3,322 | `Unit-[:HAS_THREAD]->Thread` | Units belong to thematic threads |
-| **HAS_UNIT** | 1,614 | `Unitoffering-[:HAS_UNIT]->Unit` | Offerings connect to units |
-| **HAS_PROGRAMME** | 405 | `Examboard/Tier-[:HAS_PROGRAMME]->Programme` | Exam specs define programmes |
-| **HAS_UNIT_OFFERING** | 366 | `Subject/Year-[:HAS_UNIT_OFFERING]->Unitoffering` | Subjects and years offer units |
-| **HAS_YEAR** | 11 | `Keystage-[:HAS_YEAR]->Year` | Key stages contain year groups |
-| **HAS_KEY_STAGE** | 4 | `Phase-[:HAS_KEY_STAGE]->Keystage` | Phases contain key stages |
+| **HAS_LESSON** | 15,409 | `Unitvariant-[:HAS_LESSON]->Lesson` | Unitvariants have Lessons |
+| **HAS_UNITVARIANT** | 4,553 | `Programme/Unit-[:HAS_UNITVARIANT]->Unitvariant` | Units and Programmes have Unitvariants |
+| **HAS_THREAD** | 3,322 | `Unit-[:HAS_THREAD]->Thread` | Units have Threads |
+| **HAS_UNIT** | 1,614 | `Unitoffering-[:HAS_UNIT]->Unit` | Offerings have Units |
+| **HAS_PROGRAMME** | 405 | `Examboard/Tier-[:HAS_PROGRAMME]->Programme` | Examboards and Tiers have Programmes |
+| **HAS_UNIT_OFFERING** | 366 | `Subject/Year-[:HAS_UNIT_OFFERING]->Unitoffering` | Subjects and Years have Unitofferings |
+| **HAS_YEAR** | 11 | `Keystage-[:HAS_YEAR]->Year` | Keystages have Years |
+| **HAS_KEY_STAGE** | 4 | `Phase-[:HAS_KEY_STAGE]->Keystage` | Phases have Keystages |
 
 ### Quick Example
 
@@ -178,23 +180,24 @@ These hierarchies intersect through "Unit Offerings" that connect specific year 
 
 ```cypher
 // Find Year 10 English lessons for AQA programme
-MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
-      (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo),
-      (uo)-[:HAS_UNIT]->(unit:Unit),
-      (unit)-[:HAS_UNITVARIANT]->(uv:Unitvariant),
-      (examboard:Examboard {examBoardSlug: "aqa"})-[:HAS_PROGRAMME]->(prog:Programme),
-      (prog)-[:HAS_UNITVARIANT]->(uv),
-      (uv)-[:HAS_LESSON]->(lesson:Lesson)
-RETURN DISTINCT lesson.lessonTitle AS lesson, unit.unitTitle AS unit
-LIMIT 10;
+MATCH (examboard:Examboard {examBoardSlug: "aqa"})
+  -[:HAS_PROGRAMME]->(prog:Programme)
+  -[:HAS_UNITVARIANT]->(uv:Unitvariant)
+  <-[:HAS_UNITVARIANT]-(unit:Unit)
+  <-[:HAS_UNIT]-(uo:Unitoffering)
+  <-[:HAS_UNIT_OFFERING]-(year:Year {yearTitle: "10"})
+MATCH (subject:Subject {subjectSlug: "english"})
+  -[:HAS_UNIT_OFFERING]->(uo)
+MATCH (uv)-[:HAS_LESSON]->(lesson:Lesson)
+RETURN DISTINCT lesson.lessonTitle AS lesson, unit.unitTitle AS unit;
 ```
 
 **Sample Results:**
 | Lesson | Unit |
 |--------|------|
-| "Analysing how poets present relationships that change over time" | "Love and Relationships: poetry" |
-| "Understanding the tone of Brontë's 'Mild the Mist Upon the Hill'" | "Belonging: poetry" |
-| "Writing creatively about a theme: conflict" | "Conflict poetry: moving image" |
+| "Analysing how poets present relationships that change over time" | "Love and Relationships" |
+| "Analysing the concept of power in Shelley's 'Ozymandias'" | "Power and Conflict" |
+| "Analysing how Shelley presents ideas of suffering in 'England in 1819'" | "World and Lives" |
 
 This single query traverses multiple relationships to answer a complex question about curriculum organization, demonstrating the power of the graph model.
 
@@ -202,71 +205,43 @@ This single query traverses multiple relationships to answer a complex question 
 
 ## 3. Graph Schema Documentation
 
-### 3.1 Visual Schema Diagram
+### 3.1 Schema
 
-```
-                                    ┌──────────┐
-                                    │  Phase   │
-                                    │ (2 nodes)│
-                                    └────┬─────┘
-                                         │ HAS_KEY_STAGE
-                                         ↓
-                                    ┌────────────┐
-                                    │  Keystage  │
-                                    │ (4 nodes)  │
-                                    └─────┬──────┘
-                                          │ HAS_YEAR
-                                          ↓
-                    ┌─────────────────────────────────────┐
-                    │              Year                   │
-                    │           (11 nodes)                │
-                    └──────────┬──────────────────────────┘
-                               │
-                               │ HAS_UNIT_OFFERING
-                               ↓
-                    ┌──────────────────────┐
-  ┌──────────┐      │   Unitoffering       │      ┌──────────────┐
-  │ Subject  │──────┤    (183 nodes)       │      │  Examboard   │
-  │(22 nodes)│      └──────────┬───────────┘      │  (5 nodes)   │
-  └──────────┘    HAS_UNIT_OFFERING │              └──────┬───────┘
-       │                       │ HAS_UNIT                 │
-       │                       ↓                          │ HAS_PROGRAMME
-       │              ┌──────────────┐                    │
-       │              │     Unit     │←───────┐           ↓
-       │              │ (1,564 nodes)│        │    ┌──────────────┐
-       │              └──┬────────┬──┘        │    │  Programme   │
-       │                 │        │           │    │  (258 nodes) │
-       │                 │        │HAS_THREAD │    └──────┬───────┘
-       │      HAS_UNITVARIANT     ↓           │           │
-       │                 │   ┌────────┐       │           │
-       │                 │   │ Thread │       │      HAS_PROGRAMME
-       │                 │   │(165)   │       │           │
-       │                 ↓   └────────┘       │           ↓
-       │         ┌─────────────────┐          │    ┌──────────┐
-       │         │  Unitvariant    │←─────────┴────│   Tier   │
-       │         │  (2,064 nodes)  │               │ (2 nodes)│
-       │         └────────┬────────┘               └──────────┘
-       │                  │ HAS_LESSON
-       │                  ↓
-       │          ┌───────────────┐
-       └─────────→│    Lesson     │
-                  │ (12,631 nodes)│
-                  └───────────────┘
+| Node Label | Properties |
+|-|-|
+| Schemaversion | schemaVersion:string, schemaDescription:string, isActive:boolean, lastUpdated:datetime |
+| Phase | displayOrder:int, phaseSlug:string, phaseTitle:string, phaseId:int, phaseDescription:string, lastUpdated:datetime |
+| Keystage | displayOrder:int, keyStageSlug:string, keyStageTitle:string, keyStageId:int, keyStageDescription:string, lastUpdated:datetime |
+| Year | displayOrder:int, yearTitle:string, yearSlug:string, yearDescription:string, yearId:int, lastUpdated:datetime |
+| Subject | displayOrder:int, subjectTitle:string, subjectParentTitle:string, subjectDescription:string, subjectParentId:int, subjectSlug:string, subjectId:int, lastUpdated:datetime |
+| Unitoffering | unitOfferingSlug:string, lastUpdated:datetime |
+| Unit | unitId:int, unitTitle:string, unitDescription:string, unitSlug:string, priorKnowledge:list, subjectCategory:list, whyThisWhyNow:string, lastUpdated:datetime |
+| Programme | programmeSlug:string, lastUpdated:datetime |
+| Examboard | displayOrder:int, examBoardSlug:string, examBoardId:int, examBoardTitle:string, examBoardDescription:string, lastUpdated:datetime |
+| Tier | displayOrder:int, tierSlug:string, tierId:int, tierTitle:string, tierDescription:string, lastUpdated:datetime |
+| Unitvariant | unitVariantId:int, optionTitle:string, lastUpdated:datetime |
+| Lesson | lessonId:int, lessonTitle:string, lessonSlug:string, pupilLessonOutcome:string, quizStarterId:int, quizExitId:int, keyLearningPoints:list, keywords:list, lessonOutline:list, contentGuidance:list, contentGuidanceDetails:list, misconceptionsMistakes:list, equipmentResources:list, teacherTips:list, lastUpdated:datetime |
+| Thread | threadSlug:string, threadId:int, threadTitle:string, lastUpdated:datetime |
 
-Legend:
-  [Node] ──→ [Node]  : Relationship direction
-  ↓                  : Hierarchical flow
-```
+| Relationship Type | From Node → To Node | Properties |
+|-|-|-|
+| HAS_KEY_STAGE | Phase → Keystage | lastUpdated:datetime |
+| HAS_LESSON | Unitvariant → Lesson | lessonOrder:int, lastUpdated:datetime |
+| HAS_PROGRAMME | Unitoffering → Programme | lastUpdated:datetime |
+| HAS_PROGRAMME | Tier → Programme | lastUpdated:datetime |
+| HAS_PROGRAMME | Examboard → Programme | lastUpdated:datetime |
+| HAS_THREAD | Unit → Thread | lastUpdated:datetime |
+| HAS_UNIT | Unitoffering → Unit | unitOrder:int, lastUpdated:datetime |
+| HAS_UNITVARIANT | Unit → Unitvariant | lastUpdated:datetime |
+| HAS_UNITVARIANT | Programme → Unitvariant | unitVariantOrder:int, isOptional:boolean, lastUpdated:datetime |
+| HAS_UNIT_OFFERING | Subject → Unitoffering | lastUpdated:datetime |
+| HAS_UNIT_OFFERING | Year → Unitoffering | lastUpdated:datetime |
+| HAS_YEAR | Keystage → Year | lastUpdated:datetime |
 
 ### 3.2 Node Types
 
 #### 3.2.1 Phase
 
-**Description:** Represents the two major divisions of UK education.
-
-**Cardinality:** 2 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `phaseId` | INTEGER | Unique identifier | `2`, `3` |
@@ -276,17 +251,8 @@ Legend:
 | `displayOrder` | INTEGER | Sort order | `2`, `3` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
-// Primary phase
-{
-  "phaseId": 2,
-  "phaseSlug": "primary",
-  "phaseTitle": "primary",
-  "phaseDescription": "Primary",
-  "displayOrder": 2
-}
-
+**Example:**
+```
 // Secondary phase
 {
   "phaseId": 3,
@@ -301,11 +267,6 @@ Legend:
 
 #### 3.2.2 Keystage
 
-**Description:** UK Key Stages (KS1 through KS4) that organize the national curriculum.
-
-**Cardinality:** 4 nodes (KS1, KS2, KS3, KS4)
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `keyStageId` | INTEGER | Unique identifier | `1`, `2`, `3`, `4` |
@@ -315,18 +276,9 @@ Legend:
 | `displayOrder` | INTEGER | Sort order | `2`, `3`, `4`, `5` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
-// Key Stage 4 (GCSE years)
-{
-  "keyStageId": 4,
-  "keyStageSlug": "ks4",
-  "keyStageTitle": "KS4",
-  "keyStageDescription": "Key Stage 4",
-  "displayOrder": 5
-}
-
-// Key Stage 3 (Secondary transition)
+**Example:**
+```
+// Key Stage 3
 {
   "keyStageId": 3,
   "keyStageSlug": "ks3",
@@ -340,11 +292,6 @@ Legend:
 
 #### 3.2.3 Year
 
-**Description:** Individual year groups from Year 1 through Year 11.
-
-**Cardinality:** 11 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `yearId` | INTEGER | Unique identifier | `10` |
@@ -354,9 +301,9 @@ Legend:
 | `displayOrder` | INTEGER | Sort order | `11` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
-// Year 10 (GCSE year 1)
+**Example:**
+```
+// Year 10
 {
   "yearId": 10,
   "yearSlug": "year-10",
@@ -364,40 +311,26 @@ Legend:
   "yearDescription": "Year 10",
   "displayOrder": 11
 }
-
-// Year 9 (End of KS3)
-{
-  "yearId": 9,
-  "yearSlug": "year-9",
-  "yearTitle": "9",
-  "yearDescription": "Year 9",
-  "displayOrder": 10
-}
 ```
 
 ---
 
 #### 3.2.4 Subject
 
-**Description:** Academic subjects taught in the UK curriculum (English, Maths, Science, etc.).
-
-**Cardinality:** 22 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `subjectId` | INTEGER | Unique identifier | `1`, `11`, `9` |
 | `subjectSlug` | STRING | URL-friendly identifier | `"english"`, `"art"`, `"chemistry"` |
 | `subjectTitle` | STRING | Display name | `"English"`, `"Art and design"` |
-| `subjectDescription` | STRING (optional) | Key stage range or notes | `"KS4"`, `"EYFS, KS1, KS2, KS3"` |
+| `subjectDescription` | STRING (optional) | Key stage range or notes | `"KS1, KS2, KS3, KS4"` |
 | `subjectParentId` | INTEGER (optional) | Parent subject ID | `6` (Science parent for Chemistry) |
 | `subjectParentTitle` | STRING (optional) | Parent subject name | `"Science"` |
 | `displayOrder` | INTEGER | Sort order | `11`, `1`, `35` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
-// English (standalone subject)
+**Examples:**
+```
+// English
 {
   "subjectId": 1,
   "subjectSlug": "english",
@@ -405,7 +338,7 @@ Legend:
   "displayOrder": 11
 }
 
-// Chemistry (sub-subject of Science)
+// Chemistry
 {
   "subjectId": 9,
   "subjectSlug": "chemistry",
@@ -415,45 +348,22 @@ Legend:
   "subjectParentTitle": "Science",
   "displayOrder": 35
 }
-
-// Art and design
-{
-  "subjectId": 11,
-  "subjectSlug": "art",
-  "subjectTitle": "Art and design",
-  "displayOrder": 1
-}
 ```
 
 ---
 
 #### 3.2.5 Unitoffering
 
-**Description:** Junction node connecting a specific Year and Subject to curriculum Units. Represents "Year 10 English offers these units."
-
-**Cardinality:** 183 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `unitOfferingSlug` | STRING | Composite identifier | `"year-10-english"`, `"year-10-art"` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
+**Example:**
+```
 // Year 10 English offering
 {
   "unitOfferingSlug": "year-10-english"
-}
-
-// Year 10 Chemistry offering
-{
-  "unitOfferingSlug": "year-10-chemistry"
-}
-
-// Year 10 Art offering
-{
-  "unitOfferingSlug": "year-10-art"
 }
 ```
 
@@ -461,11 +371,6 @@ Legend:
 
 #### 3.2.6 Unit
 
-**Description:** Thematic curriculum units containing lessons (e.g., "Poetry anthology: first study", "States of matter").
-
-**Cardinality:** 1,564 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `unitId` | INTEGER | Unique identifier | `153`, `3748`, `1148` |
@@ -474,12 +379,12 @@ Legend:
 | `unitDescription` | STRING | Full description | `"In this unit, pupils explore 11 of the 15 poems..."` |
 | `whyThisWhyNow` | STRING (optional) | Pedagogical rationale | `"This unit uses and builds on pupils' understanding..."` |
 | `priorKnowledge` | LIST OF STRING (optional) | Prerequisites | `["Pupils can use reading skills to decode texts.", ...]` |
-| `subjectCategory` | LIST OF STRING (optional) | Subject area tags | `["Literature"]`, `["Chemistry"]` |
+| `subjectCategory` | LIST OF STRING (optional) | Subject area tags | `["Literature"]`, `["Grammar"]` |
 | `nullUnitVariantId` | INTEGER | Default variant ID | `927`, `4940` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instance:**
-```cypher
+**Example:**
+```
 {
   "unitId": 153,
   "unitSlug": "poetry-anthology-first-study",
@@ -492,8 +397,7 @@ Legend:
     "Pupils can comment on the language choices of a poet.",
     "Pupils can recognise and comment on some structural devices of poetry..."
   ],
-  "subjectCategory": ["Literature"],
-  "nullUnitVariantId": 927
+  "subjectCategory": ["Literature"]
 }
 ```
 
@@ -501,32 +405,20 @@ Legend:
 
 #### 3.2.7 Unitvariant
 
-**Description:** Exam board-specific variants of units (e.g., AQA version vs Edexcel version of poetry anthology).
-
-**Cardinality:** 2,064 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `unitVariantId` | INTEGER | Unique identifier | `5071`, `203`, `201` |
-| `optionTitle` | STRING | Variant display name | `"Poetry anthology (Assessment from summer 2027)"` |
+| `optionTitle` | STRING (optional) | Variant display name | `"Poetry anthology"` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
-// AQA Poetry variant
+**Examples:**
+```
+// AQA Non-fiction: crime and punishment variant
 {
-  "unitVariantId": 5071,
-  "optionTitle": "Poetry anthology (Assessment from summer 2027)"
+  "unitVariantId": 141
 }
 
-// Edexcel Belonging variant
-{
-  "unitVariantId": 203,
-  "optionTitle": "Belonging"
-}
-
-// AQA Love and Relationships variant
+// AQA Love and Relationships variant (optional)
 {
   "unitVariantId": 201,
   "optionTitle": "Love and Relationships"
@@ -537,11 +429,6 @@ Legend:
 
 #### 3.2.8 Lesson
 
-**Description:** Individual teaching sessions with complete pedagogical content including keywords, learning points, misconceptions, and resources.
-
-**Cardinality:** 12,631 nodes (largest node type)
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `lessonId` | INTEGER | Unique identifier | `29077`, `2537` |
@@ -560,8 +447,8 @@ Legend:
 | `quizExitId` | INTEGER | Exit quiz ID | `39437` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instance (abbreviated):**
-```cypher
+**Example (abbreviated):**
+```
 {
   "lessonId": 2537,
   "lessonSlug": "understanding-the-poem-mild-the-mist-upon-the-hill",
@@ -576,9 +463,7 @@ Legend:
     "{\"key_learning_point\": \"Some may argue Brontë's poem is about the sense of security and belonging her nostalgic memories bring.\"}"
   ],
   "contentGuidance": ["4"],
-  "contentGuidanceDetails": ["{\"details\": \"This lesson contains references to grief and sadness.\"}"],
-  "quizStarterId": 25435,
-  "quizExitId": 25436
+  "contentGuidanceDetails": ["{\"details\": \"This lesson contains references to grief and sadness.\"}"]
 }
 ```
 
@@ -586,11 +471,6 @@ Legend:
 
 #### 3.2.9 Thread
 
-**Description:** Thematic learning strands that span across units (e.g., "Modern literature strand 1: identity, belonging and community").
-
-**Cardinality:** 165 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `threadId` | INTEGER | Unique identifier | `120`, `80`, `127` |
@@ -598,27 +478,13 @@ Legend:
 | `threadTitle` | STRING | Display name | `"Modern literature strand 1: identity, belonging and community"` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:55.085753"` |
 
-**Example Instances:**
-```cypher
-// Thread 1: Identity
+**Example:**
+```
+// Identity
 {
   "threadId": 120,
   "thread_slug": "modern-literature-strand-1-identity-belonging-and-community",
   "threadTitle": "Modern literature strand 1: identity, belonging and community"
-}
-
-// Thread 2: Power and control
-{
-  "threadId": 80,
-  "thread_slug": "modern-literature-strand-2-power-control-and-oppressive-regimes",
-  "threadTitle": "Modern literature strand 2: power, control and oppressive regimes"
-}
-
-// Thread 3: Poetry appreciation
-{
-  "threadId": 127,
-  "thread_slug": "appreciation-of-poetry",
-  "threadTitle": "Appreciation of poetry"
 }
 ```
 
@@ -626,11 +492,6 @@ Legend:
 
 #### 3.2.10 Examboard
 
-**Description:** UK exam boards that provide GCSE and A-Level qualifications.
-
-**Cardinality:** 5 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `examBoardId` | INTEGER | Unique identifier | `1`, `2`, `5` |
@@ -640,8 +501,8 @@ Legend:
 | `displayOrder` | INTEGER | Sort order | `1`, `2`, `5` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
+**Example:**
+```
 // AQA
 {
   "examBoardId": 1,
@@ -650,35 +511,12 @@ Legend:
   "examBoardDescription": "Assessment and Qualifications Alliance",
   "displayOrder": 1
 }
-
-// Edexcel
-{
-  "examBoardId": 2,
-  "examBoardSlug": "edexcel",
-  "examBoardTitle": "Edexcel",
-  "examBoardDescription": "Edexcel",
-  "displayOrder": 2
-}
-
-// Eduqas
-{
-  "examBoardId": 5,
-  "examBoardSlug": "eduqas",
-  "examBoardTitle": "Eduqas",
-  "examBoardDescription": "Eduqas",
-  "displayOrder": 5
-}
 ```
 
 ---
 
 #### 3.2.11 Tier
 
-**Description:** GCSE qualification tiers (Foundation or Higher).
-
-**Cardinality:** 2 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `tierId` | INTEGER | Unique identifier | `1`, `3` |
@@ -688,8 +526,8 @@ Legend:
 | `displayOrder` | INTEGER | Sort order | `1`, `3` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
+**Example:**
+```
 // Foundation tier
 {
   "tierId": 1,
@@ -698,46 +536,22 @@ Legend:
   "tierDescription": "Foundation",
   "displayOrder": 1
 }
-
-// Higher tier
-{
-  "tierId": 3,
-  "tierSlug": "higher",
-  "tierTitle": "higher",
-  "tierDescription": "Higher",
-  "displayOrder": 3
-}
 ```
 
 ---
 
 #### 3.2.12 Programme
 
-**Description:** Exam board and year-specific qualification pathways (e.g., "English Year 10 AQA").
-
-**Cardinality:** 258 nodes
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `programmeSlug` | STRING | Composite identifier | `"english-secondary-year-10-aqa"` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:04.079946"` |
 
-**Example Instances:**
-```cypher
+**Example:**
+```
 // Year 10 English AQA
 {
   "programmeSlug": "english-secondary-year-10-aqa"
-}
-
-// Year 10 English Edexcel
-{
-  "programmeSlug": "english-secondary-year-10-edexcel"
-}
-
-// Year 10 English Eduqas
-{
-  "programmeSlug": "english-secondary-year-10-eduqas"
 }
 ```
 
@@ -745,11 +559,6 @@ Legend:
 
 #### 3.2.13 Schemaversion
 
-**Description:** Metadata node tracking the schema version.
-
-**Cardinality:** 1 node
-
-**Properties:**
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
 | `schemaVersion` | STRING | Version identifier | `"v0.1.0-alpha"` |
@@ -757,8 +566,8 @@ Legend:
 | `isActive` | BOOLEAN | Active status | `true` |
 | `lastUpdated` | STRING | Timestamp | `"2025-10-08T22:27:24.364749"` |
 
-**Example Instance:**
-```cypher
+**Example:**
+```
 {
   "schemaVersion": "v0.1.0-alpha",
   "schemaDescription": "Schema design and experimentation.",
@@ -773,18 +582,12 @@ Legend:
 
 #### 3.3.1 HAS_KEY_STAGE
 
-**Description:** Links Phase nodes to their constituent Key Stages.
-
 **Pattern:** `(Phase)-[:HAS_KEY_STAGE]->(Keystage)`
-
-**Cardinality:** 4 relationships
-
-**Properties:** None
 
 **Semantics:** Indicates that a Phase (Primary or Secondary) contains specific Key Stages. For example, Primary phase contains KS1 and KS2, while Secondary contains KS3 and KS4.
 
 **Example Query:**
-```cypher
+```
 // Find all key stages in the secondary phase
 MATCH (p:Phase {phaseSlug: "secondary"})-[:HAS_KEY_STAGE]->(ks:Keystage)
 RETURN ks.keyStageTitle AS keyStage, ks.keyStageDescription AS description
@@ -801,18 +604,12 @@ ORDER BY ks.displayOrder;
 
 #### 3.3.2 HAS_YEAR
 
-**Description:** Links Key Stage nodes to their constituent Year groups.
-
 **Pattern:** `(Keystage)-[:HAS_YEAR]->(Year)`
 
-**Cardinality:** 11 relationships
-
-**Properties:** None
-
-**Semantics:** Indicates that a Key Stage contains specific Year groups. For example, KS4 contains Years 10 and 11 (GCSE years).
+**Semantics:** Indicates that a Key Stage contains specific Year groups. For example, KS4 contains Years 10 and 11.
 
 **Example Query:**
-```cypher
+```
 // Find all years in Key Stage 4
 MATCH (ks:Keystage {keyStageSlug: "ks4"})-[:HAS_YEAR]->(y:Year)
 RETURN y.yearTitle AS year, y.yearDescription AS description
@@ -835,14 +632,10 @@ ORDER BY y.displayOrder;
 - `(Subject)-[:HAS_UNIT_OFFERING]->(Unitoffering)`
 - `(Year)-[:HAS_UNIT_OFFERING]->(Unitoffering)`
 
-**Cardinality:** 366 relationships (183 from Subject, 183 from Year)
-
-**Properties:** None
-
-**Semantics:** Creates the connection between a specific Year group and Subject to available curriculum Units. A Unitoffering represents "Year X studying Subject Y has access to these units."
+**Semantics:** Creates the connection between a specific Year group and Subject to available curriculum Units. A Unitoffering represents "Year X studying Subject Y".
 
 **Example Query:**
-```cypher
+```
 // Find unit offerings for Year 10 English
 MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo)
@@ -858,24 +651,17 @@ RETURN uo.unitOfferingSlug AS offering;
 
 #### 3.3.4 HAS_UNIT
 
-**Description:** Links Unitoffering nodes to the actual Unit nodes they provide.
-
 **Pattern:** `(Unitoffering)-[:HAS_UNIT]->(Unit)`
-
-**Cardinality:** 1,614 relationships
-
-**Properties:** None
 
 **Semantics:** Indicates that a Unit Offering (Year + Subject combination) provides access to specific curriculum Units.
 
 **Example Query:**
-```cypher
+```
 // Find all units available for Year 10 English
 MATCH (year:Year {yearTitle: "10"})-[:HAS_UNIT_OFFERING]->(uo:Unitoffering),
       (subject:Subject {subjectSlug: "english"})-[:HAS_UNIT_OFFERING]->(uo),
       (uo)-[:HAS_UNIT]->(unit:Unit)
-RETURN DISTINCT unit.unitTitle AS unit
-LIMIT 5;
+RETURN DISTINCT unit.unitTitle AS unit;
 ```
 
 **Sample Results:**
@@ -889,30 +675,23 @@ LIMIT 5;
 
 #### 3.3.5 HAS_UNITVARIANT
 
-**Description:** Links Unit and Programme nodes to their exam board-specific variants.
-
 **Pattern:**
 - `(Unit)-[:HAS_UNITVARIANT]->(Unitvariant)`
 - `(Programme)-[:HAS_UNITVARIANT]->(Unitvariant)`
 
-**Cardinality:** 4,553 relationships (2,064 from Unit, 2,489 from Programme)
-
-**Properties:** None
-
 **Semantics:** Indicates that a Unit or Programme has specific exam board variants. Different exam boards may have different versions of the same conceptual unit.
 
 **Example Query:**
-```cypher
+```
 // Find all variants of a specific unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})-[:HAS_UNITVARIANT]->(uv:Unitvariant)
-RETURN uv.optionTitle AS variant
-LIMIT 3;
+RETURN uv.optionTitle AS variant;
 ```
 
 **Sample Results:**
 | variant |
 |---------|
-| Poetry anthology (Assessment from summer 2027) |
+| Poetry anthology |
 | Love and Relationships |
 | Belonging |
 
@@ -920,22 +699,15 @@ LIMIT 3;
 
 #### 3.3.6 HAS_LESSON
 
-**Description:** Links Unitvariant nodes to the Lesson nodes they contain.
-
 **Pattern:** `(Unitvariant)-[:HAS_LESSON]->(Lesson)`
-
-**Cardinality:** 15,409 relationships (largest relationship type)
-
-**Properties:** None
 
 **Semantics:** Indicates that a Unit Variant contains specific lessons. This is the primary relationship for accessing teaching content.
 
 **Example Query:**
-```cypher
+```
 // Find lessons in a specific unit variant
 MATCH (uv:Unitvariant {optionTitle: "Love and Relationships"})-[:HAS_LESSON]->(lesson:Lesson)
-RETURN lesson.lessonTitle AS lesson, lesson.pupilLessonOutcome AS outcome
-LIMIT 3;
+RETURN lesson.lessonTitle AS lesson, lesson.pupilLessonOutcome AS outcome;
 ```
 
 **Sample Results:**
@@ -947,18 +719,12 @@ LIMIT 3;
 
 #### 3.3.7 HAS_THREAD
 
-**Description:** Links Unit nodes to thematic Thread nodes.
-
 **Pattern:** `(Unit)-[:HAS_THREAD]->(Thread)`
-
-**Cardinality:** 3,322 relationships
-
-**Properties:** None
 
 **Semantics:** Indicates that a Unit belongs to one or more thematic learning threads. Threads provide cross-unit thematic organization.
 
 **Example Query:**
-```cypher
+```
 // Find all threads for a unit
 MATCH (unit:Unit {unitSlug: "poetry-anthology-first-study"})-[:HAS_THREAD]->(thread:Thread)
 RETURN thread.threadTitle AS theme;
@@ -974,24 +740,17 @@ RETURN thread.threadTitle AS theme;
 
 #### 3.3.8 HAS_PROGRAMME
 
-**Description:** Links Examboard and Tier nodes to Programme nodes.
-
 **Pattern:**
 - `(Examboard)-[:HAS_PROGRAMME]->(Programme)`
 - `(Tier)-[:HAS_PROGRAMME]->(Programme)`
 
-**Cardinality:** 405 relationships (95 from Examboard, 52 from Tier, 258 from Unitoffering)
-
-**Properties:** None
-
-**Semantics:** Indicates that an Exam Board or Tier provides specific qualification programmes. Programmes are exam board and year-specific pathways.
+**Semantics:** Indicates that an Exam Board and/or Tier provides specific qualification programmes.
 
 **Example Query:**
-```cypher
+```
 // Find all AQA programmes
 MATCH (eb:Examboard {examBoardSlug: "aqa"})-[:HAS_PROGRAMME]->(prog:Programme)
-RETURN prog.programmeSlug AS programme
-LIMIT 5;
+RETURN prog.programmeSlug AS programme;
 ```
 
 **Sample Results:**
