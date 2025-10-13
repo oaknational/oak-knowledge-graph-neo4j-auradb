@@ -21,7 +21,7 @@
    - [Quick Example](#quick-example)
 
 3. [Graph Schema Documentation](#3-graph-schema-documentation)
-   - [Visual Schema Diagram](#31-visual-schema-diagram)
+   - [Visual Schema Diagram](#31-schema)
    - [Node Types](#32-node-types)
    - [Relationship Types](#33-relationship-types)
 
