@@ -314,27 +314,6 @@ LOG_FILE=pipeline.log
 **Current Version:** v0.1.0-alpha
 **Status:** Production-ready for Oak curriculum data
 
-### Recent Updates (Session 8 - Oct 2025)
-- ✅ CSV quoting optimization (QUOTE_MINIMAL)
-- ✅ String quote stripping for clean Neo4j values
-- ✅ Computed properties for relationships
-- ✅ Unit order fix for optional variants
-- ✅ Composite key join support
-
-**See [HISTORY.md](HISTORY.md) for complete development history.**
-
-## Contributing
-
-This project follows strict development standards:
-
-1. All code must be formatted with `black`
-2. All code must pass `flake8` linting
-3. All tests must pass before commit
-4. Follow conventional commit format
-5. Update relevant documentation
-
-See [CLAUDE.md](CLAUDE.md) for complete development standards.
-
 ## License
 
 Internal Oak National Academy project.
@@ -345,7 +324,6 @@ For questions or issues:
 1. Review [USER_GUIDE.md](USER_GUIDE.md) for configuration help
 2. Check [HISTORY.md](HISTORY.md) for recent changes and solutions
 3. Consult [ARCHITECTURE.md](ARCHITECTURE.md) for technical details
-4. Contact the AI Enablement squad
 
 ---
 
